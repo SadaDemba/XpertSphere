@@ -8,7 +8,7 @@ Fonctionnalités principales :
 - Organisation des entretiens techniques avec feedback direct des employés.
 - Analyse et reporting pour améliorer les processus de recrutement.
 
-  Technologies :
+Technologies :
 - Back-end : .NET 9 avec NSwag pour l'API.
 - Front-end : Vue.js avec Pinia, Vee-Validate, et Quasar.
 - Message Broker : RabbitMQ pour la gestion des notifications.
