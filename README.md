@@ -115,3 +115,11 @@ XpertSphere/
 ├── deploy/                      # Scripts et configurations de déploiement
 └── tests/                       # Tests automatisés
 ```
+
+## 🤝 Contribution
+
+Veuillez consulter le fichier [CONTRIBUTING.md](.github/CONTRIBUTING.md) pour les directives de contribution au projet.
+
+## 📧 Contact
+
+Pour toute question technique relative au projet, contactez l'équipe de développement avec l'adresse email [sadadembat9@gmail.com](mailto:sadadembat9@gmail.com).
