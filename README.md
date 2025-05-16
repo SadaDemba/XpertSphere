@@ -1,7 +1,9 @@
 # XpertSphere
+
 XpertSphere est un logiciel ATS (Applicant Tracking System) conçu pour optimiser et structurer le processus de recrutement. Développé dans le cadre d'un projet de fin d'études, ce système met l'accent sur l'expertise et l'innovation pour répondre aux besoins des équipes RH et des entreprises IT.
 
 Fonctionnalités principales :
+
 - Gestion des offres d'emploi et publication sur des plateformes externes (HelloWork, LinkedIn, etc.).
 - Suivi des candidatures avec des statuts personnalisés (Nouvelle, Entretien RH, Entretien technique, Recruté, Rejeté).
 - Notifications automatiques et modèles de messages personnalisables pour les candidats.
@@ -54,7 +56,7 @@ Créez un fichier `.env` à la racine du projet en vous basant sur le fichier `.
 ```bash
 cp .env.example .env
 # Éditer le fichier .env avec vos propres valeurs
-```
+```text
 
 ### Démarrer l'environnement de développement
 
@@ -99,7 +101,7 @@ npm run test
 
 ## 🌐 Structure du projet
 
-```
+```text
 XpertSphere/
 ├── .github/                     # Configuration GitHub Actions
 ├── docs/                        # Documentation du projet
@@ -123,4 +125,4 @@ Veuillez consulter le fichier [CONTRIBUTING.md](.github/CONTRIBUTING.md) pour le
 
 ## 📧 Contact
 
-Pour toute question technique relative au projet, contactez l'équipe de développement avec l'adresse email [sadadembat9@gmail.com](mailto:sadadembat9@gmail.com).
+Pour toute question technique relative au projet, contactez l'équipe de développement à travers [Sada](mailto:sadadembat9@gmail.com).
