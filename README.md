@@ -1,12 +1,15 @@
 # XpertSphere
+
 XpertSphere est un logiciel ATS (Applicant Tracking System) conçu pour optimiser et structurer le processus de recrutement. Développé dans le cadre d'un projet de fin d'études, ce système met l'accent sur l'expertise et l'innovation pour répondre aux besoins des équipes RH et des entreprises IT.
 
 Fonctionnalités principales :
+
 - Gestion des offres d'emploi et publication sur des plateformes externes (HelloWork, LinkedIn, etc.).
 - Suivi des candidatures avec des statuts personnalisés (Nouvelle, Entretien RH, Entretien technique, Recruté, Rejeté).
 - Notifications automatiques et modèles de messages personnalisables pour les candidats.
 - Organisation des entretiens techniques avec feedback direct des employés.
 - Analyse et reporting pour améliorer les processus de recrutement.
+
 Technologies :
 - Back-end : .NET 9 avec NSwag pour l'API.
 - Front-end : Vue.js avec Pinia, Vee-Validate, et Quasar.
@@ -98,22 +101,25 @@ npm run test
 
 ## 🌐 Structure du projet
 
-```
+```text
 XpertSphere/
-├── .github/                     # Configuration GitHub Actions
-├── docs/                        # Documentation du projet
-├── src/                         # Code source
-│   ├── backend/                 # Services backend
-│   │   ├── XpertSphere.API/     # API principale (.NET 9)
-│   │   ├── XpertSphere.CVAnalyzer/  # Service d'analyse de CV (FastAPI)
-│   │   └── ...                  # Autres microservices
-│   ├── frontend/                # Applications frontend
-│   │   ├── common/              # Code partagé entre applications
-│   │   ├── recruiter-app/       # Application recruteur
-│   │   └── candidate-app/       # Application candidat
-│   └── shared/                  # Code partagé backend/frontend
-├── deploy/                      # Scripts et configurations de déploiement
-└── tests/                       # Tests automatisés
+├── .github/                                    # Configuration GitHub Actions
+├── docs/                                       # Documentation du projet
+├── src/                                        # Code source
+│   ├── backend/                                # Services backend
+│   │   ├── XpertSphere.MonolithApi/            # 🏗️ Monolith (coeur du système)
+│   │   ├── XpertSphere.CommunicationService/   # 📨 Emails, notifications, SignalR
+│   │   ├── XpertSphere.ReportingService/       # 📊 Analytics et rapports
+│   │   │── XpertSphere.IntegrationService/     # 🔌 LinkedIn, HelloWork, etc.
+│   │   └── XpertSphere.CVAnalyzer/             # Service d'analyse de CV (FastAPI)
+│   ├── frontend/                               # Applications frontend
+│   │   ├── common/                             # Code partagé entre applications
+│   │   ├── recruiter-app/                      # Application recruteur
+│   │   └── candidate-app/                      # Application candidat
+│   └── shared/                                 # Code partagé backend/frontend
+├── deploy/                                     # Scripts et configurations de déploiement
+└── tests/                                      # Tests automatisés
+
 ```
 
 ## 🤝 Contribution
@@ -122,4 +128,4 @@ Veuillez consulter le fichier [CONTRIBUTING.md](.github/CONTRIBUTING.md) pour le
 
 ## 📧 Contact
 
-Pour toute question technique relative au projet, contactez l'équipe de développement avec l'adresse email [sadadembat9@gmail.com](mailto:sadadembat9@gmail.com).
+Pour toute question technique relative au projet, contactez l'équipe de développement à travers [Sada](mailto:sadadembat9@gmail.com).

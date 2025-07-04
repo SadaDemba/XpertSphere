@@ -1,0 +1,82 @@
+# Environnements virtuels
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Fichiers de configuration contenant des secrets
+.env
+.env.local
+.env.*.local
+secrets.json
+credentials.json
+
+# Mais conserver les exemples de configuration
+!.env.example
+
+# Fichiers PDF et documents de test temporaires
+uploads/
+temp/
+tmp/
+
+# Fichiers Python compilés
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Logs
+*.log
+logs/
+log/
+
+# Couverture de test et rapports
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# IDEs et éditeurs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Notebooks
+.ipynb_checkpoints
+
+# Fichiers générés/temporaires
+__generated__/
+.mypy_cache/
+.ruff_cache/
+.pytype/

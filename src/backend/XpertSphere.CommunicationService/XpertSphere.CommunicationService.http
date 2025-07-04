@@ -1,0 +1,6 @@
+@XpertSphere.CommunicationService_HostAddress = http://localhost:5193
+
+GET {{XpertSphere.CommunicationService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
