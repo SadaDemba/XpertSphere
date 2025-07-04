@@ -56,7 +56,7 @@ Créez un fichier `.env` à la racine du projet en vous basant sur le fichier `.
 ```bash
 cp .env.example .env
 # Éditer le fichier .env avec vos propres valeurs
-```text
+```
 
 ### Démarrer l'environnement de développement
 
@@ -119,6 +119,7 @@ XpertSphere/
 │   └── shared/                                 # Code partagé backend/frontend
 ├── deploy/                                     # Scripts et configurations de déploiement
 └── tests/                                      # Tests automatisés
+
 ```
 
 ## 🤝 Contribution
