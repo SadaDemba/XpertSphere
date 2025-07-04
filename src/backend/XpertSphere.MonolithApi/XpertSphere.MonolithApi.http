@@ -1,0 +1,6 @@
+@XpertSphere.MonolithApi_HostAddress = http://localhost:5096
+
+GET {{XpertSphere.MonolithApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

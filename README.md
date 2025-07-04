@@ -103,20 +103,22 @@ npm run test
 
 ```text
 XpertSphere/
-├── .github/                     # Configuration GitHub Actions
-├── docs/                        # Documentation du projet
-├── src/                         # Code source
-│   ├── backend/                 # Services backend
-│   │   ├── XpertSphere.API/     # API principale (.NET 9)
-│   │   ├── XpertSphere.CVAnalyzer/  # Service d'analyse de CV (FastAPI)
-│   │   └── ...                  # Autres microservices
-│   ├── frontend/                # Applications frontend
-│   │   ├── common/              # Code partagé entre applications
-│   │   ├── recruiter-app/       # Application recruteur
-│   │   └── candidate-app/       # Application candidat
-│   └── shared/                  # Code partagé backend/frontend
-├── deploy/                      # Scripts et configurations de déploiement
-└── tests/                       # Tests automatisés
+├── .github/                                    # Configuration GitHub Actions
+├── docs/                                       # Documentation du projet
+├── src/                                        # Code source
+│   ├── backend/                                # Services backend
+│   │   ├── XpertSphere.MonolithApi/            # 🏗️ Monolith (coeur du système)
+│   │   ├── XpertSphere.CommunicationService/   # 📨 Emails, notifications, SignalR
+│   │   ├── XpertSphere.ReportingService/       # 📊 Analytics et rapports
+│   │   │── XpertSphere.IntegrationService/     # 🔌 LinkedIn, HelloWork, etc.
+│   │   └── XpertSphere.CVAnalyzer/             # Service d'analyse de CV (FastAPI)
+│   ├── frontend/                               # Applications frontend
+│   │   ├── common/                             # Code partagé entre applications
+│   │   ├── recruiter-app/                      # Application recruteur
+│   │   └── candidate-app/                      # Application candidat
+│   └── shared/                                 # Code partagé backend/frontend
+├── deploy/                                     # Scripts et configurations de déploiement
+└── tests/                                      # Tests automatisés
 ```
 
 ## 🤝 Contribution
