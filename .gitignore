@@ -73,6 +73,10 @@ bld/
 appsettings.Production.json
 appsettings.Staging.json
 
+# Docker volumes and data
+.docker/
+docker-compose.override.yml
+
 # Python
 __pycache__/
 *.py[cod]
@@ -118,6 +122,9 @@ coverage.xml
 
 # Virtual environments
 .env
+.env.local
+.env.production
+.env.staging
 .venv
 env/
 venv/

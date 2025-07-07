@@ -1,0 +1,59 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: xpertsphere-sqlserver
+    environment:
+      SA_PASSWORD: "XpertSphere123!"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - xpertsphere-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P XpertSphere123! -Q 'SELECT 1' || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  redis:
+    image: redis:7-alpine
+    container_name: xpertsphere-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - xpertsphere-network
+    restart: unless-stopped
+    command: redis-server --requirepass "XpertSphere123!"
+
+  adminer:
+    image: adminer:latest
+    container_name: xpertsphere-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - xpertsphere-network
+    restart: unless-stopped
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+volumes:
+  sqlserver_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  xpertsphere-network:
+    driver: bridge
