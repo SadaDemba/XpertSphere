@@ -1,19 +1,66 @@
 using XpertSphere.MonolithApi.DTOs.User;
+using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Utils.Pagination;
 
 namespace XpertSphere.MonolithApi.Interfaces;
 
 public interface IUserService
 {
-    Task<UserDto> CreateAsync(CreateUserDto createUserDto);
-    Task<UserDto?> GetByIdAsync(Guid id);
-    Task<UserDto?> GetByEmailAsync(string email);
-    Task<(List<UserDto> Users, int TotalCount)> GetAllAsync(UserFilterDto filter);
-    Task<UserDto?> UpdateAsync(Guid id, UpdateUserDto updateUserDto);
-    Task<bool> DeleteAsync(Guid id);
-    Task<bool> ExistsAsync(Guid id);
-    Task<bool> EmailExistsAsync(string email, Guid? excludeUserId = null);
-    Task<UserDto?> UpdateLastLoginAsync(Guid id);
-    Task<List<UserDto>> GetByOrganizationAsync(Guid organizationId);
-    Task<List<UserDto>> GetCandidatesAsync(UserFilterDto filter);
-    Task<List<UserDto>> GetInternalUsersAsync(UserFilterDto filter);
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="createUserDto"></param>
+    /// <returns></returns>
+    Task<User> Post(CreateUserDto createUserDto);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    Task<User?> Get(Guid id);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="userFilters"></param>
+    /// <returns></returns>
+    Task<ResponseResource<User>> GetAll(UserFilterDto userFilters);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="user"></param>
+    /// <returns></returns>
+    Task<User?> Put(Guid id, User user);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    Task<bool> Delete(Guid id);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    Task<bool> Exists(Guid id);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="email"></param>
+    /// <param name="excludeUserId"></param>
+    /// <returns></returns>
+    Task<bool> EmailExists(string email, Guid? excludeUserId = null);
+
+    /// <summary>
+    /// s
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    Task<User?> UpdateLastLogin(Guid id);
 }

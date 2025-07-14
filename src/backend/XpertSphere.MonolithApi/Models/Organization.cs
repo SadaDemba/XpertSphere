@@ -35,5 +35,5 @@ public class Organization : AuditableEntity
     public string? Website { get; set; }
 
     // Navigation properties
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public virtual ICollection<User> Users { get; set; } = [];
 }

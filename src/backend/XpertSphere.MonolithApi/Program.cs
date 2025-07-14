@@ -46,6 +46,7 @@ builder.Services.AddDbContext<XpertSphereDbContext>(options =>
 
 // Register services
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IOrganizationService, OrganizationService>();
 
 var app = builder.Build();
 

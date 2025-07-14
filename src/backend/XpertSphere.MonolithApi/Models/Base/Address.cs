@@ -25,9 +25,8 @@ public class Address
     public string? Country { get; set; } = "France";
 
     [MaxLength(100)]
-    public string? AddressLine2 { get; set; } // Complément d'adresse (Apt, Étage, etc.)
+    public string? AddressLine2 { get; set; }
 
-    // Propriété calculée pour l'adresse complète
     [NotMapped]
     public string FullAddress
     {
@@ -35,7 +34,6 @@ public class Address
         {
             var parts = new List<string>();
 
-            // Numéro et nom de rue
             if (!string.IsNullOrWhiteSpace(StreetNumber) && !string.IsNullOrWhiteSpace(StreetName))
             {
                 parts.Add($"{StreetNumber} {StreetName}");
@@ -45,13 +43,11 @@ public class Address
                 parts.Add(StreetName);
             }
 
-            // Complément d'adresse
             if (!string.IsNullOrWhiteSpace(AddressLine2))
             {
                 parts.Add(AddressLine2);
             }
 
-            // Code postal et ville
             if (!string.IsNullOrWhiteSpace(PostalCode) && !string.IsNullOrWhiteSpace(City))
             {
                 parts.Add($"{PostalCode} {City}");
@@ -61,13 +57,11 @@ public class Address
                 parts.Add(City);
             }
 
-            // Région (si différente du pays)
             if (!string.IsNullOrWhiteSpace(Region) && Region != Country)
             {
                 parts.Add(Region);
             }
 
-            // Pays
             if (!string.IsNullOrWhiteSpace(Country))
             {
                 parts.Add(Country);
@@ -77,13 +71,11 @@ public class Address
         }
     }
 
-    // Méthode pour vérifier si l'adresse est vide
     [NotMapped]
     public bool IsEmpty => string.IsNullOrWhiteSpace(StreetName) && 
                           string.IsNullOrWhiteSpace(City) && 
                           string.IsNullOrWhiteSpace(PostalCode);
 
-    // Méthode pour formater l'adresse sur plusieurs lignes
     [NotMapped]
     public string MultiLineAddress
     {

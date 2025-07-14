@@ -5,19 +5,19 @@ using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Models.Base;
 using XpertSphere.MonolithApi.Enums;
+using Elfie.Serialization;
+using XpertSphere.MonolithApi.Services.Pagination;
+using XpertSphere.MonolithApi.Utils.Pagination;
+using XpertSphere.MonolithApi.Utils;
+using System.Globalization;
 
 namespace XpertSphere.MonolithApi.Services;
 
-public class UserService : IUserService
+public class UserService(XpertSphereDbContext context) : IUserService
 {
-    private readonly XpertSphereDbContext _context;
+    private readonly XpertSphereDbContext _context = context;
 
-    public UserService(XpertSphereDbContext context)
-    {
-        _context = context;
-    }
-
-    public async Task<UserDto> CreateAsync(CreateUserDto createUserDto)
+    public async Task<User> Post(CreateUserDto createUserDto)
     {
         var user = new User
         {
@@ -52,21 +52,20 @@ public class UserService : IUserService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return await GetByIdAsync(user.Id) ?? throw new InvalidOperationException("Failed to retrieve created user");
+        return user;
     }
 
-    public async Task<UserDto?> GetByIdAsync(Guid id)
+    public async Task<User?> Get(Guid id)
     {
         var user = await _context.Users
             .Include(u => u.Organization)
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Id == id);
-
-        return user != null ? MapToDto(user) : null;
+        return user ?? throw new KeyNotFoundException(Constants.USER_NOT_FOUND);
     }
 
-    public async Task<UserDto?> GetByEmailAsync(string email)
+    public async Task<User?> GetByEmail(string email)
     {
         var user = await _context.Users
             .Include(u => u.Organization)
@@ -74,73 +73,39 @@ public class UserService : IUserService
             .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Email == email);
 
-        return user != null ? MapToDto(user) : null;
+        return user ?? throw new KeyNotFoundException(Constants.USER_NOT_FOUND);
     }
 
-    public async Task<(List<UserDto> Users, int TotalCount)> GetAllAsync(UserFilterDto filter)
+    public async Task<ResponseResource<User>> GetAll(UserFilterDto userFilters)
     {
-        var query = _context.Users
+        IQueryable<User> source = _context.Users.AsNoTracking()
             .Include(u => u.Organization)
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .AsQueryable();
 
-        // Apply filters
-        query = ApplyFilters(query, filter);
+        var filterdData = ApplyFilters(source, userFilters);
 
-        // Get total count before pagination
-        var totalCount = await query.CountAsync();
-
-        // Apply sorting
-        query = ApplySorting(query, filter.SortBy, filter.SortDirection);
-
-        // Apply pagination
-        var users = await query
-            .Skip((filter.Page - 1) * filter.PageSize)
-            .Take(filter.PageSize)
-            .ToListAsync();
-
-        return (users.Select(MapToDto).ToList(), totalCount);
+        return await PaginationService<User>.Paginate(userFilters.PageNumber, userFilters.PageSize, filterdData);
     }
 
-    public async Task<UserDto?> UpdateAsync(Guid id, UpdateUserDto updateUserDto)
+    public async Task<User?> Put(Guid id,  User user)
     {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null) return null;
+        if(user.Id != id) throw new InvalidDataException(Constants.INVALID_ID);
 
-        // Update only provided fields
-        if (updateUserDto.FirstName != null) user.FirstName = updateUserDto.FirstName;
-        if (updateUserDto.LastName != null) user.LastName = updateUserDto.LastName;
-        if (updateUserDto.Email != null) user.Email = updateUserDto.Email;
-        if (updateUserDto.PhoneNumber != null) user.PhoneNumber = updateUserDto.PhoneNumber;
-        if (updateUserDto.OrganizationId.HasValue) user.OrganizationId = updateUserDto.OrganizationId;
-        if (updateUserDto.EmployeeId != null) user.EmployeeId = updateUserDto.EmployeeId;
-        if (updateUserDto.Department != null) user.Department = updateUserDto.Department;
-        if (updateUserDto.HireDate.HasValue) user.HireDate = updateUserDto.HireDate;
-        if (updateUserDto.LinkedInProfile != null) user.LinkedInProfile = updateUserDto.LinkedInProfile;
-        if (updateUserDto.Skills != null) user.Skills = updateUserDto.Skills;
-        if (updateUserDto.Experience.HasValue) user.Experience = updateUserDto.Experience;
-        if (updateUserDto.DesiredSalary.HasValue) user.DesiredSalary = updateUserDto.DesiredSalary;
-        if (updateUserDto.Availability.HasValue) user.Availability = updateUserDto.Availability;
-        if (updateUserDto.IsActive.HasValue) user.IsActive = updateUserDto.IsActive.Value;
+        if (await _context.Users.AnyAsync(u => u.Id == id)) throw new KeyNotFoundException(Constants.USER_NOT_FOUND);
 
-        // Update address if provided
-        if (updateUserDto.Address != null)
-        {
-            user.Address.StreetNumber = updateUserDto.Address.StreetNumber;
-            user.Address.StreetName = updateUserDto.Address.StreetName;
-            user.Address.City = updateUserDto.Address.City;
-            user.Address.PostalCode = updateUserDto.Address.PostalCode;
-            user.Address.Region = updateUserDto.Address.Region;
-            user.Address.Country = updateUserDto.Address.Country;
-            user.Address.AddressLine2 = updateUserDto.Address.AddressLine2;
-        }
+        user.UpdatedAt = DateTime.UtcNow;
+
+        _context.Entry(user).State = EntityState.Modified;
+        _context.Entry(user).Property(a => a.CreatedAt).IsModified = false;
+        _context.Entry(user).Property(a => a.Email).IsModified = false;
 
         await _context.SaveChangesAsync();
-        return await GetByIdAsync(id);
+        return user;
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task<bool> Delete(Guid id)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null) return false;
@@ -150,12 +115,12 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> ExistsAsync(Guid id)
+    public async Task<bool> Exists(Guid id)
     {
         return await _context.Users.AnyAsync(u => u.Id == id);
     }
 
-    public async Task<bool> EmailExistsAsync(string email, Guid? excludeUserId = null)
+    public async Task<bool> EmailExists(string email, Guid? excludeUserId = null)
     {
         var query = _context.Users.Where(u => u.Email == email);
         if (excludeUserId.HasValue)
@@ -166,55 +131,32 @@ public class UserService : IUserService
         return await query.AnyAsync();
     }
 
-    public async Task<UserDto?> UpdateLastLoginAsync(Guid id)
+    public async Task<User?> UpdateLastLogin(Guid id)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null) return null;
 
         user.LastLoginAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
-        return await GetByIdAsync(id);
+        return user;
     }
 
-    public async Task<List<UserDto>> GetByOrganizationAsync(Guid organizationId)
-    {
-        var users = await _context.Users
-            .Include(u => u.Organization)
-            .Include(u => u.UserRoles)
-            .ThenInclude(ur => ur.Role)
-            .Where(u => u.OrganizationId == organizationId)
-            .ToListAsync();
-
-        return users.Select(MapToDto).ToList();
-    }
-
-    public async Task<List<UserDto>> GetCandidatesAsync(UserFilterDto filter)
-    {
-        filter.UserType = UserType.External;
-        var (users, _) = await GetAllAsync(filter);
-        return users;
-    }
-
-    public async Task<List<UserDto>> GetInternalUsersAsync(UserFilterDto filter)
-    {
-        filter.UserType = UserType.Internal;
-        var (users, _) = await GetAllAsync(filter);
-        return users;
-    }
 
     private static IQueryable<User> ApplyFilters(IQueryable<User> query, UserFilterDto filter)
     {
-        if (!string.IsNullOrEmpty(filter.Search))
+        if (!string.IsNullOrEmpty(filter.SearchTerms))
         {
             query = query.Where(u =>
-                u.FirstName.Contains(filter.Search) ||
-                u.LastName.Contains(filter.Search) ||
-                u.Email.Contains(filter.Search));
+                u.FirstName.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
+                u.LastName.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
+                u.Email.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
+                u.Address.ToString().Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase)
+            );
         }
 
         if (filter.UserType.HasValue)
         {
-            query = query.Where(u => u.UserType == filter.UserType.Value);
+            query = query.Where(u => u.UserType == filter.UserType);
         }
 
         if (filter.OrganizationId.HasValue)
@@ -257,14 +199,9 @@ public class UserService : IUserService
             query = query.Where(u => u.Skills != null && u.Skills.Contains(filter.Skills));
         }
 
-        return query;
-    }
+        var isDescending = filter.SortDirection == SortDirection.Descending;
 
-    private static IQueryable<User> ApplySorting(IQueryable<User> query, string? sortBy, string? sortDirection)
-    {
-        var isDescending = sortDirection?.ToLower() == "desc";
-
-        return sortBy?.ToLower() switch
+        return filter.SortBy?.ToLower() switch
         {
             "firstname" => isDescending ? query.OrderByDescending(u => u.FirstName) : query.OrderBy(u => u.FirstName),
             "lastname" => isDescending ? query.OrderByDescending(u => u.LastName) : query.OrderBy(u => u.LastName),
@@ -275,52 +212,6 @@ public class UserService : IUserService
                 ? query.OrderByDescending(u => u.LastLoginAt)
                 : query.OrderBy(u => u.LastLoginAt),
             _ => isDescending ? query.OrderByDescending(u => u.CreatedAt) : query.OrderBy(u => u.CreatedAt)
-        };
-    }
-
-    private static UserDto MapToDto(User user)
-    {
-        return new UserDto
-        {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber,
-            UserType = user.UserType,
-            IsActive = user.IsActive,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt,
-            LastLoginAt = user.LastLoginAt,
-            OrganizationId = user.OrganizationId,
-            OrganizationName = user.Organization?.Name,
-            EmployeeId = user.EmployeeId,
-            Department = user.Department,
-            HireDate = user.HireDate,
-            LinkedInProfile = user.LinkedInProfile,
-            Skills = user.Skills,
-            Experience = user.Experience,
-            DesiredSalary = user.DesiredSalary,
-            Availability = user.Availability,
-            Address = new AddressDto
-            {
-                StreetNumber = user.Address.StreetNumber,
-                StreetName = user.Address.StreetName,
-                City = user.Address.City,
-                PostalCode = user.Address.PostalCode,
-                Region = user.Address.Region,
-                Country = user.Address.Country,
-                AddressLine2 = user.Address.AddressLine2
-            },
-            UserRoles = user.UserRoles.Where(ur => ur.IsActive).Select(ur => new UserRoleDto
-            {
-                RoleId = ur.RoleId,
-                RoleName = ur.Role.Name,
-                RoleDisplayName = ur.Role.DisplayName,
-                AssignedAt = ur.AssignedAt,
-                ExpiresAt = ur.ExpiresAt,
-                IsActive = ur.IsActive
-            }).ToList()
         };
     }
 }

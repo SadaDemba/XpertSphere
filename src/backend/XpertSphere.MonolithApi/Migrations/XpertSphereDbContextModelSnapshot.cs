@@ -51,7 +51,7 @@ namespace XpertSphere.MonolithApi.Migrations
 
                     b.HasIndex("UpdatedBy");
 
-                    b.ToTable("AuditableEntity");
+                    b.ToTable("AuditableEntity", (string)null);
 
                     b.UseTptMappingStrategy();
                 });
@@ -424,7 +424,7 @@ namespace XpertSphere.MonolithApi.Migrations
 
                             b1.HasKey("OrganizationId");
 
-                            b1.ToTable("Organizations");
+                            b1.ToTable("Organizations", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("OrganizationId");
@@ -535,7 +535,7 @@ namespace XpertSphere.MonolithApi.Migrations
 
                             b1.HasKey("UserId");
 
-                            b1.ToTable("Users");
+                            b1.ToTable("Users", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("UserId");
