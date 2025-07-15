@@ -9,7 +9,12 @@ public class UserRoleConfiguration : AuditableEntityConfiguration<UserRole>
 {
     protected override void ConfigureEntity(EntityTypeBuilder<UserRole> builder)
     {
-        builder.ToTable("UserRoles");
+        builder.ToTable("UserRoles", ur => 
+            ur.HasCheckConstraint("CK_UserRole_ExpiresAt",
+                "[ExpiresAt] IS NULL OR [ExpiresAt] > [AssignedAt]"));
+
+        builder.Property(ur => ur.Id)
+            .HasDefaultValueSql("NEWID()");
 
         // Indexes
         builder
@@ -39,11 +44,5 @@ public class UserRoleConfiguration : AuditableEntityConfiguration<UserRole>
             .WithMany()
             .HasForeignKey(ur => ur.AssignedBy)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // Check constraints
-        builder.HasCheckConstraint(
-            "CK_UserRole_ExpiresAt",
-            "[ExpiresAt] IS NULL OR [ExpiresAt] > [AssignedAt]"
-        );
     }
 }

@@ -11,6 +11,9 @@ public class RolePermissionConfiguration : AuditableEntityConfiguration<RolePerm
     {
         builder.ToTable("RolePermissions");
 
+        builder.Property(rp => rp.Id)
+            .HasDefaultValueSql("NEWID()");
+
         // Indexes
         builder.HasIndex(rp => new { rp.RoleId, rp.PermissionId })
             .IsUnique()

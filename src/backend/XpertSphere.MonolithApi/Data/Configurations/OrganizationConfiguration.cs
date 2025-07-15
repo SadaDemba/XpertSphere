@@ -13,6 +13,9 @@ public class OrganizationConfiguration : AuditableEntityConfiguration<Organizati
     {
         builder.ToTable("Organizations");
 
+        builder.Property(o => o.Id)
+            .HasDefaultValueSql("NEWID()");
+
         // Configure enum as string
         builder.Property(o => o.Size)
             .HasConversion(

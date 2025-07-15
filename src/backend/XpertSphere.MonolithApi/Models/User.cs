@@ -2,10 +2,11 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using XpertSphere.MonolithApi.Models.Base;
 using XpertSphere.MonolithApi.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace XpertSphere.MonolithApi.Models;
 
-public class User : AuditableEntity
+public class User : IdentityUser<Guid>, IAuditableEntity
 {
     [Required]
     [MaxLength(100)]
@@ -14,23 +15,19 @@ public class User : AuditableEntity
     [Required]
     [MaxLength(100)]
     public required string LastName { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-    [Required]
-    [EmailAddress]
-    [MaxLength(255)]
-    public required string Email { get; set; }
+    public Guid? CreatedBy { get; set; }
 
-    public Guid? TenantId { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
-    [MaxLength(20)]
-    public string? PhoneNumber { get; set; }
-    
+    public Guid? UpdatedBy { get; set; }
+
     public Address Address { get; set; } = new();
 
     [Required]
     public UserType UserType { get; set; }
 
-    // Properties for internal users (nullable for candidates)
     public Guid? OrganizationId { get; set; }
 
     [MaxLength(50)]
@@ -41,16 +38,15 @@ public class User : AuditableEntity
 
     public DateTime? HireDate { get; set; }
 
-    // Properties for candidates (nullable for internal users)
     [MaxLength(255)]
     public string? LinkedInProfile { get; set; }
 
     [MaxLength(500)]
     public string? CvPath { get; set; }
 
-    public string? Skills { get; set; } // JSON array stored as string
+    public string? Skills { get; set; }
 
-    public int? Experience { get; set; } // Years of experience
+    public int? Experience { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal? DesiredSalary { get; set; }
@@ -63,10 +59,16 @@ public class User : AuditableEntity
     public DateTime? LastLoginAt { get; set; }
 
     // Navigation properties
+
+    [ForeignKey("CreatedBy")]
+    public virtual User? CreatedByUser { get; set; }
+
+    [ForeignKey("UpdatedBy")]
+    public virtual User? UpdatedByUser { get; set; }
     [ForeignKey("OrganizationId")]
     public virtual Organization? Organization { get; set; }
 
-    public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public virtual ICollection<UserRole> UserRoles { get; set; } =[];
 
     // Computed properties
     [NotMapped]

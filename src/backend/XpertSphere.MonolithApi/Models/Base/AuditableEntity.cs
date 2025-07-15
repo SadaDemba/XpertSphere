@@ -3,10 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace XpertSphere.MonolithApi.Models.Base;
 
-public abstract class AuditableEntity
+public abstract class AuditableEntity : IAuditableEntity
 {
-    [Key]
-    public Guid Id { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

@@ -149,7 +149,7 @@ public class UserService(XpertSphereDbContext context) : IUserService
             query = query.Where(u =>
                 u.FirstName.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
                 u.LastName.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                u.Email.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
+                u.Email!.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
                 u.Address.ToString().Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase)
             );
         }

@@ -8,10 +8,6 @@ public class AuditableEntityConfiguration : IEntityTypeConfiguration<AuditableEn
 {
     public void Configure(EntityTypeBuilder<AuditableEntity> builder)
     {
-        // Configure default values at database level
-        builder.Property(e => e.Id)
-            .HasDefaultValueSql("NEWID()");
-
         builder.Property(e => e.CreatedAt)
             .HasDefaultValueSql("GETUTCDATE()");
 
