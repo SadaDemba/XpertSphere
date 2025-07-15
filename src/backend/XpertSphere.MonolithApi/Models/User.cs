@@ -20,6 +20,8 @@ public class User : AuditableEntity
     [MaxLength(255)]
     public required string Email { get; set; }
 
+    public Guid? TenantId { get; set; }
+
     [MaxLength(20)]
     public string? PhoneNumber { get; set; }
     
@@ -69,10 +71,4 @@ public class User : AuditableEntity
     // Computed properties
     [NotMapped]
     public string FullName => $"{FirstName} {LastName}";
-
-    [NotMapped]
-    public bool IsInternal => UserType == UserType.Internal;
-
-    [NotMapped]
-    public bool IsCandidate => UserType == UserType.External;
 }

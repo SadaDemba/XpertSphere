@@ -8,8 +8,10 @@ public static class EnumExtensions
     {
         return userType switch
         {
-            UserType.Internal => "INTERNAL",
-            UserType.External => "EXTERNAL",
+            UserType.Candidate => "CANDIDATE",
+            UserType.Recruiter => "RECRUITER",
+            UserType.Manager => "MANAGER",
+            UserType.Collaborator => "COLLABORATOR",
             _ => throw new ArgumentOutOfRangeException(nameof(userType), userType, null)
         };
     }
@@ -18,8 +20,10 @@ public static class EnumExtensions
     {
         return value?.ToUpper() switch
         {
-            "INTERNAL" => UserType.Internal,
-            "EXTERNAL" => UserType.External,
+            "CANDIDATE" => UserType.Candidate,
+            "RECRUITER" => UserType.Recruiter,
+            "MANAGER" => UserType.Manager,
+            "COLLABORATOR" => UserType.Collaborator,
             _ => throw new ArgumentException($"Invalid UserType value: {value}", nameof(value))
         };
     }

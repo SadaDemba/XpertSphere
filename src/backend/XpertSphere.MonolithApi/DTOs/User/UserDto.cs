@@ -34,8 +34,6 @@ public class UserDto
 
     // Computed properties
     public string FullName => $"{FirstName} {LastName}";
-    public bool IsInternal => UserType == UserType.Internal;
-    public bool IsCandidate => UserType == UserType.External;
 
     // Roles
     public List<UserRoleDto>? UserRoles { get; set; }
