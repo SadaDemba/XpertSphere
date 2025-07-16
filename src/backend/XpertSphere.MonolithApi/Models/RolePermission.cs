@@ -6,9 +6,6 @@ namespace XpertSphere.MonolithApi.Models;
 
 public class RolePermission : AuditableEntity
 {
-    [Key]
-    public Guid Id { get; set; }
-
     [Required]
     public Guid RoleId { get; set; }
 

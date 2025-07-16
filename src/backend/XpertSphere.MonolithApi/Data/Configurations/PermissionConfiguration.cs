@@ -13,9 +13,6 @@ public class PermissionConfiguration : AuditableEntityConfiguration<Permission>
     {
         builder.ToTable("Permissions");
 
-        builder.Property(p => p.Id)
-            .HasDefaultValueSql("NEWID()");
-
         // Configure enums as strings
         builder.Property(p => p.Action)
             .HasConversion(

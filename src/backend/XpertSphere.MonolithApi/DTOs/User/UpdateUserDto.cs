@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using XpertSphere.MonolithApi.Enums;
 
 namespace XpertSphere.MonolithApi.DTOs.User;
 
@@ -13,6 +14,8 @@ public class UpdateUserDto
     [EmailAddress]
     [MaxLength(255)]
     public string? Email { get; set; }
+
+    public UserType? UserType { get; set; }
 
     [MaxLength(20)]
     public string? PhoneNumber { get; set; }

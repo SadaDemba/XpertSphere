@@ -29,6 +29,7 @@
 
     <ItemGroup>
       <Folder Include="DTOs\Base\" />
+      <Folder Include="Migrations\" />
     </ItemGroup>
 
 </Project>

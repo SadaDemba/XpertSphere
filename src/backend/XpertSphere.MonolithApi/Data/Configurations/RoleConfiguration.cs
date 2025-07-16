@@ -11,9 +11,6 @@ public class RoleConfiguration : AuditableEntityConfiguration<Role>
     {
         builder.ToTable("Roles");
 
-        builder.Property(r => r.Id)
-            .HasDefaultValueSql("NEWID()");
-
         // Indexes
         builder.HasIndex(r => r.Name)
             .IsUnique()

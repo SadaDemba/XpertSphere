@@ -6,9 +6,6 @@ namespace XpertSphere.MonolithApi.Models;
 
 public class Organization : AuditableEntity
 {
-    [Key]
-    public Guid Id { get; set; }
-
     [Required]
     [MaxLength(200)]
     public required string Name { get; set; }

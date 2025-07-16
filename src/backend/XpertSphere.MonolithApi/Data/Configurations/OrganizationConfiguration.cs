@@ -13,9 +13,6 @@ public class OrganizationConfiguration : AuditableEntityConfiguration<Organizati
     {
         builder.ToTable("Organizations");
 
-        builder.Property(o => o.Id)
-            .HasDefaultValueSql("NEWID()");
-
         // Configure enum as string
         builder.Property(o => o.Size)
             .HasConversion(
@@ -29,7 +26,7 @@ public class OrganizationConfiguration : AuditableEntityConfiguration<Organizati
             address =>
             {
                 address.Property(a => a.StreetNumber).HasColumnName("Address_StreetNumber");
-                address.Property(a => a.StreetName).HasColumnName("Address_StreetName");
+                address.Property(a => a.Street).HasColumnName("Address_StreetName");
                 address.Property(a => a.City).HasColumnName("Address_City");
                 address.Property(a => a.PostalCode).HasColumnName("Address_PostalCode");
                 address.Property(a => a.Region).HasColumnName("Address_Region");

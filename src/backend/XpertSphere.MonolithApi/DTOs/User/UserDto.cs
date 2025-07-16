@@ -28,15 +28,17 @@ public class UserDto
     public int? Experience { get; set; }
     public decimal? DesiredSalary { get; set; }
     public DateTime? Availability { get; set; }
+    public string FullName { get; init; } = string.Empty;
+    public bool EmailConfirmed { get; init; }
+    public int ProfileCompletionPercentage { get; init; }
 
     // Address
     public AddressDto? Address { get; set; }
 
-    // Computed properties
-    public string FullName => $"{FirstName} {LastName}";
 
     // Roles
-    public List<UserRoleDto>? UserRoles { get; set; }
+    public List<string>? Roles { get; set; }
+
 }
 
 public class UserRoleDto

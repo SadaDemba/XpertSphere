@@ -33,7 +33,7 @@ public interface IUserService
     /// <param name="id"></param>
     /// <param name="user"></param>
     /// <returns></returns>
-    Task<User?> Put(Guid id, User user);
+    Task<User?> Put(Guid id, UpdateUserDto updateUserDto);
 
     /// <summary>
     /// 
@@ -41,6 +41,13 @@ public interface IUserService
     /// <param name="id"></param>
     /// <returns></returns>
     Task<bool> Delete(Guid id);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    Task<bool> HardDelete(Guid id);
 
     /// <summary>
     /// 
@@ -63,4 +70,11 @@ public interface IUserService
     /// <param name="id"></param>
     /// <returns></returns>
     Task<User?> UpdateLastLogin(Guid id);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    Task<bool> ActivateUser(Guid id);
 }
