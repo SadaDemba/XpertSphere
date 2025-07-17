@@ -1,0 +1,31 @@
+# Build outputs
+**/dist/
+**/build/
+**/coverage/
+
+# Generated files
+**/.quasar/
+**/node_modules/
+
+# IDE configurations
+**/.vscode/
+**/.idea/
+
+# Config files that shouldn't be formatted
+**/tsconfig.json
+**/tsconfig.*.json
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
+
+# Quasar specific
+**/quasar.config.js
+**/quasar.config.ts
+**/postcss.config.js
+
+# Logs
+**/*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
