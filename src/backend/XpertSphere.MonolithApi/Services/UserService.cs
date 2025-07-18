@@ -10,12 +10,15 @@ using XpertSphere.MonolithApi.Services.Pagination;
 using XpertSphere.MonolithApi.Utils.Pagination;
 using XpertSphere.MonolithApi.Utils;
 using System.Globalization;
+using Microsoft.AspNetCore.Identity;
 
 namespace XpertSphere.MonolithApi.Services;
 
-public class UserService(XpertSphereDbContext context) : IUserService
+public class UserService(XpertSphereDbContext context, UserManager<User> userManager, ILogger<UserService> logger) : IUserService
 {
     private readonly XpertSphereDbContext _context = context;
+    private readonly UserManager<User> _userManager = userManager;
+    private readonly ILogger<UserService> _logger = logger;
 
     public async Task<User> Post(CreateUserDto createUserDto)
     {
@@ -39,7 +42,7 @@ public class UserService(XpertSphereDbContext context) : IUserService
                 ? new Address
                 {
                     StreetNumber = createUserDto.Address.StreetNumber,
-                    StreetName = createUserDto.Address.StreetName,
+                    Street = createUserDto.Address.StreetName,
                     City = createUserDto.Address.City,
                     PostalCode = createUserDto.Address.PostalCode,
                     Region = createUserDto.Address.Region,
@@ -54,6 +57,8 @@ public class UserService(XpertSphereDbContext context) : IUserService
 
         return user;
     }
+
+
 
     public async Task<User?> Get(Guid id)
     {
@@ -89,30 +94,62 @@ public class UserService(XpertSphereDbContext context) : IUserService
         return await PaginationService<User>.Paginate(userFilters.PageNumber, userFilters.PageSize, filterdData);
     }
 
-    public async Task<User?> Put(Guid id,  User user)
+    public async Task<User?> Put(Guid id, UpdateUserDto updateUserDto)
     {
-        if(user.Id != id) throw new InvalidDataException(Constants.INVALID_ID);
+        try
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                throw new KeyNotFoundException(Constants.USER_NOT_FOUND);
+            }
 
-        if (await _context.Users.AnyAsync(u => u.Id == id)) throw new KeyNotFoundException(Constants.USER_NOT_FOUND);
+            // Update properties
+            user.FirstName = updateUserDto.FirstName ?? user.FirstName;
+            user.LastName = updateUserDto.LastName ?? user.LastName;
+            user.PhoneNumber = updateUserDto.PhoneNumber ?? user.PhoneNumber;
+            user.UserType = updateUserDto.UserType ?? user.UserType;
+            user.OrganizationId = updateUserDto.OrganizationId ?? user.OrganizationId;
+            user.EmployeeId = updateUserDto.EmployeeId ?? user.EmployeeId;
+            user.Department = updateUserDto.Department ?? user.Department;
+            user.HireDate = updateUserDto.HireDate ?? user.HireDate;
+            user.LinkedInProfile = updateUserDto.LinkedInProfile ?? user.LinkedInProfile;
+            user.Skills = updateUserDto.Skills ?? user.Skills;
+            user.Experience = updateUserDto.Experience ?? user.Experience;
+            user.DesiredSalary = updateUserDto.DesiredSalary ?? user.DesiredSalary;
+            user.Availability = updateUserDto.Availability ?? user.Availability;
+            user.UpdatedAt = DateTime.UtcNow;
 
-        user.UpdatedAt = DateTime.UtcNow;
+            // Update address if provided
+            if (updateUserDto.Address != null)
+            {
+                user.Address.StreetNumber = updateUserDto.Address.StreetNumber ?? user.Address.StreetNumber;
+                user.Address.Street = updateUserDto.Address.StreetName ?? user.Address.Street;
+                user.Address.City = updateUserDto.Address.City ?? user.Address.City;
+                user.Address.PostalCode = updateUserDto.Address.PostalCode ?? user.Address.PostalCode;
+                user.Address.Region = updateUserDto.Address.Region ?? user.Address.Region;
+                user.Address.Country = updateUserDto.Address.Country ?? user.Address.Country;
+                user.Address.AddressLine2 = updateUserDto.Address.AddressLine2 ?? user.Address.AddressLine2;
+            }
 
-        _context.Entry(user).State = EntityState.Modified;
-        _context.Entry(user).Property(a => a.CreatedAt).IsModified = false;
-        _context.Entry(user).Property(a => a.Email).IsModified = false;
+            // Recalculate profile completion
+            user.CalculateProfileCompletion();
 
-        await _context.SaveChangesAsync();
-        return user;
-    }
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Failed to update user: {errors}");
+            }
 
-    public async Task<bool> Delete(Guid id)
-    {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null) return false;
-
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-        return true;
+            _logger.LogInformation("User updated successfully: {UserId}", id);
+            return user;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating user: {UserId}", id);
+            throw;
+        }
     }
 
     public async Task<bool> Exists(Guid id)
@@ -122,23 +159,114 @@ public class UserService(XpertSphereDbContext context) : IUserService
 
     public async Task<bool> EmailExists(string email, Guid? excludeUserId = null)
     {
-        var query = _context.Users.Where(u => u.Email == email);
-        if (excludeUserId.HasValue)
-        {
-            query = query.Where(u => u.Id != excludeUserId.Value);
-        }
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null) return false;
 
-        return await query.AnyAsync();
+        return excludeUserId == null || user.Id != excludeUserId;
+    }
+
+    public async Task<bool> Delete(Guid id)
+    {
+        try
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                return false;
+            }
+
+            // Soft delete: mark as inactive instead of hard delete for audit purposes
+            user.IsActive = false;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("User deactivated successfully: {UserId}", id);
+                return true;
+            }
+
+            _logger.LogWarning("Failed to deactivate user: {UserId}", id);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deactivating user: {UserId}", id);
+            return false;
+        }
+    }
+
+    public async Task<bool> HardDelete(Guid id)
+    {
+        try
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                return false;
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("User permanently deleted: {UserId}", id);
+                return true;
+            }
+
+            _logger.LogWarning("Failed to delete user: {UserId}", id);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting user: {UserId}", id);
+            return false;
+        }
     }
 
     public async Task<User?> UpdateLastLogin(Guid id)
     {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null) return null;
+        try
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null) return null;
 
-        user.LastLoginAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-        return user;
+            user.UpdateLastLogin();
+            await _userManager.UpdateAsync(user);
+
+            _logger.LogInformation("Last login updated for user: {UserId}", id);
+            return user;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating last login for user: {UserId}", id);
+            return null;
+        }
+    }
+
+    public async Task<bool> ActivateUser(Guid id)
+    {
+        try
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null) return false;
+
+            user.IsActive = true;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("User activated successfully: {UserId}", id);
+                return true;
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error activating user: {UserId}", id);
+            return false;
+        }
     }
 
 
@@ -149,7 +277,7 @@ public class UserService(XpertSphereDbContext context) : IUserService
             query = query.Where(u =>
                 u.FirstName.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
                 u.LastName.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                u.Email.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
+                u.Email!.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
                 u.Address.ToString().Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase)
             );
         }

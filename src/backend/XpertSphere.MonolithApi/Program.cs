@@ -1,5 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using XpertSphere.MonolithApi.Data;
+using XpertSphere.MonolithApi.Extensions;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Services;
 using System.Text.Json.Serialization;
@@ -10,10 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 var envFile = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", ".env");
 if (File.Exists(envFile))
 {
-    foreach (var line in File.ReadAllLines(envFile))
+    foreach (var line in await File.ReadAllLinesAsync(envFile))
     {
         if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
-        
+
         var parts = line.Split('=', 2);
         if (parts.Length == 2)
         {
@@ -22,43 +21,42 @@ if (File.Exists(envFile))
     }
 }
 
-// Add services to the container
+// Infrastructure Services
+builder.Services.AddDatabase(builder.Configuration, builder.Environment);
+builder.Services.AddSecurity(builder.Configuration, builder.Environment);
+
+// API Services
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Configure JSON to serialize enums as strings
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-builder.Services.AddOpenApi();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new() { Title = "XpertSphere API", Version = "v1" });
-    
-    // Configure Swagger to show enum values as strings
-    c.UseInlineDefinitionsForEnums();
-});
+builder.Services.AddSwaggerDocumentation();
 
-// Add Entity Framework
-builder.Services.AddDbContext<XpertSphereDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Register services
+// Application Services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+
+// Additional Services
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Database Migration & Seeding
+await app.UseDatabaseAsync();
 
+// Documentation
+app.UseSwaggerDocumentation();
+
+// Security Pipeline (order matters!)
 app.UseHttpsRedirection();
+app.UseCookiePolicy();
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Application Pipeline
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

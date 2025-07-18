@@ -17,48 +17,147 @@ namespace XpertSphere.MonolithApi.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.6")
+                .HasAnnotation("ProductVersion", "9.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Base.AuditableEntity", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasDefaultValueSql("NEWID()");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("UpdatedBy")
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedAt");
+                    b.HasIndex("RoleId");
 
-                    b.HasIndex("CreatedBy");
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
 
-                    b.HasIndex("UpdatedBy");
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.ToTable("AuditableEntity", (string)null);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.UseTptMappingStrategy();
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
                 });
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.Organization", b =>
                 {
-                    b.HasBaseType("XpertSphere.MonolithApi.Models.Base.AuditableEntity");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -72,6 +171,12 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.Property<string>("ContactPhone")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Industry")
                         .HasMaxLength(100)
@@ -89,14 +194,25 @@ namespace XpertSphere.MonolithApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Website")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.HasKey("Id");
+
                     b.HasIndex("Code")
                         .IsUnique()
-                        .HasDatabaseName("IX_Organizations_Code")
-                        .HasFilter("[Code] IS NOT NULL");
+                        .HasDatabaseName("IX_Organizations_Code");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
 
                     b.HasIndex("Industry")
                         .HasDatabaseName("IX_Organizations_Industry");
@@ -110,12 +226,16 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.HasIndex("Size")
                         .HasDatabaseName("IX_Organizations_Size");
 
+                    b.HasIndex("UpdatedBy");
+
                     b.ToTable("Organizations", (string)null);
                 });
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.Permission", b =>
                 {
-                    b.HasBaseType("XpertSphere.MonolithApi.Models.Base.AuditableEntity");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Action")
                         .IsRequired()
@@ -125,6 +245,12 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.Property<string>("Category")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -144,23 +270,45 @@ namespace XpertSphere.MonolithApi.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("Category")
                         .HasDatabaseName("IX_Permissions_Category");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
 
                     b.HasIndex("Resource")
                         .HasDatabaseName("IX_Permissions_Resource");
 
+                    b.HasIndex("UpdatedBy");
+
                     b.HasIndex("Resource", "Action", "Scope")
                         .IsUnique()
                         .HasDatabaseName("IX_Permissions_Resource_Action_Scope")
-                        .HasFilter("[Resource] IS NOT NULL AND [Action] IS NOT NULL AND [Scope] IS NOT NULL");
+                        .HasFilter("[Scope] IS NOT NULL");
 
                     b.ToTable("Permissions", (string)null);
                 });
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.Role", b =>
                 {
-                    b.HasBaseType("XpertSphere.MonolithApi.Models.Base.AuditableEntity");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -179,20 +327,41 @@ namespace XpertSphere.MonolithApi.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
+
                     b.HasIndex("IsActive")
                         .HasDatabaseName("IX_Roles_IsActive");
 
                     b.HasIndex("Name")
                         .IsUnique()
-                        .HasDatabaseName("IX_Roles_Name")
-                        .HasFilter("[Name] IS NOT NULL");
+                        .HasDatabaseName("IX_Roles_Name");
+
+                    b.HasIndex("UpdatedBy");
 
                     b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.RolePermission", b =>
                 {
-                    b.HasBaseType("XpertSphere.MonolithApi.Models.Base.AuditableEntity");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("PermissionId")
                         .HasColumnType("uniqueidentifier");
@@ -200,30 +369,72 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
+
                     b.HasIndex("PermissionId")
                         .HasDatabaseName("IX_RolePermissions_PermissionId");
 
                     b.HasIndex("RoleId")
                         .HasDatabaseName("IX_RolePermissions_RoleId");
 
+                    b.HasIndex("UpdatedBy");
+
                     b.HasIndex("RoleId", "PermissionId")
                         .IsUnique()
-                        .HasDatabaseName("IX_RolePermissions_RoleId_PermissionId")
-                        .HasFilter("[RoleId] IS NOT NULL AND [PermissionId] IS NOT NULL");
+                        .HasDatabaseName("IX_RolePermissions_RoleId_PermissionId");
 
                     b.ToTable("RolePermissions", (string)null);
                 });
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.User", b =>
                 {
-                    b.HasBaseType("XpertSphere.MonolithApi.Models.Base.AuditableEntity");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("AccountLockedUntil")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("Availability")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ConsentGivenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ConsentWithdrawnAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("CvPath")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("DataRetentionUntil")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Department")
                         .HasMaxLength(100)
@@ -233,15 +444,30 @@ namespace XpertSphere.MonolithApi.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("EmailConfirmationToken")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("EmailConfirmationTokenExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EmailNotificationsEnabled")
+                        .HasColumnType("bit");
 
                     b.Property<string>("EmployeeId")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<int?>("Experience")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FailedLoginAttempts")
                         .HasColumnType("int");
 
                     b.Property<string>("FirstName")
@@ -255,6 +481,9 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsAnonymized")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("datetime2");
 
@@ -263,24 +492,101 @@ namespace XpertSphere.MonolithApi.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime?>("LastPasswordChangeAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("LinkedInProfile")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
                     b.Property<Guid?>("OrganizationId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PasswordResetToken")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("PasswordResetTokenExpiry")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PreferredLanguage")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<int>("ProfileCompletionPercentage")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ProfileLastUpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RefreshToken")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Skills")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("SmsNotificationsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("TimeZone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("UserType")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_Users_CreatedAt");
+
+                    b.HasIndex("CreatedBy")
+                        .HasDatabaseName("IX_Users_CreatedBy");
 
                     b.HasIndex("Email")
                         .IsUnique()
@@ -289,6 +595,16 @@ namespace XpertSphere.MonolithApi.Migrations
 
                     b.HasIndex("LastLoginAt")
                         .HasDatabaseName("IX_Users_LastLoginAt");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("UpdatedBy");
 
                     b.HasIndex("UserType")
                         .HasDatabaseName("IX_Users_UserType");
@@ -304,18 +620,27 @@ namespace XpertSphere.MonolithApi.Migrations
 
                             t.HasCheckConstraint("CK_User_Experience", "[Experience] IS NULL OR [Experience] >= 0");
 
-                            t.HasCheckConstraint("CK_User_Internal_OrganizationRequired", "([UserType] = 'INTERNAL') OR ([UserType] = 'EXTERNAL' AND [OrganizationId] IS NULL)");
+                            t.HasCheckConstraint("CK_User_Internal_OrganizationRequired", "([UserType] = 'RECRUITER' AND [OrganizationId] IS NOT NULL) OR([UserType] = 'MANAGER' AND [OrganizationId] IS NOT NULL) OR([UserType] = 'COLLABORATOR' AND [OrganizationId] IS NOT NULL)OR ([UserType] = 'CANDIDATE' AND [OrganizationId] IS NULL)");
                         });
                 });
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.UserRole", b =>
                 {
-                    b.HasBaseType("XpertSphere.MonolithApi.Models.Base.AuditableEntity");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
 
                     b.Property<DateTime>("AssignedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid?>("AssignedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("ExpiresAt")
@@ -327,13 +652,25 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("AssignedAt")
                         .HasDatabaseName("IX_UserRoles_AssignedAt");
 
                     b.HasIndex("AssignedBy");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
 
                     b.HasIndex("ExpiresAt")
                         .HasDatabaseName("IX_UserRoles_ExpiresAt");
@@ -343,10 +680,11 @@ namespace XpertSphere.MonolithApi.Migrations
 
                     b.HasIndex("RoleId");
 
+                    b.HasIndex("UpdatedBy");
+
                     b.HasIndex("UserId", "RoleId")
                         .IsUnique()
-                        .HasDatabaseName("IX_UserRoles_UserId_RoleId")
-                        .HasFilter("[UserId] IS NOT NULL AND [RoleId] IS NOT NULL");
+                        .HasDatabaseName("IX_UserRoles_UserId_RoleId");
 
                     b.ToTable("UserRoles", null, t =>
                         {
@@ -354,7 +692,128 @@ namespace XpertSphere.MonolithApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Base.AuditableEntity", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
+                {
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
+                {
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+                {
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Organization", b =>
+                {
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.OwnsOne("XpertSphere.MonolithApi.Models.Base.Address", "Address", b1 =>
+                        {
+                            b1.Property<Guid>("OrganizationId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("AddressLine2")
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)")
+                                .HasColumnName("Address_AddressLine2");
+
+                            b1.Property<string>("City")
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)")
+                                .HasColumnName("Address_City");
+
+                            b1.Property<string>("Country")
+                                .ValueGeneratedOnAdd()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)")
+                                .HasDefaultValue("France")
+                                .HasColumnName("Address_Country");
+
+                            b1.Property<string>("PostalCode")
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)")
+                                .HasColumnName("Address_PostalCode");
+
+                            b1.Property<string>("Region")
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)")
+                                .HasColumnName("Address_Region");
+
+                            b1.Property<string>("Street")
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("Address_StreetName");
+
+                            b1.Property<string>("StreetNumber")
+                                .HasMaxLength(10)
+                                .HasColumnType("nvarchar(10)")
+                                .HasColumnName("Address_StreetNumber");
+
+                            b1.HasKey("OrganizationId");
+
+                            b1.ToTable("Organizations");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrganizationId");
+                        });
+
+                    b.Navigation("Address")
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("UpdatedByUser");
+                });
+
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Permission", b =>
                 {
                     b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUser")
                         .WithMany()
@@ -371,94 +830,29 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.Navigation("UpdatedByUser");
                 });
 
-            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Organization", b =>
-                {
-                    b.HasOne("XpertSphere.MonolithApi.Models.Base.AuditableEntity", null)
-                        .WithOne()
-                        .HasForeignKey("XpertSphere.MonolithApi.Models.Organization", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.OwnsOne("XpertSphere.MonolithApi.Models.Base.Address", "Address", b1 =>
-                        {
-                            b1.Property<Guid>("OrganizationId")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<string>("AddressLine2")
-                                .HasMaxLength(100)
-                                .HasColumnType("nvarchar(100)")
-                                .HasColumnName("Address_AddressLine2");
-
-                            b1.Property<string>("City")
-                                .HasMaxLength(100)
-                                .HasColumnType("nvarchar(100)")
-                                .HasColumnName("Address_City");
-
-                            b1.Property<string>("Country")
-                                .ValueGeneratedOnAdd()
-                                .HasMaxLength(100)
-                                .HasColumnType("nvarchar(100)")
-                                .HasDefaultValue("France")
-                                .HasColumnName("Address_Country");
-
-                            b1.Property<string>("PostalCode")
-                                .HasMaxLength(20)
-                                .HasColumnType("nvarchar(20)")
-                                .HasColumnName("Address_PostalCode");
-
-                            b1.Property<string>("Region")
-                                .HasMaxLength(100)
-                                .HasColumnType("nvarchar(100)")
-                                .HasColumnName("Address_Region");
-
-                            b1.Property<string>("StreetName")
-                                .HasMaxLength(200)
-                                .HasColumnType("nvarchar(200)")
-                                .HasColumnName("Address_StreetName");
-
-                            b1.Property<string>("StreetNumber")
-                                .HasMaxLength(10)
-                                .HasColumnType("nvarchar(10)")
-                                .HasColumnName("Address_StreetNumber");
-
-                            b1.HasKey("OrganizationId");
-
-                            b1.ToTable("Organizations", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("OrganizationId");
-                        });
-
-                    b.Navigation("Address")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Permission", b =>
-                {
-                    b.HasOne("XpertSphere.MonolithApi.Models.Base.AuditableEntity", null)
-                        .WithOne()
-                        .HasForeignKey("XpertSphere.MonolithApi.Models.Permission", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.Role", b =>
                 {
-                    b.HasOne("XpertSphere.MonolithApi.Models.Base.AuditableEntity", null)
-                        .WithOne()
-                        .HasForeignKey("XpertSphere.MonolithApi.Models.Role", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.RolePermission", b =>
                 {
-                    b.HasOne("XpertSphere.MonolithApi.Models.Base.AuditableEntity", null)
-                        .WithOne()
-                        .HasForeignKey("XpertSphere.MonolithApi.Models.RolePermission", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("XpertSphere.MonolithApi.Models.Permission", "Permission")
                         .WithMany("RolePermissions")
@@ -472,28 +866,40 @@ namespace XpertSphere.MonolithApi.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("Permission");
 
                     b.Navigation("Role");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.User", b =>
                 {
-                    b.HasOne("XpertSphere.MonolithApi.Models.Base.AuditableEntity", null)
-                        .WithOne()
-                        .HasForeignKey("XpertSphere.MonolithApi.Models.User", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("XpertSphere.MonolithApi.Models.Organization", "Organization")
                         .WithMany("Users")
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.OwnsOne("XpertSphere.MonolithApi.Models.Base.Address", "Address", b1 =>
                         {
                             b1.Property<Guid>("UserId")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<string>("AddressLine2")
@@ -523,7 +929,7 @@ namespace XpertSphere.MonolithApi.Migrations
                                 .HasColumnType("nvarchar(100)")
                                 .HasColumnName("Address_Region");
 
-                            b1.Property<string>("StreetName")
+                            b1.Property<string>("Street")
                                 .HasMaxLength(200)
                                 .HasColumnType("nvarchar(200)")
                                 .HasColumnName("Address_StreetName");
@@ -535,7 +941,7 @@ namespace XpertSphere.MonolithApi.Migrations
 
                             b1.HasKey("UserId");
 
-                            b1.ToTable("Users", (string)null);
+                            b1.ToTable("Users");
 
                             b1.WithOwner()
                                 .HasForeignKey("UserId");
@@ -544,7 +950,11 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.Navigation("Address")
                         .IsRequired();
 
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("Organization");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.UserRole", b =>
@@ -554,17 +964,21 @@ namespace XpertSphere.MonolithApi.Migrations
                         .HasForeignKey("AssignedBy")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("XpertSphere.MonolithApi.Models.Base.AuditableEntity", null)
-                        .WithOne()
-                        .HasForeignKey("XpertSphere.MonolithApi.Models.UserRole", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("XpertSphere.MonolithApi.Models.Role", "Role")
                         .WithMany("UserRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("XpertSphere.MonolithApi.Models.User", "User")
                         .WithMany("UserRoles")
@@ -574,7 +988,11 @@ namespace XpertSphere.MonolithApi.Migrations
 
                     b.Navigation("AssignedByUser");
 
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("Role");
+
+                    b.Navigation("UpdatedByUser");
 
                     b.Navigation("User");
                 });

@@ -1,0 +1,59 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "XpertSphere ATS Frontend Applications",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:recruiter": "npm run dev --workspace=packages/recruiter-app",
+    "dev:candidate": "npm run dev --workspace=packages/candidate-app",
+    "build:recruiter": "npm run build --workspace=packages/recruiter-app",
+    "build:candidate": "npm run build --workspace=packages/candidate-app",
+    "build:all": "npm run build:recruiter && npm run build:candidate",
+    "test": "npm run test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "format": "prettier --write \"packages/**/src/**/*.{js,ts,vue}\" \"packages/**/*.md\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"packages/**/src/**/*.{js,ts,vue}\" \"packages/**/*.md\" --ignore-path .prettierignore",
+    "lint-and-format": "npm run lint:fix && npm run format",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-vue": "^9.30.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "keywords": [
+    "ats",
+    "recruitment",
+    "vue",
+    "quasar",
+    "typescript"
+  ],
+  "author": "Sada Demba Thiam",
+  "license": "ISC",
+  "packageManager": "npm@9.0.0",
+  "lint-staged": {
+    "packages/**/*.{js,ts,vue,mjs}": [
+      "eslint --fix",
+      "prettier --write --ignore-unknown"
+    ],
+    "packages/**/*.{json,md,yml,yaml,html,css,scss}": [
+      "prettier --write --ignore-unknown"
+    ]
+  }
+}

@@ -7,11 +7,28 @@ using XpertSphere.MonolithApi.Data.Configurations.Base;
 
 namespace XpertSphere.MonolithApi.Data.Configurations;
 
-public class UserConfiguration : AuditableEntityConfiguration<User>
+public class UserConfiguration : IEntityTypeConfiguration<User>
 {
-    protected override void ConfigureEntity(EntityTypeBuilder<User> builder)
+    public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.ToTable("Users");
+        builder.ToTable("Users", t =>
+        {
+            t.HasCheckConstraint(
+                "CK_User_Internal_OrganizationRequired",
+                "([UserType] = 'RECRUITER' AND [OrganizationId] IS NOT NULL) OR" +
+                "([UserType] = 'MANAGER' AND [OrganizationId] IS NOT NULL) OR" +
+                "([UserType] = 'COLLABORATOR' AND [OrganizationId] IS NOT NULL)" +
+                "OR ([UserType] = 'CANDIDATE' AND [OrganizationId] IS NULL)");
+
+            t.HasCheckConstraint(
+                "CK_User_Experience",
+                "[Experience] IS NULL OR [Experience] >= 0");
+
+            t.HasCheckConstraint(
+                "CK_User_DesiredSalary",
+                "[DesiredSalary] IS NULL OR [DesiredSalary] > 0");
+        });
+
 
         // Configure enum as string
         builder.Property(u => u.UserType)
@@ -26,7 +43,7 @@ public class UserConfiguration : AuditableEntityConfiguration<User>
             address =>
             {
                 address.Property(a => a.StreetNumber).HasColumnName("Address_StreetNumber");
-                address.Property(a => a.StreetName).HasColumnName("Address_StreetName");
+                address.Property(a => a.Street).HasColumnName("Address_StreetName");
                 address.Property(a => a.City).HasColumnName("Address_City");
                 address.Property(a => a.PostalCode).HasColumnName("Address_PostalCode");
                 address.Property(a => a.Region).HasColumnName("Address_Region");
@@ -68,19 +85,29 @@ public class UserConfiguration : AuditableEntityConfiguration<User>
             .WithOne(ur => ur.User)
             .HasForeignKey(ur => ur.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        ConfigureAuditProperties(builder);
 
-        // Check constraints
-        builder.HasCheckConstraint(
-            "CK_User_Internal_OrganizationRequired",
-            "([UserType] = 'INTERNAL') OR ([UserType] = 'EXTERNAL' AND [OrganizationId] IS NULL)"
-        );
-        builder.HasCheckConstraint(
-            "CK_User_Experience",
-            "[Experience] IS NULL OR [Experience] >= 0"
-        );
-        builder.HasCheckConstraint(
-            "CK_User_DesiredSalary",
-            "[DesiredSalary] IS NULL OR [DesiredSalary] > 0"
-        );
+    }
+
+    private static void ConfigureAuditProperties(EntityTypeBuilder<User> builder)
+    {
+        builder.Property(e => e.CreatedAt)
+            .HasDefaultValueSql("GETUTCDATE()");
+
+        builder.HasOne(e => e.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(e => e.CreatedBy)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.UpdatedByUser)
+            .WithMany()
+            .HasForeignKey(e => e.UpdatedBy)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(e => e.CreatedAt)
+            .HasDatabaseName("IX_Users_CreatedAt");
+        builder.HasIndex(e => e.CreatedBy)
+            .HasDatabaseName("IX_Users_CreatedBy");
     }
 }

@@ -30,23 +30,11 @@ public class UsersController(IUserService userService) : ControllerBase
         return Ok(await _userService.Get(id));
     }
 
-   
-    /// <summary>
-    /// Create a new user
-    /// </summary>
-    [HttpPost]
-    public async Task<ActionResult<UserDto>> CreateUser(CreateUserDto createUserDto)
-    {
-
-        var user = await _userService.Post(createUserDto);
-        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
-    }
-
     /// <summary>
     /// Update an existing user
     /// </summary>
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<UserDto>> UpdateUser(Guid id, User updatedUser)
+    public async Task<ActionResult<UserDto>> UpdateUser(Guid id, UpdateUserDto updatedUser)
     {
 
 

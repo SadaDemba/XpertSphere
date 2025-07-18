@@ -1,10 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using XpertSphere.MonolithApi.Data;
 using XpertSphere.MonolithApi.DTOs.Organization;
-using XpertSphere.MonolithApi.DTOs.User;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Utils.Pagination;
@@ -40,7 +36,7 @@ namespace XpertSphere.MonolithApi.Controllers
         /// Add a new organization
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<UserDto>> CreateUser(Organization organization)
+        public async Task<ActionResult<Organization>> AddOrganization(Organization organization)
         {
 
             var org = await _organizationService.Post(organization);

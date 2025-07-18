@@ -1,15 +1,15 @@
+/*
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using XpertSphere.MonolithApi.Models.Base;
 
 namespace XpertSphere.MonolithApi.Data.Configurations;
 
-public class AuditableEntityConfiguration : IEntityTypeConfiguration<AuditableEntity>
+public class AuditableEntityConfiguratio : IEntityTypeConfiguration<AuditableEntity>
 {
     public void Configure(EntityTypeBuilder<AuditableEntity> builder)
     {
-        // Configure default values at database level
-        builder.Property(e => e.Id)
+        builder.Property(o => o.Id)
             .HasDefaultValueSql("NEWID()");
 
         builder.Property(e => e.CreatedAt)
@@ -30,4 +30,4 @@ public class AuditableEntityConfiguration : IEntityTypeConfiguration<AuditableEn
         builder.HasIndex(e => e.CreatedAt);
         builder.HasIndex(e => e.CreatedBy);
     }
-}
+}*/
