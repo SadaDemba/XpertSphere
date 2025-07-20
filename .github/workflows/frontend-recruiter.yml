@@ -7,6 +7,7 @@ on:
       - "src/frontend/packages/recruiter-app/**"
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 env:
   REGISTRY: acrxpertspheredev.azurecr.io
