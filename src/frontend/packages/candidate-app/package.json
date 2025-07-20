@@ -12,6 +12,7 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build",
+    "preview": "quasar serve dist/spa --port 3000 --host 0.0.0.0",
     "postinstall": "quasar prepare"
   },
   "dependencies": {
