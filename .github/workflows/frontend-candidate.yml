@@ -6,7 +6,7 @@ on:
     paths:
       - "src/frontend/packages/candidate-app/**"
   pull_request:
-    branches: [main]
+    branches: [main, develop]
   workflow_dispatch:
 
 env:
