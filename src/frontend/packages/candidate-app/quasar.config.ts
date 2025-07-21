@@ -83,13 +83,17 @@ export default defineConfig((ctx) => {
           include: [fileURLToPath(new URL('./src/i18n', import.meta.url))]
         }],
 
-        ...(ctx.dev ? ['vite-plugin-checker', {
-          vueTsc: true,
-          eslint: {
-            lintCommand: 'eslint -c ../../eslint.config.mjs "./src*/**/*.{ts,js,mjs,cjs,vue}"',
-            useFlatConfig: true
-          }
-        }, { server: false }] : [])
+        ...(ctx.dev ? [
+          ['vite-plugin-checker',
+            {
+              vueTsc: true,
+              eslint: {
+                lintCommand: 'eslint -c ../../eslint.config.mjs "./src*/**/*.{ts,js,mjs,cjs,vue}"',
+                useFlatConfig: true
+              }
+            }, { server: false }
+          ]
+        ] : [])
       ]
     },
 
