@@ -14,6 +14,8 @@
     "build:all": "npm run build:recruiter && npm run build:candidate",
     "preview:recruiter": "npm run preview --workspace=packages/recruiter-app",
     "preview:candidate": "npm run preview --workspace=packages/candidate-app",
+    "postinstall:recruiter": "quasar prepare --workspace=packages/recruiter-app",
+    "postinstall:candidate": "quasar prepare --workspace=packages/candidate-app",
     "test": "npm run test --workspaces --if-present",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
