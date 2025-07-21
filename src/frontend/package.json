@@ -12,6 +12,8 @@
     "build:recruiter": "npm run build --workspace=packages/recruiter-app",
     "build:candidate": "npm run build --workspace=packages/candidate-app",
     "build:all": "npm run build:recruiter && npm run build:candidate",
+    "preview:recruiter": "npm run preview --workspace=packages/recruiter-app",
+    "preview:candidate": "npm run preview --workspace=packages/candidate-app",
     "test": "npm run test --workspaces --if-present",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
