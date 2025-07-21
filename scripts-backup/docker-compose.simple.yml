@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Version simplifiée de SQL Server sans health check complexe
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: xpertsphere-sqlserver
+    environment:
+      SA_PASSWORD: "XpertSphere2025!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: xpertsphere-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass "XpertSphere2025!"
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    container_name: xpertsphere-adminer
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:

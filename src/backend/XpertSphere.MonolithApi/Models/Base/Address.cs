@@ -1,0 +1,123 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace XpertSphere.MonolithApi.Models.Base;
+
+[ComplexType]
+public class Address
+{
+    [MaxLength(10)]
+    public string? StreetNumber { get; set; }
+
+    [MaxLength(200)]
+    public string? Street { get; set; }
+
+    [MaxLength(100)]
+    public string? City { get; set; }
+
+    [MaxLength(20)]
+    public string? PostalCode { get; set; }
+
+    [MaxLength(100)]
+    public string? Region { get; set; }
+
+    [MaxLength(100)]
+    public string? Country { get; set; } = "France";
+
+    [MaxLength(100)]
+    public string? AddressLine2 { get; set; }
+
+    [NotMapped]
+    public string FullAddress
+    {
+        get
+        {
+            var parts = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(StreetNumber) && !string.IsNullOrWhiteSpace(Street))
+            {
+                parts.Add($"{StreetNumber} {Street}");
+            }
+            else if (!string.IsNullOrWhiteSpace(Street))
+            {
+                parts.Add(Street);
+            }
+
+            if (!string.IsNullOrWhiteSpace(AddressLine2))
+            {
+                parts.Add(AddressLine2);
+            }
+
+            if (!string.IsNullOrWhiteSpace(PostalCode) && !string.IsNullOrWhiteSpace(City))
+            {
+                parts.Add($"{PostalCode} {City}");
+            }
+            else if (!string.IsNullOrWhiteSpace(City))
+            {
+                parts.Add(City);
+            }
+
+            if (!string.IsNullOrWhiteSpace(Region) && Region != Country)
+            {
+                parts.Add(Region);
+            }
+
+            if (!string.IsNullOrWhiteSpace(Country))
+            {
+                parts.Add(Country);
+            }
+
+            return string.Join(", ", parts);
+        }
+    }
+
+    [NotMapped]
+    public bool IsEmpty => string.IsNullOrWhiteSpace(Street) && 
+                          string.IsNullOrWhiteSpace(City) && 
+                          string.IsNullOrWhiteSpace(PostalCode);
+
+    [NotMapped]
+    public string MultiLineAddress
+    {
+        get
+        {
+            var lines = new List<string>();
+
+            // Ligne 1: Numéro et nom de rue
+            if (!string.IsNullOrWhiteSpace(StreetNumber) && !string.IsNullOrWhiteSpace(Street))
+            {
+                lines.Add($"{StreetNumber} {Street}");
+            }
+            else if (!string.IsNullOrWhiteSpace(Street))
+            {
+                lines.Add(Street);
+            }
+
+            // Ligne 2: Complément d'adresse
+            if (!string.IsNullOrWhiteSpace(AddressLine2))
+            {
+                lines.Add(AddressLine2);
+            }
+
+            // Ligne 3: Code postal, ville, région
+            var cityLine = new List<string>();
+            if (!string.IsNullOrWhiteSpace(PostalCode))
+                cityLine.Add(PostalCode);
+            if (!string.IsNullOrWhiteSpace(City))
+                cityLine.Add(City);
+            if (!string.IsNullOrWhiteSpace(Region) && Region != Country)
+                cityLine.Add(Region);
+
+            if (cityLine.Any())
+                lines.Add(string.Join(" ", cityLine));
+
+            // Ligne 4: Pays
+            if (!string.IsNullOrWhiteSpace(Country))
+                lines.Add(Country);
+
+            return string.Join(Environment.NewLine, lines);
+        }
+    }
+
+    public override string ToString() => FullAddress;
+}

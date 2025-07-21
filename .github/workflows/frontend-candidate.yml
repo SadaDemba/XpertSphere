@@ -1,0 +1,40 @@
+name: Candidate App CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "src/frontend/packages/candidate-app/**"
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  REGISTRY: acrxpertspheredev.azurecr.io
+  IMAGE_NAME: candidate-app
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push
+        run: |
+          docker build \
+            --build-arg VITE_API_BASE_URL=https://apim-xpertsphere-dev.azure-api.net \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+            -f docker/candidate-app/Dockerfile .
+
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
