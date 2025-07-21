@@ -14,9 +14,6 @@ RUN npm ci
 # Copy specific app
 COPY src/frontend/packages/recruiter-app ./packages/recruiter-app
 
-# Set working directory to the app
-WORKDIR /app/packages/recruiter-app
-
 # Build arguments for environment variables
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL

@@ -18,7 +18,7 @@ COPY src/frontend/packages/candidate-app ./packages/candidate-app
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
-RUN npm run build:recruiter
+RUN npm run build:candidate
 
 # Expose port
 EXPOSE 3000
