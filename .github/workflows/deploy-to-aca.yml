@@ -1,0 +1,81 @@
+# .github/workflows/deploy-to-aca.yml
+name: Deploy to Azure Container Apps
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Docker Images"]
+    types:
+      - completed
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Candidate App to ACA
+        run: |
+          # Try to update first, if it doesn't exist, create it
+          az containerapp update \
+            --name xpertsphere-candidate-app \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --image ${{ secrets.AZURE_REGISTRY_SERVER }}/candidate-app:${{ github.sha }} \
+            --set-env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
+          || \
+          az containerapp create \
+            --name xpertsphere-candidate-app \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --environment ${{ secrets.ACA_ENVIRONMENT_NAME }} \
+            --image ${{ secrets.AZURE_REGISTRY_SERVER }}/candidate-app:${{ github.sha }} \
+            --registry-server ${{ secrets.AZURE_REGISTRY_SERVER }} \
+            --registry-username ${{ secrets.AZURE_REGISTRY_USERNAME }} \
+            --registry-password ${{ secrets.AZURE_REGISTRY_PASSWORD }} \
+            --target-port 3000 \
+            --ingress external \
+            --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
+            --cpu 0.25 \
+            --memory 0.5Gi \
+            --min-replicas 0 \
+            --max-replicas 2
+
+      - name: Deploy Recruiter App to ACA
+        run: |
+          # Try to update first, if it doesn't exist, create it
+          az containerapp update \
+            --name xpertsphere-recruiter-app \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --image ${{ secrets.AZURE_REGISTRY_SERVER }}/recruiter-app:${{ github.sha }} \
+            --set-env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
+          || \
+          az containerapp create \
+            --name xpertsphere-recruiter-app \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --environment ${{ secrets.ACA_ENVIRONMENT_NAME }} \
+            --image ${{ secrets.AZURE_REGISTRY_SERVER }}/recruiter-app:${{ github.sha }} \
+            --registry-server ${{ secrets.AZURE_REGISTRY_SERVER }} \
+            --registry-username ${{ secrets.AZURE_REGISTRY_USERNAME }} \
+            --registry-password ${{ secrets.AZURE_REGISTRY_PASSWORD }} \
+            --target-port 3001 \
+            --ingress external \
+            --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
+            --cpu 0.5 \
+            --memory 1Gi \
+            --min-replicas 1 \
+            --max-replicas 3
+
+      - name: Get deployment status
+        run: |
+          echo "Candidate App Status:"
+          az containerapp show --name xpertsphere-candidate-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query "properties.latestRevisionFqdn" -o tsv
+
+          echo "Recruiter App Status:"
+          az containerapp show --name xpertsphere-recruiter-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query "properties.latestRevisionFqdn" -o tsv
