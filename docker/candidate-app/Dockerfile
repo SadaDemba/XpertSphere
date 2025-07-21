@@ -6,7 +6,7 @@ WORKDIR /app
 COPY src/frontend/package*.json ./
 COPY src/frontend/.prettierrc ./
 COPY src/frontend/.prettierignore ./
-COPY src/frontend/eslint.config.mjs ./
+COPY src/frontend/eslint.config.js ./
 
 # Copy packages (recruiter-app excluded via .dockerignore)
 COPY src/frontend/packages ./packages
