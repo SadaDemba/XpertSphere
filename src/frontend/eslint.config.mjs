@@ -52,7 +52,7 @@ export default defineConfigWithVueTs(
             // Vue rules
             'vue/multi-word-component-names': 'off',
             'vue/component-definition-name-casing': ['error', 'PascalCase'],
-            'vue/component-name-in-template-casing': ['error', 'PascalCase'],
+            'vue/component-name-in-template-casing': ['error', 'kebab-case'],
 
             // TypeScript rules
             '@typescript-eslint/no-explicit-any': 'warn',
