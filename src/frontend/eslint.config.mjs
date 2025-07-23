@@ -3,6 +3,9 @@ import globals from 'globals'
 import pluginVue from 'eslint-plugin-vue'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import prettierSkipFormatting from '@vue/eslint-config-prettier/skip-formatting'
+import * as dotenv from 'dotenv'
+
+dotenv.config();
 
 export default defineConfigWithVueTs(
     {
@@ -62,6 +65,7 @@ export default defineConfigWithVueTs(
             // General rules
             'prefer-const': 'error',
             'no-var': 'error',
+            /*global process*/
             'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
             'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
             'spaced-comment': ['error', 'always'],
