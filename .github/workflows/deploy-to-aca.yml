@@ -1,4 +1,3 @@
-# .github/workflows/deploy-to-aca.yml
 name: Deploy to Azure Container Apps
 
 on:
@@ -26,134 +25,59 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    strategy:
+      matrix:
+        app:
+          - name: "candidate-app"
+            container_name: "xpertsphere-candidate-app"
+            port: 3000
+          - name: "recruiter-app"
+            container_name: "xpertsphere-recruiter-app"
+            port: 3001
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy Candidate App to ACA
+      - name: Deploy ${{ matrix.app.name }} to ACA
         run: |
-          # Try to update first, if it doesn't exist, create it
-          az containerapp update \
-            --name xpertsphere-candidate-app \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --image acrxpertspheredev.azurecr.io/candidate-app:${{ github.sha }} \
-            --set-env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
-          || \
-          az containerapp create \
-            --name xpertsphere-candidate-app \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --environment ${{ secrets.ACA_ENVIRONMENT_NAME }} \
-            --image acrxpertspheredev.azurecr.io/candidate-app:${{ github.sha }} \
-            --registry-server acrxpertspheredev.azurecr.io \
-            --registry-username ${{ secrets.ACR_USERNAME }} \
-            --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --target-port 3000 \
-            --ingress external \
-            --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
-            --cpu 0.25 \
-            --memory 0.5Gi \
-            --min-replicas 0 \
-            --max-replicas 2
+          echo "=== Deploying ${{ matrix.app.name }} ==="
 
-      - name: Deploy Recruiter App to ACA
+          # Check if container app exists
+          if az containerapp show --name ${{ matrix.app.container_name }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
+            echo "Container app exists, updating..."
+            az containerapp update \
+              --name ${{ matrix.app.container_name }} \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --image acrxpertspheredev.azurecr.io/${{ matrix.app.name }}:${{ github.sha }} \
+              --set-env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+          else
+            echo "Container app doesn't exist, creating..."
+            az containerapp create \
+              --name ${{ matrix.app.container_name }} \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --environment ${{ secrets.ACA_ENVIRONMENT_NAME }} \
+              --image ${{ matrix.app.image }}:${{ github.sha }} \
+              --registry-server acrxpertspheredev.azurecr.io \
+              --registry-username ${{ secrets.ACR_USERNAME }} \
+              --registry-password ${{ secrets.ACR_PASSWORD }} \
+              --target-port ${{ matrix.app.port }} \
+              --ingress external \
+              --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
+              --cpu 0.25 \
+              --memory 0.5Gi \
+              --min-replicas 0 \
+              --max-replicas 2
+          fi
+
+      - name: Get ${{ matrix.app.name }} URL
         run: |
-          # Try to update first, if it doesn't exist, create it
-          az containerapp update \
-            --name xpertsphere-recruiter-app \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --image acrxpertspheredev.azurecr.io/recruiter-app:${{ github.sha }} \
-            --set-env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
-          || \
-          az containerapp create \
-            --name xpertsphere-recruiter-app \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --environment ${{ secrets.ACA_ENVIRONMENT_NAME }} \
-            --image acrxpertspheredev.azurecr.io/recruiter-app:${{ github.sha }} \
-            --registry-server acrxpertspheredev.azurecr.io \
-            --registry-username ${{ secrets.ACR_USERNAME }} \
-            --registry-password ${{ secrets.ACR_PASSWORD }} \
-            --target-port 3001 \
-            --ingress external \
-            --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
-            --cpu 0.5 \
-            --memory 1Gi \
-            --min-replicas 1 \
-            --max-replicas 3
-
-      - name: Get deployment status
-        run: |
-          echo "Candidate App Status:"
-          az containerapp show --name xpertsphere-candidate-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query "properties.latestRevisionFqdn" -o tsv
-
-          echo "Recruiter App Status:"
-          az containerapp show --name xpertsphere-recruiter-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query "properties.latestRevisionFqdn" -o tsv
-
-      - name: Check resource usage
-        run: |
-          echo "=== Resource Usage Check ==="
-          echo "Candidate App Metrics:"
-          az monitor metrics list \
-            --resource /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.App/containerApps/xpertsphere-candidate-app \
-            --metric "Requests" \
-            --interval PT24H \
-            --start-time $(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ) \
-            --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) \
-            --query "value[0].timeseries[0].data[-1].total" -o tsv || echo "0"
-
-          echo "Recruiter App Metrics:"
-          az monitor metrics list \
-            --resource /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.App/containerApps/xpertsphere-recruiter-app \
-            --metric "Requests" \
-            --interval PT24H \
-            --start-time $(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ) \
-            --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) \
-            --query "value[0].timeseries[0].data[-1].total" -o tsv || echo "0"
-
-      - name: Setup usage alerts
-        run: |
-          echo "=== Setting up usage alerts ==="
-
-          # Alert for Candidate App requests (80% of 2M = 1.6M)
-          az monitor metrics alert create \
-            --name "candidate-app-usage-alert" \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --scopes /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.App/containerApps/xpertsphere-candidate-app \
-            --condition "total Requests > 1600000" \
-            --window-size PT1H \
-            --evaluation-frequency PT15M \
-            --severity 2 \
-            --description "Candidate App approaching 80% of monthly requests limit" \
-            --action-groups /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.Insights/actionGroups/${{ secrets.AZURE_ACTION_GROUP_NAME }} \
-            || echo "Alert may already exist or action group not configured"
-
-          # Alert for Recruiter App requests (80% of 2M = 1.6M)  
-          az monitor metrics alert create \
-            --name "recruiter-app-usage-alert" \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --scopes /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.App/containerApps/xpertsphere-recruiter-app \
-            --condition "total Requests > 1600000" \
-            --window-size PT1H \
-            --evaluation-frequency PT15M \
-            --severity 2 \
-            --description "Recruiter App approaching 80% of monthly requests limit" \
-            --action-groups /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.Insights/actionGroups/${{ secrets.AZURE_ACTION_GROUP_NAME }} \
-            || echo "Alert may already exist or action group not configured"
-
-          # Alert for vCPU usage (80% of 180,000 = 144,000 vCPU seconds)
-          az monitor metrics alert create \
-            --name "aca-vcpu-usage-alert" \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --scopes /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.App/managedEnvironments/${{ secrets.ACA_ENVIRONMENT_NAME }} \
-            --condition "total CpuUsage > 144000" \
-            --window-size PT1H \
-            --evaluation-frequency PT15M \
-            --severity 1 \
-            --description "ACA Environment approaching 80% of monthly vCPU limit" \
-            --action-groups /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.Insights/actionGroups/${{ secrets.AZURE_ACTION_GROUP_NAME }} \
-            || echo "Alert may already exist or action group not configured"
+          echo "🎉 ${{ matrix.app.name }} deployed successfully!"
+          echo "🔗 URL: https://$(az containerapp show --name ${{ matrix.app.container_name }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
