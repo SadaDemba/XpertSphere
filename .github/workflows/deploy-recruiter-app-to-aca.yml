@@ -1,8 +1,8 @@
-name: Deploy to Azure Container Apps
+name: Deploy Cecruiter app to Azure Container Apps
 
 on:
   workflow_run:
-    workflows: ["Candidate App CI/CD", "Recruiter App CI/CD"]
+    workflows: ["Recruiter App CI/CD"]
     types:
       - completed
     branches: [main]
@@ -17,7 +17,7 @@ on:
           - production
           - staging
       force_recreate:
-        description: "Force recreate containers (delete and recreate)"
+        description: "Force recreate container (delete and recreate)"
         required: false
         default: false
         type: boolean
@@ -26,17 +26,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
-
-    strategy:
-      max-parallel: 1
-      matrix:
-        app:
-          - name: "candidate-app"
-            container_name: "xpertsphere-candidate-app"
-            port: 3000
-          - name: "recruiter-app"
-            container_name: "xpertsphere-recruiter-app"
-            port: 3001
 
     steps:
       - name: Checkout code
@@ -47,29 +36,29 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy ${{ matrix.app.name }} to ACA
+      - name: Deploy recruiter-app to ACA
         run: |
-          echo "=== Deploying ${{ matrix.app.name }} ==="
+          echo "=== Deploying recruiter-app ==="
 
           # Check if container app exists
-          if az containerapp show --name ${{ matrix.app.container_name }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
+          if az containerapp show --name xpertsphere-recruiter-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
             echo "Container app exists, updating..."
             az containerapp update \
-              --name ${{ matrix.app.container_name }} \
+              --name xpertsphere-recruiter-app \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --image acrxpertspheredev.azurecr.io/${{ matrix.app.name }}:${{ github.sha }} \
+              --image acrxpertspheredev.azurecr.io/recruiter-app:${{ github.sha }} \
               --set-env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
-              --name ${{ matrix.app.container_name }} \
+              --name xpertsphere-recruiter-app \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --environment ${{ secrets.ACA_ENVIRONMENT_NAME }} \
-              --image ${{ matrix.app.image }}:${{ github.sha }} \
+              --image acrxpertspheredev.azurecr.io/recruiter-app:${{ github.sha }} \
               --registry-server acrxpertspheredev.azurecr.io \
               --registry-username ${{ secrets.ACR_USERNAME }} \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
-              --target-port ${{ matrix.app.port }} \
+              --target-port 3000 \
               --ingress external \
               --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
               --cpu 0.25 \
@@ -78,7 +67,7 @@ jobs:
               --max-replicas 2
           fi
 
-      - name: Get ${{ matrix.app.name }} URL
+      - name: Get recruiter-app URL
         run: |
-          echo "🎉 ${{ matrix.app.name }} deployed successfully!"
-          echo "🔗 URL: https://$(az containerapp show --name ${{ matrix.app.container_name }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
+          echo "🎉 recruiter-app deployed successfully!"
+          echo "🔗 URL: https://$(az containerapp show --name xpertsphere-recruiter-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"

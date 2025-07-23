@@ -1,0 +1,73 @@
+name: Deploy Candidate app to Azure Container Apps
+
+on:
+  workflow_run:
+    workflows: ["Candidate App CI/CD"]
+    types:
+      - completed
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - production
+          - staging
+      force_recreate:
+        description: "Force recreate container (delete and recreate)"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy candidate-app to ACA
+        run: |
+          echo "=== Deploying candidate-app ==="
+
+          # Check if container app exists
+          if az containerapp show --name xpertsphere-candidate-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
+            echo "Container app exists, updating..."
+            az containerapp update \
+              --name xpertsphere-candidate-app \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --image acrxpertspheredev.azurecr.io/candidate-app:${{ github.sha }} \
+              --set-env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+          else
+            echo "Container app doesn't exist, creating..."
+            az containerapp create \
+              --name xpertsphere-candidate-app \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --environment ${{ secrets.ACA_ENVIRONMENT_NAME }} \
+              --image acrxpertspheredev.azurecr.io/candidate-app:${{ github.sha }} \
+              --registry-server acrxpertspheredev.azurecr.io \
+              --registry-username ${{ secrets.ACR_USERNAME }} \
+              --registry-password ${{ secrets.ACR_PASSWORD }} \
+              --target-port 3000 \
+              --ingress external \
+              --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
+              --cpu 0.25 \
+              --memory 0.5Gi \
+              --min-replicas 0 \
+              --max-replicas 2
+          fi
+
+      - name: Get candidate-app URL
+        run: |
+          echo "🎉 candidate-app deployed successfully!"
+          echo "🔗 URL: https://$(az containerapp show --name xpertsphere-candidate-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
