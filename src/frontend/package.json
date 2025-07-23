@@ -59,5 +59,8 @@
     "packages/**/*.{json,md,yml,yaml,html,css,scss}": [
       "prettier --write --ignore-unknown"
     ]
+  },
+  "dependencies": {
+    "dotenv": "^17.2.0"
   }
 }

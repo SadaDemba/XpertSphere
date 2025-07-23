@@ -31,26 +31,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Debug - Check secrets availability
-        run: |
-          echo "=== Checking secrets availability ==="
-          echo "AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID != '' && 'SET' || 'NOT SET' }}"
-          echo "AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET != '' && 'SET' || 'NOT SET' }}"
-          echo "AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID != '' && 'SET' || 'NOT SET' }}"
-          echo "AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID != '' && 'SET' || 'NOT SET' }}"
-          echo "AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS != '' && 'SET' || 'NOT SET' }}"
-          echo ""
-          echo "=== First 8 characters (safe to show) ==="
-          echo "AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}..."
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          client_secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy Candidate App to ACA
         run: |
