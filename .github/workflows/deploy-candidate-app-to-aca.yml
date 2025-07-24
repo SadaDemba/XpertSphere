@@ -41,7 +41,7 @@ jobs:
           echo "🟡 === Deploying candidate-app to STAGING ==="
 
           # Variables for staging
-          APP_NAME="xpertsphere-candidate-app-staging"
+          APP_NAME="aca-candidate-app-staging"
           ENVIRONMENT_NAME="aca-env-xpertsphere-dev"
 
           # Use the SHA of workflow trigger
