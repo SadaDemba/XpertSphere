@@ -70,7 +70,7 @@ jobs:
               --ingress external \
               --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL_STAGING }} \
               --cpu 0.25 \
-              --memory 0.25Gi \
+              --memory 0.5Gi \
               --min-replicas 0 \
               --max-replicas 2
           fi
@@ -126,8 +126,8 @@ jobs:
               --target-port 3000 \
               --ingress external \
               --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
-              --cpu 0.25 \
-              --memory 0.5Gi \
+              --cpu 0.5 \
+              --memory 1Gi \
               --min-replicas 0 \
               --max-replicas 3
           fi
