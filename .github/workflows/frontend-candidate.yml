@@ -21,12 +21,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Login to ACR
-        uses: azure/docker-login@v1
+      - name: Login to Azure
+        if: github.event_name != 'pull_request'
+        uses: azure/login@v1
         with:
-          login-server: ${{ env.REGISTRY }}
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Build and push
         run: |
