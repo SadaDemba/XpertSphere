@@ -1,4 +1,4 @@
-name: Candidate App CI/CD
+name: Candidate App CI
 
 on:
   push:
@@ -28,7 +28,8 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Build
-        run: docker build \
+        run: |
+          docker build \
           --build-arg ${{ secrets.VITE_API_BASE_URL }} \
           -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
           -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
