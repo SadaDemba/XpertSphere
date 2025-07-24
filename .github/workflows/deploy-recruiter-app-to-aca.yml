@@ -1,11 +1,11 @@
-name: Deploy Cecruiter app to Azure Container Apps
+name: Deploy Recruiter app to Azure Container Apps
 
 on:
   workflow_run:
     workflows: ["Recruiter App CI/CD"]
     types:
       - completed
-    branches: [main]
+    branches: [main, develop]
   workflow_dispatch:
     inputs:
       environment:
@@ -23,9 +23,9 @@ on:
         type: boolean
 
 jobs:
-  deploy:
+  deploy-staging:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop') || (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging') }}
 
     steps:
       - name: Checkout code
@@ -36,25 +36,90 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy recruiter-app to ACA
+      - name: Deploy recruiter-app to STAGING
         run: |
-          echo "=== Deploying recruiter-app ==="
+          echo "🟡 === Deploying recruiter-app to STAGING ==="
 
-          # Check if container app exists
-          if az containerapp show --name xpertsphere-recruiter-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
+          APP_NAME="xpertsphere-recruiter-app-staging"
+          ENVIRONMENT_NAME="aca-env-xpertsphere-dev"
+
+          if [ "${{ github.event_name }}" == "workflow_run" ]; then
+            IMAGE_TAG="${{ github.event.workflow_run.head_sha }}"
+          else
+            IMAGE_TAG="${{ github.sha }}"
+          fi
+
+          if az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
             echo "Container app exists, updating..."
             az containerapp update \
-              --name xpertsphere-recruiter-app \
+              --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --image acrxpertspheredev.azurecr.io/recruiter-app:${{ github.sha }} \
+              --image acrxpertspheredev.azurecr.io/recruiter-app:$IMAGE_TAG \
+              --set-env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL_STAGING }}
+          else
+            echo "Container app doesn't exist, creating..."
+            az containerapp create \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --environment $ENVIRONMENT_NAME \
+              --image acrxpertspheredev.azurecr.io/recruiter-app:$IMAGE_TAG \
+              --registry-server acrxpertspheredev.azurecr.io \
+              --registry-username ${{ secrets.ACR_USERNAME }} \
+              --registry-password ${{ secrets.ACR_PASSWORD }} \
+              --target-port 3000 \
+              --ingress external \
+              --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL_STAGING }} \
+              --cpu 0.25 \
+              --memory 0.25Gi \
+              --min-replicas 0 \
+              --max-replicas 2
+          fi
+
+      - name: Get staging URL
+        run: |
+          echo "🎉 recruiter-app deployed to STAGING successfully!"
+          echo "🔗 Staging URL: https://$(az containerapp show --name xpertsphere-recruiter-app-staging --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    if: ${{ (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name == 'workflow_dispatch' && inputs.environment == 'production') }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy recruiter-app to PRODUCTION
+        run: |
+          echo "🟢 === Deploying recruiter-app to PRODUCTION ==="
+
+          APP_NAME="xpertsphere-recruiter-app"
+          ENVIRONMENT_NAME="aca-env-xpertsphere-prod"
+
+          if [ "${{ github.event_name }}" == "workflow_run" ]; then
+            IMAGE_TAG="${{ github.event.workflow_run.head_sha }}"
+          else
+            IMAGE_TAG="${{ github.sha }}"
+          fi
+
+          if az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
+            echo "Container app exists, updating..."
+            az containerapp update \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --image acrxpertspheredev.azurecr.io/recruiter-app:$IMAGE_TAG \
               --set-env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
-              --name xpertsphere-recruiter-app \
+              --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --environment ${{ secrets.ACA_ENVIRONMENT_NAME }} \
-              --image acrxpertspheredev.azurecr.io/recruiter-app:${{ github.sha }} \
+              --environment $ENVIRONMENT_NAME \
+              --image acrxpertspheredev.azurecr.io/recruiter-app:$IMAGE_TAG \
               --registry-server acrxpertspheredev.azurecr.io \
               --registry-username ${{ secrets.ACR_USERNAME }} \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
@@ -64,10 +129,10 @@ jobs:
               --cpu 0.25 \
               --memory 0.5Gi \
               --min-replicas 0 \
-              --max-replicas 2
+              --max-replicas 3
           fi
 
-      - name: Get recruiter-app URL
+      - name: Get production URL
         run: |
-          echo "🎉 recruiter-app deployed successfully!"
-          echo "🔗 URL: https://$(az containerapp show --name xpertsphere-recruiter-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
+          echo "🎉 recruiter-app deployed to PRODUCTION successfully!"
+          echo "🔗 Production URL: https://$(az containerapp show --name xpertsphere-recruiter-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
