@@ -27,26 +27,28 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build and push
-        run: |
-          docker build \
-            --build-arg ${{ secrets.VITE_API_BASE_URL }} \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-            -f docker/recruiter-app/Dockerfile .
+      - name: Build
+        run: docker build \
+          --build-arg ${{ secrets.VITE_API_BASE_URL }} \
+          -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+          -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+          -f docker/candidate-app/Dockerfile .
 
+      - name: Push
+        run: |
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
       # OPTIMIZATION : auto remove of old images
       - name: Cleanup old images
+        if: github.event_name != 'pull_request'
         run: |
 
           TAGS_TO_DELETE=$(az acr repository show-tags \
             --name acrxpertspheredev \
             --repository ${{ env.IMAGE_NAME }} \
             --orderby time_desc \
-            --output tsv | tail -n +4)
+            --output tsv | tail -n +5)
 
           for TAG in $TAGS_TO_DELETE; do
             if [ "$TAG" != "latest" ] && [ "$TAG" != "${{ github.sha }}" ]; then
