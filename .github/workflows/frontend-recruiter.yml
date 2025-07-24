@@ -21,6 +21,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Login to Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Login to ACR
         uses: azure/docker-login@v1
         with:
@@ -39,28 +44,45 @@ jobs:
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-      - name: Login to Azure CLI
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      # OPTIMIZATION : auto remove of old images
       - name: Cleanup old images
         run: |
+          echo "🧹 Starting cleanup of old images..."
 
-          TAGS_TO_DELETE=$(az acr repository show-tags \
+          # Récupérer tous les tags sauf 'latest', triés par date (plus récent en premier)
+          ALL_TAGS=$(az acr repository show-tags \
             --name acrxpertspheredev \
             --repository ${{ env.IMAGE_NAME }} \
             --orderby time_desc \
-            --output tsv | tail -n +5)
+            --output tsv | grep -v "^latest$")
 
-          for TAG in $TAGS_TO_DELETE; do
-            if [ "$TAG" != "latest" ] && [ "$TAG" != "${{ github.sha }}" ]; then
-              echo "Deleting tag: $TAG"
-              az acr repository delete \
-                --name acrxpertspheredev \
-                --repository ${{ env.IMAGE_NAME }} \
-                --tag $TAG \
-                --yes || true
-            fi
-          done
+          echo "All tags found (excluding 'latest'):"
+          echo "$ALL_TAGS"
+
+          # Garder les 4 plus récents, supprimer le reste
+          TAGS_TO_DELETE=$(echo "$ALL_TAGS" | tail -n +5)
+
+          if [ -z "$TAGS_TO_DELETE" ]; then
+            echo "No tags to delete. Less than 4 images exist."
+          else
+            echo "Tags to delete:"
+            echo "$TAGS_TO_DELETE"
+            
+            for TAG in $TAGS_TO_DELETE; do
+              if [ ! -z "$TAG" ]; then
+                echo "Deleting tag: $TAG"
+                az acr repository delete \
+                  --name acrxpertspheredev \
+                  --repository ${{ env.IMAGE_NAME }} \
+                  --tag "$TAG" \
+                  --yes || echo "Failed to delete tag: $TAG"
+              fi
+            done
+            
+            echo "✅ Cleanup completed!"
+          fi
+
+          echo "📋 Remaining tags after cleanup:"
+          az acr repository show-tags \
+            --name acrxpertspheredev \
+            --repository ${{ env.IMAGE_NAME }} \
+            --output table
