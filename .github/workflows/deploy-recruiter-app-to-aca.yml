@@ -2,7 +2,7 @@ name: Deploy Recruiter app to Azure Container Apps
 
 on:
   workflow_run:
-    workflows: ["Recruiter App CI/CD"]
+    workflows: ["Recruiter App CI"]
     types:
       - completed
     branches: [main, develop]
