@@ -40,7 +40,6 @@ jobs:
 
       # OPTIMIZATION : auto remove of old images
       - name: Cleanup old images
-        if: github.ref == 'refs/heads/main'
         run: |
 
           TAGS_TO_DELETE=$(az acr repository show-tags \
