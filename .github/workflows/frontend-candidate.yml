@@ -38,3 +38,25 @@ jobs:
 
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      # OPTIMIZATION : auto remove of old images
+      - name: Cleanup old images
+        if: github.ref == 'refs/heads/main'
+        run: |
+
+          TAGS_TO_DELETE=$(az acr repository show-tags \
+            --name acrxpertspheredev \
+            --repository ${{ env.IMAGE_NAME }} \
+            --orderby time_desc \
+            --output tsv | tail -n +4)
+
+          for TAG in $TAGS_TO_DELETE; do
+            if [ "$TAG" != "latest" ] && [ "$TAG" != "${{ github.sha }}" ]; then
+              echo "Deleting tag: $TAG"
+              az acr repository delete \
+                --name acrxpertspheredev \
+                --repository ${{ env.IMAGE_NAME }} \
+                --tag $TAG \
+                --yes || true
+            fi
+          done
