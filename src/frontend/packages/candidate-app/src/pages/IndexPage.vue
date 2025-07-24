@@ -35,6 +35,10 @@ const todos = ref<Todo[]>([
     id: 5,
     content: 'ct5',
   },
+  {
+    id: 6,
+    content: 'ct6 test 1',
+  },
 ]);
 
 const meta = ref<Meta>({
