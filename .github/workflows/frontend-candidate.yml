@@ -36,8 +36,6 @@ jobs:
           -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
           -f docker/candidate-app/Dockerfile .
 
-      - name: Push
-        run: |
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
@@ -49,7 +47,6 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Cleanup old images
-        if: github.event_name != 'pull_request'
         run: |
           TAGS_TO_DELETE=$(az acr repository show-tags \
             --name acrxpertspheredev \

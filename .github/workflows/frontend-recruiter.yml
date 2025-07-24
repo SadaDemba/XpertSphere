@@ -28,7 +28,7 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build
+      - name: Build and push
         run: |
           docker build \
           --build-arg ${{ secrets.VITE_API_BASE_URL }} \
@@ -36,15 +36,17 @@ jobs:
           -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
           -f docker/candidate-app/Dockerfile .
 
-      - name: Push
-        if: github.event_name != 'pull_request'
-        run: |
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
+      - name: Login to Azure CLI
+        if: github.event_name != 'pull_request'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       # OPTIMIZATION : auto remove of old images
       - name: Cleanup old images
-        if: github.event_name != 'pull_request'
         run: |
 
           TAGS_TO_DELETE=$(az acr repository show-tags \

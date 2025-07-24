@@ -27,10 +27,6 @@ const todos = ref<Todo[]>([
     id: 3,
     content: 'ct3',
   },
-  {
-    id: 4,
-    content: 'ct4',
-  },
 ]);
 
 const meta = ref<Meta>({
