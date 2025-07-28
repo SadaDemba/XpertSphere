@@ -2,6 +2,6 @@
 // so you can safely delete all default props below
 
 export default {
-  échec: 'echec de l\'opération',
-  succès: 'succès de l\'opération',
+  échec: "echec de l'opération",
+  succès: "succès de l'opération",
 };
