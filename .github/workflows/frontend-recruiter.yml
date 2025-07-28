@@ -1,12 +1,20 @@
-name: Recruiter App CI/CD
+name: Recruiter App CI
 
 on:
   push:
     branches: [main, develop]
     paths:
       - "src/frontend/packages/recruiter-app/**"
+      - "src/frontend/package*.json"
+      - "src/frontend/eslint.config.mjs"
+      - "src/frontend/.prettierrc"
   pull_request:
     branches: [main, develop]
+    paths:
+      - "src/frontend/packages/recruiter-app/**"
+      - "src/frontend/package*.json"
+      - "src/frontend/eslint.config.mjs"
+      - "src/frontend/.prettierrc"
   workflow_dispatch:
 
 env:
@@ -14,12 +22,55 @@ env:
   IMAGE_NAME: recruiter-app
 
 jobs:
-  build-and-push:
+  # ✅ Job de validation pour les PR (rapide, pas de build Docker)
+  validate:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "src/frontend/package-lock.json"
+
+      - name: Install dependencies (monorepo)
+        working-directory: src/frontend
+        run: npm ci
+
+      - name: Format check
+        working-directory: src/frontend
+        run: npm run format:check
+
+      - name: Lint (all workspaces)
+        working-directory: src/frontend
+        run: npm run lint
+
+      - name: Test (all workspaces)
+        working-directory: src/frontend
+        run: npm run test
+
+      - name: Build check (recruiter-app only)
+        working-directory: src/frontend
+        run: npm run build:recruiter
+
+  # ✅ Job de build et push seulement pour main/develop
+  build-and-push:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Login to ACR
         uses: azure/docker-login@v1
@@ -28,10 +79,10 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build and push
+      - name: Build and Push
         run: |
           docker build \
-            --build-arg ${{ secrets.VITE_API_BASE_URL }} \
+            --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
             -f docker/recruiter-app/Dockerfile .
@@ -39,24 +90,47 @@ jobs:
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-      # OPTIMIZATION : auto remove of old images
       - name: Cleanup old images
-        if: github.ref == 'refs/heads/main'
         run: |
+          echo "🧹 Starting cleanup of old images..."
 
-          TAGS_TO_DELETE=$(az acr repository show-tags \
+          # Récupérer tous les tags sauf 'latest', triés par date (plus récent en premier)
+          ALL_TAGS=$(az acr repository show-tags \
             --name acrxpertspheredev \
             --repository ${{ env.IMAGE_NAME }} \
             --orderby time_desc \
-            --output tsv | tail -n +4)
+            --output tsv | grep -v "^latest$")
 
-          for TAG in $TAGS_TO_DELETE; do
-            if [ "$TAG" != "latest" ] && [ "$TAG" != "${{ github.sha }}" ]; then
-              echo "Deleting tag: $TAG"
-              az acr repository delete \
-                --name acrxpertspheredev \
-                --repository ${{ env.IMAGE_NAME }} \
-                --tag $TAG \
-                --yes || true
-            fi
-          done
+          echo "All tags found (excluding 'latest'):"
+          echo "$ALL_TAGS"
+
+          # Garder les 4 plus récents, supprimer le reste
+          TAGS_TO_DELETE=$(echo "$ALL_TAGS" | tail -n +5)
+
+          if [ -z "$TAGS_TO_DELETE" ]; then
+            echo "✅ No tags to delete. Less than 4 images exist."
+          else
+            echo "🗑️ Tags to delete:"
+            echo "$TAGS_TO_DELETE"
+            
+            # Supprimer chaque tag
+            for TAG in $TAGS_TO_DELETE; do
+              if [ ! -z "$TAG" ]; then
+                echo "Deleting tag: $TAG"
+                az acr repository delete \
+                  --name acrxpertspheredev \
+                  --repository ${{ env.IMAGE_NAME }} \
+                  --tag "$TAG" \
+                  --yes || echo "⚠️ Failed to delete tag: $TAG"
+              fi
+            done
+            
+            echo "✅ Cleanup completed!"
+          fi
+
+          # Afficher les tags restants
+          echo "📋 Remaining tags after cleanup:"
+          az acr repository show-tags \
+            --name acrxpertspheredev \
+            --repository ${{ env.IMAGE_NAME }} \
+            --output table

@@ -1,1 +1,7 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+cd "$(dirname -- "$0")/.."
+
+echo "🔍 Running lint-staged from frontend..."
 npx lint-staged
