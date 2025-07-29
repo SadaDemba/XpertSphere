@@ -85,7 +85,7 @@ cp .env.example .env
 
 ```bash
 # ===== BASE DE DONNÉES =====
-CONNECTION_STRING=Server=localhost,1433;Database=XpertSphereDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+CONNECTION_STRING=Server=localhost,1433;Database=<YourDbName>;User Id=sa;Password=<YourStrong@Password>;TrustServerCertificate=true;
 
 # ===== REDIS CACHE =====
 REDIS_CONNECTION_STRING=localhost:6379
@@ -204,19 +204,17 @@ open http://localhost:8080
 Le fichier `docker-compose.yml` configure l'infrastructure locale :
 
 ```yaml
-version: '3.8'
-
 services:
   # Base de données SQL Server
   sql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: xpertsphere-sql
     environment:
-      SA_PASSWORD: ${SA_PASSWORD:-YourStrong@Passw0rd}
+      SA_PASSWORD: ${SA_PASSWORD:-YourStrongPassword}
       ACCEPT_EULA: Y
     ports:
       - "1433:1433"
     volumes:
       - sql_data:/var/opt/mssql
     healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${SA_PASSWORD:-YourStrong@Passw
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${SA_PASSWORD:-YourStrongPassword}"

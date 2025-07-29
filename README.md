@@ -11,33 +11,39 @@ XpertSphere est une plateforme ATS (Applicant Tracking System) moderne et innova
 ### Fonctionnalités principales
 
 ✅ **Gestion complète des offres d'emploi**
-  - Création et publication multi-plateformes (LinkedIn, HelloWork, Welcome to the Jungle)
-  - Templates personnalisables et workflow de validation
+
+- Création et publication multi-plateformes (LinkedIn, HelloWork, Welcome to the Jungle)
+- Templates personnalisables et workflow de validation
 
 ✅ **Suivi intelligent des candidatures**
-  - Workflow personnalisable (Nouvelle → Présélection → Entretien RH → Test technique → Décision)
-  - Trame de suivi collaborative entre recruteurs et managers
-  - Scoring automatique des candidatures via IA
+
+- Workflow personnalisable (Nouvelle → Présélection → Entretien RH → Test technique → Décision)
+- Trame de suivi collaborative entre recruteurs et managers
+- Scoring automatique des candidatures via IA
 
 ✅ **Communication centralisée**
-  - Notifications temps réel et emails automatiques
-  - Modèles de messages personnalisables par étape
-  - Messagerie intégrée candidat-recruteur
+
+- Notifications temps réel et emails automatiques
+- Modèles de messages personnalisables par étape
+- Messagerie intégrée candidat-recruteur
 
 ✅ **Collaboration équipe**
-  - Système de cooptation avec suivi des parrainages
-  - Tests techniques intégrés avec feedback des évaluateurs
-  - Processus de validation hiérarchique fluide
+
+- Système de cooptation avec suivi des parrainages
+- Tests techniques intégrés avec feedback des évaluateurs
+- Processus de validation hiérarchique fluide
 
 ✅ **Analytics et reporting**
-  - Tableaux de bord en temps réel
-  - Métriques de performance (délai de recrutement, taux de conversion)
-  - Rapports personnalisés pour la direction
+
+- Tableaux de bord en temps réel
+- Métriques de performance (délai de recrutement, taux de conversion)
+- Rapports personnalisés pour la direction
 
 ✅ **Conformité et sécurité**
-  - Respect du RGPD avec gestion granulaire des données
-  - Authentification Azure Entra ID (B2B/B2C)
-  - Audit complet des actions utilisateurs
+
+- Respect du RGPD avec gestion granulaire des données
+- Authentification Azure Entra ID (B2B/B2C)
+- Audit complet des actions utilisateurs
 
 ## 🏗️ Architecture Technique
 
@@ -100,10 +106,10 @@ Consultez [INFRASTRUCTURE.md](INFRASTRUCTURE.md) pour les détails complets d'in
 
 | Application | Port | URL | Description |
 |-------------|------|-----|-------------|
-| **RecruiterApp** | 3001 | http://localhost:3001 | Interface recruteurs |
-| **CandidateApp** | 3000 | http://localhost:3000 | Interface candidats |
-| **API Principale** | 5000 | https://localhost:5000 | Monolith API |
-| **CV Analyzer** | 8000 | http://localhost:8000 | Service d'analyse CV |
+| **RecruiterApp** | 3001 | [http://localhost:3001](http://localhost:3001) | Interface recruteurs |
+| **CandidateApp** | 3000 | [http://localhost:3000](http://localhost:3000) | Interface candidats |
+| **API Principale** | 5000 | [https://localhost:5000](https://localhost:5000) | Monolith API |
+| **CV Analyzer** | 8000 | [http://localhost:8000](http://localhost:8000) | Service d'analyse CV |
 
 ## 📁 Structure du Projet
 
@@ -148,7 +154,7 @@ XpertSphere/
 
 ### Liens rapides
 
-- 📖 **API Documentation** : https://localhost:5000/swagger (après démarrage)
+- 📖 **API Documentation** : [https://localhost:5000/swagger](https://localhost:5000/swagger) (après démarrage)
 - 🐛 **Issues** : [GitHub Issues](../../issues) pour bugs et demandes
 - 💬 **Discussions** : [GitHub Discussions](../../discussions) pour questions
 
