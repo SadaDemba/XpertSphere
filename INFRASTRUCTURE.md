@@ -108,10 +108,10 @@ HELLOWORK_API_KEY=your-hellowork-api-key
 WELCOME_TO_THE_JUNGLE_API_KEY=your-wttj-api-key
 
 # ===== EMAIL CONFIGURATION =====
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
+SMTP_HOST=<smtp.gmail.com>
+SMTP_PORT=<YourPort>
+SMTP_USER=<YourEmailAddress>
+SMTP_PASSWORD=<YourAppPassword>
 
 # ===== STOCKAGE =====
 AZURE_STORAGE_CONNECTION_STRING=your-azure-storage-connection
@@ -194,7 +194,7 @@ open http://localhost:3000  # CandidateApp
 
 # Vérifier la base de données (Adminer)
 open http://localhost:8080
-# Server: sql, Username: sa, Password: voir .env, Database: XpertSphereDb
+# Server: sql, Username: voir .env, Password: voir .env, Database: XpertSphereDb
 ```
 
 ## 🐳 Docker et Conteneurisation
