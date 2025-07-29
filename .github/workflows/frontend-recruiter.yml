@@ -72,12 +72,10 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Login to ACR
-        uses: azure/docker-login@v1
-        with:
-          login-server: ${{ env.REGISTRY }}
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+      - name: Login to ACR using Azure CLI
+        run: |
+          echo "🔐 Login to ACR using Azure CLI..."
+          az acr login --name acrxpertspheredev
 
       - name: Build and Push
         run: |
@@ -104,11 +102,11 @@ jobs:
           echo "All tags found (excluding 'latest'):"
           echo "$ALL_TAGS"
 
-          # Garder les 4 plus récents, supprimer le reste
-          TAGS_TO_DELETE=$(echo "$ALL_TAGS" | tail -n +5)
+          # Garder les 5 plus récents, supprimer le reste
+          TAGS_TO_DELETE=$(echo "$ALL_TAGS" | tail -n +6)
 
           if [ -z "$TAGS_TO_DELETE" ]; then
-            echo "✅ No tags to delete. Less than 4 images exist."
+            echo "✅ No tags to delete. Less than 5 images exist."
           else
             echo "🗑️ Tags to delete:"
             echo "$TAGS_TO_DELETE"
