@@ -1,52 +1,222 @@
-# 🚀 XpertSphere - Guide de démarrage rapide
+# XpertSphere - Infrastructure et Déploiement
 
-## Configuration initiale
+Ce document décrit la configuration de l'infrastructure, les procédures de déploiement et la gestion des environnements pour XpertSphere.
 
-### 1. Copier le fichier de configuration
+## 🏗️ Architecture Infrastructure
+
+### Vue d'ensemble
+
+XpertSphere utilise une infrastructure cloud-native sur Microsoft Azure avec une approche DevOps complète :
+
+```txt
+┌─────────────────────────────────────────────────────────────────┐
+│                          Azure Cloud                            │
+├─────────────────────────────────────────────────────────────────┤
+│  📱 Frontend Apps (Azure Container Apps)                        │
+│  ├── RecruiterApp                                               │
+│  └── CandidateApp                                               │
+├─────────────────────────────────────────────────────────────────┤
+│  🔀 Load Balancer & CDN                                         │
+│  ├── Azure Front Door (CDN + WAF)                               │
+│  └── Azure Application Gateway                                  │
+├─────────────────────────────────────────────────────────────────┤
+│  ⚙️  Backend Services (Azure Container Apps)                    │
+│  ├── XpertSphere.MonolithApi (Port: 5000)                       │
+│  ├── XpertSphere.CommunicationService (Port: 5001)              │
+│  ├── XpertSphere.ReportingService (Port: 5002)                  │
+│  ├── XpertSphere.IntegrationService (Port: 5003)                │
+│  └── XpertSphere.ResumeAnalyzer (Port: 8000)                    │
+├─────────────────────────────────────────────────────────────────┤
+│  💾 Data Layer                                                  │
+│  ├── Azure SQL Database (Primary + Read Replicas)               │
+│  ├── Azure Redis Cache (Session + Caching)                      │
+│  ├── Azure Blob Storage (Documents + Static Files)              │
+│  └── Azure Service Bus (Message Queue)                          │
+├─────────────────────────────────────────────────────────────────┤
+│  🔐 Security & Identity                                         │
+│  ├── Azure Entra ID (Authentication)                            │
+│  └── Azure Key Vault (Secrets Management)                       │
+├─────────────────────────────────────────────────────────────────┤
+│  📊 Monitoring & Logging                                        │
+│  ├── Azure Application Insights (APM)                           │
+│  ├── Azure Monitor (Infrastructure)                             │
+│  ├── Azure Log Analytics (Centralized Logging)                  │
+│  └── Azure Alerts (Proactive Monitoring)                        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Environnements
+
+| Environnement | Utilisation | Ressources | URL |
+|---------------|-------------|------------|-----|
+| **Development** | Développement local | Docker Compose | localhost |
+| **Staging** | Tests intégration | Azure (taille réduite) | staging.xpertsphere.azure.com |
+| **Production** | Utilisateurs finaux | Azure (haute disponibilité) | app.xpertsphere.com |
+
+## 🚀 Démarrage Rapide (Développement Local)
+
+### 1. Prérequis
+
+Vérifiez que vous avez installé :
+
 ```bash
+# Vérifier les versions
+docker --version          # 24.0+
+docker-compose --version  # 2.20+
+node --version            # 20.0+
+dotnet --version          # 9.0+
+python --version          # 3.10+
+```
+
+### 2. Configuration initiale
+
+```bash
+# Cloner le projet
+git clone https://github.com/your-org/XpertSphere.git
+cd XpertSphere
+
+# Copier et configurer l'environnement
 cp .env.example .env
 ```
 
-### 2. Personnaliser les variables (optionnel)
-Éditez le fichier `.env` si vous voulez changer les mots de passe par défaut.
+### 3. Configuration des variables d'environnement
 
-### 3. Démarrer l'infrastructure
+Éditez le fichier `.env` :
+
+```bash
+# ===== BASE DE DONNÉES =====
+CONNECTION_STRING=Server=localhost,1433;Database=XpertSphereDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+
+# ===== REDIS CACHE =====
+REDIS_CONNECTION_STRING=localhost:6379
+
+# ===== AZURE CONFIGURATION =====
+AZURE_CLIENT_ID=your-azure-client-id
+AZURE_CLIENT_SECRET=your-azure-client-secret
+AZURE_TENANT_ID=your-azure-tenant-id
+AZURE_SUBSCRIPTION_ID=your-azure-subscription-id
+
+# ===== AUTHENTIFICATION =====
+JWT_SECRET=your-super-secret-jwt-key-min-32-chars
+JWT_ISSUER=https://localhost:5000
+JWT_AUDIENCE=https://localhost:5000
+
+# ===== SERVICES EXTERNES =====
+OPENAI_API_KEY=your-openai-api-key
+LINKEDIN_API_KEY=your-linkedin-api-key
+HELLOWORK_API_KEY=your-hellowork-api-key
+WELCOME_TO_THE_JUNGLE_API_KEY=your-wttj-api-key
+
+# ===== EMAIL CONFIGURATION =====
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+
+# ===== STOCKAGE =====
+AZURE_STORAGE_CONNECTION_STRING=your-azure-storage-connection
+AZURE_STORAGE_CONTAINER_NAME=xpertsphere-documents
+
+# ===== MONITORING =====
+APPLICATION_INSIGHTS_CONNECTION_STRING=your-app-insights-connection
+
+# ===== FRONTEND =====
+VITE_API_BASE_URL=https://localhost:5000/api
+VITE_CV_ANALYZER_URL=http://localhost:8000/api
+VITE_AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+VITE_AZURE_TENANT_ID=${AZURE_TENANT_ID}
+
+# ===== DEVELOPPEMENT =====
+ASPNETCORE_ENVIRONMENT=Development
+NODE_ENV=development
+PYTHON_ENV=development
+```
+
+### 4. Démarrage des services
+
 ```bash
 # Rendre les scripts exécutables
 chmod +x start-infrastructure.sh setup-env.sh
 
-# Démarrer l'infrastructure Docker
+# Démarrer l'infrastructure (SQL Server, Redis, etc.)
 ./start-infrastructure.sh
 
 # Configurer les variables d'environnement pour .NET
 ./setup-env.sh
+
+# Vérifier que les services sont démarrés
+docker-compose ps
 ```
 
-### 4. Créer la base de données
+### 5. Configuration de la base de données
+
 ```bash
 cd src/backend
 
-# Créer la migration (première fois seulement)
-dotnet ef migrations add InitialCreate --project XpertSphere.MonolithApi
+# Créer et appliquer les migrations
+dotnet ef migrations add InitialCreate --project XpertSphere.MonolithApi --verbose
+dotnet ef database update --project XpertSphere.MonolithApi --verbose
 
-# Appliquer la migration
-dotnet ef database update --project XpertSphere.MonolithApi
+# Vérifier la connexion
+dotnet ef database update --project XpertSphere.MonolithApi --dry-run
 ```
 
-## Services disponibles
+### 6. Démarrage des applications
 
-- **SQL Server**: `localhost:1433`
-- **Redis**: `localhost:6379`  
-- **Adminer (DB UI)**: http://localhost:8080
+```bash
+# Terminal 1 - API Backend
+cd src/backend/XpertSphere.MonolithApi
+dotnet watch run
 
-## Connexion base de données
+# Terminal 2 - Service d'analyse CV
+cd src/backend/XpertSphere.ResumeAnalyzer
+source venv/bin/activate  # ou venv\Scripts\activate sur Windows
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
-- **Server**: localhost,1433
-- **User**: sa
-- **Password**: Voir fichier `.env`
-- **Database**: XpertSphereDb
+# Terminal 3 - Frontend Recruteur
+cd src/frontend
+npm run dev:recruiter
 
-## Sécurité
+# Terminal 4 - Frontend Candidat
+npm run dev:candidate
+```
 
-⚠️ **Important**: Le fichier `.env` contient des secrets et ne doit jamais être commité.
-✅ Utilisez `.env.example` comme template pour les nouveaux développeurs.
+### 7. Vérification du déploiement
+
+```bash
+# Vérifier les services backend
+curl https://localhost:5000/health
+curl http://localhost:8000/api/health
+
+# Vérifier les applications web
+open http://localhost:3001  # RecruiterApp
+open http://localhost:3000  # CandidateApp
+
+# Vérifier la base de données (Adminer)
+open http://localhost:8080
+# Server: sql, Username: sa, Password: voir .env, Database: XpertSphereDb
+```
+
+## 🐳 Docker et Conteneurisation
+
+### Docker Compose (Développement)
+
+Le fichier `docker-compose.yml` configure l'infrastructure locale :
+
+```yaml
+version: '3.8'
+
+services:
+  # Base de données SQL Server
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: xpertsphere-sql
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD:-YourStrong@Passw0rd}
+      ACCEPT_EULA: Y
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${SA_PASSWORD:-YourStrong@Passw
