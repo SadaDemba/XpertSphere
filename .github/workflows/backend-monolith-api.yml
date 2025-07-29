@@ -1,0 +1,118 @@
+name: Backend Monolith API CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "src/backend/XpertSphere.MonolithApi/**"
+      - "XpertSphere.sln"
+      - "docker/backend/monolith-api/**"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "src/backend/XpertSphere.MonolithApi/**"
+      - "XpertSphere.sln"
+      - "docker/backend/monolith-api/**"
+  workflow_dispatch:
+
+env:
+  REGISTRY: acrxpertspheredev.azurecr.io
+  IMAGE_NAME: monolith-api
+
+jobs:
+  # Validation pour les PR (pas de build Docker)
+  validate:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore src/backend/XpertSphere.MonolithApi/XpertSphere.MonolithApi.csproj
+
+      - name: Build
+        run: dotnet build src/backend/XpertSphere.MonolithApi/XpertSphere.MonolithApi.csproj --no-restore
+
+      - name: Test
+        run: dotnet test src/backend/XpertSphere.MonolithApi/XpertSphere.MonolithApi.csproj --no-build --verbosity normal
+
+  # Build et push pour main/develop
+  build-and-push:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to ACR using Azure CLI
+        run: |
+          echo "Login to ACR using Azure CLI..."
+          az acr login --name acrxpertspheredev
+
+      - name: Build and Push
+        run: |
+          docker build \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+            -f docker/backend/monolith-api/Dockerfile .
+
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Cleanup old images
+        run: |
+          echo "🧹 Starting cleanup of old images..."
+
+          # Récupérer tous les tags sauf 'latest', triés par date (plus récent en premier)
+          ALL_TAGS=$(az acr repository show-tags \
+            --name acrxpertspheredev \
+            --repository ${{ env.IMAGE_NAME }} \
+            --orderby time_desc \
+            --output tsv | grep -v "^latest$")
+
+          echo "All tags found (excluding 'latest'):"
+          echo "$ALL_TAGS"
+
+          # Garder les 5 plus récents, supprimer le reste
+          TAGS_TO_DELETE=$(echo "$ALL_TAGS" | tail -n +6)
+
+          if [ -z "$TAGS_TO_DELETE" ]; then
+            echo "✅ No tags to delete. Less than 5 images exist."
+          else
+            echo "🗑️ Tags to delete:"
+            echo "$TAGS_TO_DELETE"
+            
+            # Supprimer chaque tag
+            for TAG in $TAGS_TO_DELETE; do
+              if [ ! -z "$TAG" ]; then
+                echo "Deleting tag: $TAG"
+                az acr repository delete \
+                  --name acrxpertspheredev \
+                  --repository ${{ env.IMAGE_NAME }} \
+                  --tag "$TAG" \
+                  --yes || echo "⚠️ Failed to delete tag: $TAG"
+              fi
+            done
+            
+            echo "✅ Cleanup completed!"
+          fi
+
+          # Afficher les tags restants
+          echo "📋 Remaining tags after cleanup:"
+          az acr repository show-tags \
+            --name acrxpertspheredev \
+            --repository ${{ env.IMAGE_NAME }} \
+            --output table

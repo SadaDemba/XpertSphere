@@ -25,6 +25,9 @@ if (File.Exists(envFile))
 builder.Services.AddDatabase(builder.Configuration, builder.Environment);
 builder.Services.AddSecurity(builder.Configuration, builder.Environment);
 
+// Health Checks
+builder.Services.AddHealthChecks();
+
 // API Services
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -49,6 +52,9 @@ await app.UseDatabaseAsync();
 
 // Documentation
 app.UseSwaggerDocumentation();
+
+// Health Check endpoint
+app.MapHealthChecks("/health");
 
 // Security Pipeline (order matters!)
 app.UseHttpsRedirection();
