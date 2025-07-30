@@ -18,6 +18,7 @@ env:
   IMAGE_NAME: resume-analyzer
 
 jobs:
+  # Tests et validation pour les PR
   validate:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -27,9 +28,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         working-directory: src/backend/XpertSphere.ResumeAnalyzer
@@ -37,21 +39,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Lint with flake8
+      - name: Run tests with pytest
         working-directory: src/backend/XpertSphere.ResumeAnalyzer
+        env:
+          PYTHONPATH: .
+          AZURE_OPENAI_API_KEY: test-key
+          AZURE_OPENAI_ENDPOINT: https://test-endpoint
+          ENVIRONMENT: test
         run: |
-          # Install flake8 if not in requirements
-          pip install flake8
-          # Stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-      - name: Test with pytest
-        working-directory: src/backend/XpertSphere.ResumeAnalyzer
-        run: |
-          pip install pytest pytest-asyncio
-          pytest tests/ -v || echo "No tests found or tests failed"
+          pytest
 
   # Build et push pour main/develop
   build-and-push:
@@ -62,6 +58,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to Azure CLI
         uses: azure/login@v1
         with:
@@ -69,18 +68,45 @@ jobs:
 
       - name: Login to ACR using Azure CLI
         run: |
-          echo "Login to ACR using Azure CLI..."
+          echo "🔐 Login to ACR using Azure CLI..."
           az acr login --name acrxpertspheredev
 
       - name: Build and Push
-        run: |
-          docker build \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-            -f docker/backend/resume-analyzer/Dockerfile .
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/backend/resume-analyzer/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
 
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+      - name: Test container health
+        run: |
+          echo "🩺 Testing container health..."
+          # Test if the image can start properly
+          docker run --rm -d --name test-resume-analyzer -p 8001:8000 \
+            -e AZURE_OPENAI_API_KEY=test-key \
+            -e ENVIRONMENT=test \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+          # Wait for container to start
+          sleep 15
+
+          # Test health endpoint
+          if curl -f http://localhost:8001/api/health; then
+            echo "✅ Health check passed"
+          else
+            echo "❌ Health check failed"
+            docker logs test-resume-analyzer
+            exit 1
+          fi
+
+          # Cleanup
+          docker stop test-resume-analyzer
 
       - name: Cleanup old images
         run: |
@@ -122,3 +148,85 @@ jobs:
             --name acrxpertspheredev \
             --repository ${{ env.IMAGE_NAME }} \
             --output table
+
+  # Déploiement en production avec Key Vault
+  deploy-to-azure:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: build-and-push
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Container Apps
+        run: |
+          echo "🚀 Deploying to Azure Container Apps with Key Vault..."
+
+          # Récupérer l'ID de la Managed Identity
+          IDENTITY_ID=$(az identity show \
+            --name "id-xpertsphere-resume-analyzer" \
+            --resource-group "rg-xpertsphere-dev" \
+            --query id -o tsv)
+
+          # Vérifier si Container App existe
+          if az containerapp show --name "ca-resume-analyzer" --resource-group "rg-xpertsphere-dev" &>/dev/null; then
+            echo "📝 Updating existing Container App..."
+            az containerapp update \
+              --name "ca-resume-analyzer" \
+              --resource-group "rg-xpertsphere-dev" \
+              --image "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" \
+              --user-assigned "$IDENTITY_ID" \
+              --env-vars \
+                ENVIRONMENT=production \
+                KEY_VAULT_URL=https://kv-xpertsphere-dev.vault.azure.net/
+          else
+            echo "🆕 Creating new Container App..."
+            az containerapp create \
+              --name "ca-resume-analyzer" \
+              --resource-group "rg-xpertsphere-dev" \
+              --environment "cae-xpertsphere-dev" \
+              --image "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" \
+              --user-assigned "$IDENTITY_ID" \
+              --registry-server "${{ env.REGISTRY }}" \
+              --env-vars \
+                ENVIRONMENT=production \
+                KEY_VAULT_URL=https://kv-xpertsphere-dev.vault.azure.net/ \
+              --cpu 0.5 \
+              --memory 1.0Gi \
+              --min-replicas 1 \
+              --max-replicas 3 \
+              --ingress external \
+              --target-port 8000 \
+              --transport http
+          fi
+
+          echo "✅ Deployment completed!"
+
+      - name: Verify deployment
+        run: |
+          echo "🔍 Verifying deployment..."
+
+          # Attendre que l'app soit prête
+          sleep 30
+
+          # Récupérer l'URL de l'app
+          APP_URL=$(az containerapp show \
+            --name "ca-resume-analyzer" \
+            --resource-group "rg-xpertsphere-dev" \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+          echo "🌐 Application URL: https://$APP_URL"
+
+          # Test de santé
+          if curl -f "https://$APP_URL/api/health"; then
+            echo "✅ Production health check passed!"
+          else
+            echo "❌ Production health check failed!"
+            exit 1
+          fi

@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import router as api_router
 from app.core.exceptions import BaseApplicationError
-from app.core.config import settings
 import logging
 from dotenv import load_dotenv
 
@@ -17,11 +16,8 @@ logging.basicConfig(
 )
 
 logging.getLogger("uvicorn").setLevel(logging.INFO)
-# Initialize logging
 logger = logging.getLogger(__name__)
-logger.info(
-    f"Starting XpertSphere CV Analyzer API, {settings.API_KEY} loaded from environment variables"
-)
+logger.info("Starting XpertSphere CV Analyzer API")
 
 # Create FastAPI application
 app = FastAPI(
@@ -38,7 +34,6 @@ app = FastAPI(
             "description": "Health check endpoints",
         },
     ],
-    # Customize OpenAPI docs
     docs_url="/docs",
     redoc_url="/redoc",
 )
