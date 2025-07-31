@@ -17,7 +17,7 @@ on:
 
 env:
   REGISTRY: acrxpertspheredev.azurecr.io
-  IMAGE_NAME: resume-analyzer
+  IMAGE_NAME: resume-analyzer-app
 
 jobs:
   # Tests et validation pour les PR
