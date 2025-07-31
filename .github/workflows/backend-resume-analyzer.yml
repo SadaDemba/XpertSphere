@@ -6,11 +6,13 @@ on:
     paths:
       - "src/backend/XpertSphere.ResumeAnalyzer/**"
       - "docker/backend/resume-analyzer/**"
+      - ".github/workflows/backend-resume-analyzer.yml"
   pull_request:
     branches: [main, develop]
     paths:
       - "src/backend/XpertSphere.ResumeAnalyzer/**"
       - "docker/backend/resume-analyzer/**"
+      - ".github/workflows/backend-resume-analyzer.yml"
   workflow_dispatch:
 
 env:
@@ -82,8 +84,6 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
           platforms: linux/amd64
 
       - name: Test container health
