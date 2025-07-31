@@ -26,11 +26,25 @@ class OpenAIAnalyzer(BaseAnalyzer):
             Configured Azure OpenAI client
         """
         try:
+            # Debug logging
+            self.logger.info(f"Initializing Azure OpenAI client...")
+            self.logger.info(f"ENVIRONMENT: {settings.ENVIRONMENT}")
+            self.logger.info(f"KEY_VAULT_URL: {settings.KEY_VAULT_URL}")
+            self.logger.info(f"AZURE_OPENAI_ENDPOINT: {'***SET***' if settings.AZURE_OPENAI_ENDPOINT else 'NOT SET'}")
+            self.logger.info(f"AZURE_OPENAI_API_KEY: {'***SET***' if settings.AZURE_OPENAI_API_KEY else 'NOT SET'}")
+            self.logger.info(f"AZURE_OPENAI_API_VERSION: {settings.AZURE_OPENAI_API_VERSION}")
+            
+            # Vérifier que les credentials sont présents
+            if not settings.AZURE_OPENAI_ENDPOINT:
+                raise ValueError("AZURE_OPENAI_ENDPOINT is not set")
+            if not settings.AZURE_OPENAI_API_KEY:
+                raise ValueError("AZURE_OPENAI_API_KEY is not set")
+                
             return AzureOpenAI(
                 azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
                 api_key=settings.AZURE_OPENAI_API_KEY,
                 api_version=settings.AZURE_OPENAI_API_VERSION,
-                azure_deployment=settings.AZURE_OPENAI_DEPLOYMENT_GPT_35_TURBO,
+                azure_deployment=settings.current_deployment,
             )
         except Exception as e:
             self.logger.error(f"Failed to initialize Azure OpenAI client: {str(e)}")

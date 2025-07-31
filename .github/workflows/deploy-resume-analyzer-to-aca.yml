@@ -61,7 +61,7 @@ jobs:
               --user-assigned "$IDENTITY_ID" \
               --env-vars \
                 ENVIRONMENT=staging \
-                KEY_VAULT_URL=https://kv-xpertsphere-dev.vault.azure.net/
+                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }}
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
@@ -77,7 +77,7 @@ jobs:
               --ingress external \
               --env-vars \
                 ENVIRONMENT=staging \
-                KEY_VAULT_URL=https://kv-xpertsphere-dev.vault.azure.net/ \
+                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }} \
               --cpu 0.5 \
               --memory 1.0Gi \
               --min-replicas 1 \
@@ -146,7 +146,7 @@ jobs:
               --user-assigned "$IDENTITY_ID" \
               --env-vars \
                 ENVIRONMENT=production \
-                KEY_VAULT_URL=https://kv-xpertsphere-dev.vault.azure.net/
+                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }}
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
@@ -162,7 +162,7 @@ jobs:
               --ingress external \
               --env-vars \
                 ENVIRONMENT=production \
-                KEY_VAULT_URL=https://kv-xpertsphere-dev.vault.azure.net/ \
+                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }} \
               --cpu 0.5 \
               --memory 1.0Gi \
               --min-replicas 1 \
