@@ -36,9 +36,9 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy resume-analyzer to STAGING
+      - name: Deploy resume-analyzer-app to STAGING
         run: |
-          echo "=== Deploying resume-analyzer to STAGING ==="
+          echo "=== Deploying resume-analyzer-app to STAGING ==="
 
           # Variables for staging
           APP_NAME="ca-resume-analyzer-staging"
@@ -57,7 +57,7 @@ jobs:
             az containerapp update \
               --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --image acrxpertspheredev.azurecr.io/resume-analyzer:$IMAGE_TAG
+              --image acrxpertspheredev.azurecr.io/resume-analyzer-app:$IMAGE_TAG
 
             echo "Updating managed identity..."
             az containerapp identity assign \
@@ -78,7 +78,7 @@ jobs:
               --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --environment $ENVIRONMENT_NAME \
-              --image acrxpertspheredev.azurecr.io/resume-analyzer:$IMAGE_TAG \
+              --image acrxpertspheredev.azurecr.io/resume-analyzer-app:$IMAGE_TAG \
               --user-assigned "$IDENTITY_ID" \
               --registry-server acrxpertspheredev.azurecr.io \
               --registry-username ${{ secrets.ACR_USERNAME }} \
@@ -131,9 +131,9 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy resume-analyzer to PRODUCTION
+      - name: Deploy resume-analyzer-app to PRODUCTION
         run: |
-          echo "=== Deploying resume-analyzer to PRODUCTION ==="
+          echo "=== Deploying resume-analyzer-app to PRODUCTION ==="
 
           # Variables for production
           APP_NAME="ca-resume-analyzer-prod"
@@ -152,7 +152,7 @@ jobs:
             az containerapp update \
               --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --image acrxpertspheredev.azurecr.io/resume-analyzer:$IMAGE_TAG
+              --image acrxpertspheredev.azurecr.io/resume-analyzer-app:$IMAGE_TAG
 
             echo "Updating managed identity..."
             az containerapp identity assign \
@@ -173,7 +173,7 @@ jobs:
               --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --environment $ENVIRONMENT_NAME \
-              --image acrxpertspheredev.azurecr.io/resume-analyzer:$IMAGE_TAG \
+              --image acrxpertspheredev.azurecr.io/resume-analyzer-app:$IMAGE_TAG \
               --user-assigned "$IDENTITY_ID" \
               --registry-server acrxpertspheredev.azurecr.io \
               --registry-username ${{ secrets.ACR_USERNAME }} \
