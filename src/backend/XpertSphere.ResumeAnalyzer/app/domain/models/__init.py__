@@ -1,6 +1,0 @@
-# app/domain/models/__init__.py
-
-from app.domain.models.resume import CVModel, Experience, Training
-
-# Expose these classes directly from the module
-__all__ = ["CVModel", "Experience", "Training"]

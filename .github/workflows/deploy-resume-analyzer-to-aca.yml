@@ -96,7 +96,7 @@ jobs:
 
       - name: Verify staging deployment
         run: |
-          echo "🔍 Verifying staging deployment..."
+          echo "Verifying staging deployment..."
 
           # Wait for app to be ready
           sleep 30
