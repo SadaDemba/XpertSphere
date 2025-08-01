@@ -10,7 +10,6 @@ RUN apk add --no-cache \
     libffi-dev \
     && rm -rf /var/cache/apk/*
 
-# Copy requirements first for better caching
 COPY src/backend/XpertSphere.ResumeAnalyzer/requirements.txt .
 
 # Install Python dependencies

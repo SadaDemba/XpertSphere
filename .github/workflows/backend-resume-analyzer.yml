@@ -20,7 +20,7 @@ env:
   IMAGE_NAME: resume-analyzer-app
 
 jobs:
-  # Tests et validation pour les PR
+  # Tests and validation of Pull Requests
   validate:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -51,7 +51,7 @@ jobs:
         run: |
           pytest
 
-  # Build et push pour main/develop
+  # Build and push for main/develop
   build-and-push:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
