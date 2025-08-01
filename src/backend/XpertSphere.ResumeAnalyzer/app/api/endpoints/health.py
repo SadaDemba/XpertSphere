@@ -14,7 +14,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "XpertSphere Resume Analyzer",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(datetime.timezone.utc),
         "version": "1.0.0",
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         "environment": os.getenv("ENVIRONMENT", "development")
@@ -27,13 +27,11 @@ async def readiness_check():
     Readiness check endpoint
     """
     try:
-        # Vérifications de base - peut être étendu pour vérifier les dépendances
-        # comme la connectivité à OpenAI, etc.
         
         return {
             "status": "ready",
             "service": "XpertSphere Resume Analyzer",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(datetime.timezone.utc),
             "checks": {
                 "basic": "ok"
             }
@@ -42,6 +40,6 @@ async def readiness_check():
         return {
             "status": "not_ready",
             "service": "XpertSphere Resume Analyzer",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(datetime.timezone.utc),
             "error": str(e)
         }
