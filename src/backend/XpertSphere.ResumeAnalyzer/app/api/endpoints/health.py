@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from datetime import datetime
+from datetime import datetime, timezone
 import sys
 import os
 
@@ -14,7 +14,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "XpertSphere Resume Analyzer",
-        "timestamp": datetime.now(datetime.timezone.utc),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": "1.0.0",
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         "environment": os.getenv("ENVIRONMENT", "development")
@@ -27,11 +27,10 @@ async def readiness_check():
     Readiness check endpoint
     """
     try:
-        
         return {
             "status": "ready",
             "service": "XpertSphere Resume Analyzer",
-            "timestamp": datetime.now(datetime.timezone.utc),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "checks": {
                 "basic": "ok"
             }
@@ -40,6 +39,6 @@ async def readiness_check():
         return {
             "status": "not_ready",
             "service": "XpertSphere Resume Analyzer",
-            "timestamp": datetime.now(datetime.timezone.utc),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "error": str(e)
         }
