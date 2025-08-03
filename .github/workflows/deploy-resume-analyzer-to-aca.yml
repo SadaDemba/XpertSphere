@@ -71,8 +71,8 @@ jobs:
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --set-env-vars \
                 ENVIRONMENT=staging \
-                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }}
-                AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }} \
+                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }} \
+                AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }}
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
@@ -168,8 +168,8 @@ jobs:
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --set-env-vars \
                 ENVIRONMENT=staging \
-                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }}
-                AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }} \
+                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }} \
+                AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }}
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
