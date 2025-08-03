@@ -1,7 +1,6 @@
-from fastapi import Depends
-from app.services.cv_service import CVService
-from app.infrastructure.extractors.pdf_extractor import PDFExtractor
-from app.infrastructure.analyzers.openai_analyzer import OpenAIAnalyzer
+from app.services import CVService
+from app.infrastructure.extractors import PDFExtractor
+from app.infrastructure.analyzers import OpenAIAnalyzer
 
 
 def get_cv_service() -> CVService:

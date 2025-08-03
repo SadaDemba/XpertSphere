@@ -1,9 +1,8 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Query
-from app.services.cv_service import CVService
-from app.api.dependencies import get_cv_service
-from app.domain.models.resume import CVModel
-from app.core.config import settings
-from typing import Dict, Any, Optional
+from app.services import CVService
+from app.api import get_cv_service
+from app.core import settings
+from typing import Dict, Any
 
 router = APIRouter()
 

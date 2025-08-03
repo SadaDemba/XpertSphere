@@ -1,5 +1,5 @@
 from abc import ABC
-from app.domain.interfaces.text_analyzer import TextAnalyzer
+from app.domain.interfaces import TextAnalyzer
 import logging
 
 

@@ -2,9 +2,9 @@ from typing import Dict, List, Any, Optional, Union
 
 from fastapi import UploadFile, HTTPException
 import logging
-from app.domain.interfaces.document_extractor import DocumentExtractor
-from app.domain.interfaces.text_analyzer import TextAnalyzer
-from app.domain.models.resume import CVModel
+from app.domain.interfaces import DocumentExtractor
+from app.domain.interfaces import TextAnalyzer
+from app.domain.models import CVModel
 from app.core.exceptions import ExtractionError, AnalysisError
 
 

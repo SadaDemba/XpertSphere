@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import List, Set
 from app.domain.interfaces.document_extractor import DocumentExtractor
-from app.core.exceptions import ExtractionError
+from app.core import ExtractionError
 import logging
 
 
