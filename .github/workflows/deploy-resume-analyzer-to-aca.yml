@@ -1,0 +1,218 @@
+name: Deploy Resume Analyzer to Azure Container Apps
+
+on:
+  workflow_run:
+    workflows: ["Backend Resume Analyzer CI"]
+    types:
+      - completed
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - production
+          - staging
+      force_recreate:
+        description: "Force recreate container (delete and recreate)"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: ${{ (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop') || (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging') }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy resume-analyzer-app to STAGING
+        run: |
+          echo "=== Deploying resume-analyzer-app to STAGING ==="
+
+          # Variables for staging
+          APP_NAME="ca-resume-analyzer-staging"
+          ENVIRONMENT_NAME="aca-env-xpertsphere-dev"
+          IDENTITY_ID="/subscriptions/8e2acc27-f89c-471d-bf4c-0b4951e43421/resourcegroups/rg-xpertsphere-dev/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-xpertsphere-resume-analyzer"
+
+          # Use the SHA of workflow trigger
+          if [ "${{ github.event_name }}" == "workflow_run" ]; then
+            IMAGE_TAG="${{ github.event.workflow_run.head_sha }}"
+          else
+            IMAGE_TAG="${{ github.sha }}"
+          fi
+
+          if az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
+            echo "Container app exists, updating image..."
+            az containerapp update \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --image acrxpertspheredev.azurecr.io/resume-analyzer-app:$IMAGE_TAG
+
+            echo "Updating managed identity..."
+            az containerapp identity assign \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --user-assigned "$IDENTITY_ID"
+
+            echo "Updating environment variables..."
+            az containerapp update \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --set-env-vars \
+                ENVIRONMENT=staging \
+                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }} \
+                AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }}
+          else
+            echo "Container app doesn't exist, creating..."
+            az containerapp create \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --environment $ENVIRONMENT_NAME \
+              --image acrxpertspheredev.azurecr.io/resume-analyzer-app:$IMAGE_TAG \
+              --user-assigned "$IDENTITY_ID" \
+              --registry-server acrxpertspheredev.azurecr.io \
+              --registry-username ${{ secrets.ACR_USERNAME }} \
+              --registry-password ${{ secrets.ACR_PASSWORD }} \
+              --target-port 8000 \
+              --ingress external \
+              --env-vars \
+                ENVIRONMENT=staging \
+                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }} \
+                AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }} \
+              --cpu 0.5 \
+              --memory 1.0Gi \
+              --min-replicas 1 \
+              --max-replicas 2
+          fi
+
+      - name: Verify staging deployment
+        run: |
+          echo "Verifying staging deployment..."
+
+          # Wait for app to be ready
+          sleep 30
+
+          # Get app URL
+          APP_URL=$(az containerapp show \
+            --name ca-resume-analyzer-staging \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+          echo "Staging URL: https://$APP_URL"
+
+          # Health check
+          if curl -f "https://$APP_URL/api/health"; then
+            echo "Staging health check passed!"
+            echo "Resume Analyzer deployed to STAGING successfully!"
+          else
+            echo "taging health check failed!"
+            exit 1
+          fi
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    if: ${{ (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name == 'workflow_dispatch' && inputs.environment == 'production') }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy resume-analyzer-app to PRODUCTION
+        run: |
+          echo "=== Deploying resume-analyzer-app to PRODUCTION ==="
+
+          # Variables for production
+          APP_NAME="ca-resume-analyzer-prod"
+          ENVIRONMENT_NAME="aca-env-xpertsphere-prod"
+          IDENTITY_ID="/subscriptions/8e2acc27-f89c-471d-bf4c-0b4951e43421/resourcegroups/rg-xpertsphere-dev/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-xpertsphere-resume-analyzer"
+
+          # Use the SHA of workflow trigger
+          if [ "${{ github.event_name }}" == "workflow_run" ]; then
+            IMAGE_TAG="${{ github.event.workflow_run.head_sha }}"
+          else
+            IMAGE_TAG="${{ github.sha }}"
+          fi
+
+          if az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
+            echo "Container app exists, updating image..."
+            az containerapp update \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --image acrxpertspheredev.azurecr.io/resume-analyzer-app:$IMAGE_TAG
+
+            echo "Updating managed identity..."
+            az containerapp identity assign \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --user-assigned "$IDENTITY_ID"
+
+            echo "Updating environment variables..."
+            az containerapp update \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --set-env-vars \
+                ENVIRONMENT=staging \
+                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }} \
+                AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }}
+          else
+            echo "Container app doesn't exist, creating..."
+            az containerapp create \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --environment $ENVIRONMENT_NAME \
+              --image acrxpertspheredev.azurecr.io/resume-analyzer-app:$IMAGE_TAG \
+              --user-assigned "$IDENTITY_ID" \
+              --registry-server acrxpertspheredev.azurecr.io \
+              --registry-username ${{ secrets.ACR_USERNAME }} \
+              --registry-password ${{ secrets.ACR_PASSWORD }} \
+              --target-port 8000 \
+              --ingress external \
+              --env-vars \
+                ENVIRONMENT=production \
+                KEY_VAULT_URL=${{ vars.KEY_VAULT_URL }} \
+                AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }} \
+              --cpu 0.5 \
+              --memory 1.0Gi \
+              --min-replicas 1 \
+              --max-replicas 3
+          fi
+
+      - name: Verify production deployment
+        run: |
+          echo "Verifying production deployment..."
+
+          # Wait for app to be ready
+          sleep 30
+
+          # Get app URL
+          APP_URL=$(az containerapp show \
+            --name ca-resume-analyzer-prod \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+          echo "Production URL: https://$APP_URL"
+
+          # Health check
+          if curl -f "https://$APP_URL/api/health"; then
+            echo "Production health check passed!"
+            echo "Resume Analyzer deployed to PRODUCTION successfully!"
+          else
+            echo "Production health check failed!"
+            exit 1
+          fi

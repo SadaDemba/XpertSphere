@@ -1,8 +1,8 @@
 import pdfplumber
 import tempfile
 import os
-from app.infrastructure.extractors.base_extractor import BaseExtractor
-from app.core.exceptions import ExtractionError
+from app.infrastructure.extractors import BaseExtractor
+from app.core import ExtractionError
 
 
 class PDFExtractor(BaseExtractor):

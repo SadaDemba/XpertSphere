@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
-from app.domain.models.resume import CVModel
+from app.domain.models import CVModel
 
 
 class TextAnalyzer(ABC):

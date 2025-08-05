@@ -2,7 +2,7 @@ name: Deploy Candidate app to Azure Container Apps
 
 on:
   workflow_run:
-    workflows: ["Candidate App CI/CD"]
+    workflows: ["Candidate App CI"]
     types:
       - completed
     branches: [main, develop]
@@ -76,7 +76,6 @@ jobs:
               --min-replicas 0 \
               --max-replicas 2
           fi
-
       - name: Get staging URL
         run: |
           echo "🎉 candidate-app deployed to STAGING successfully!"

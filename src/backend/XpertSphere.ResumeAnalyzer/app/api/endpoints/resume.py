@@ -1,9 +1,8 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Query
-from app.services.cv_service import CVService
-from app.api.dependencies import get_cv_service, get_api_key_dependency
-from app.domain.models.resume import CVModel
-from app.core.config import settings
-from typing import Dict, Any, Optional
+from app.services import CVService
+from app.api import get_cv_service
+from app.core import settings
+from typing import Dict, Any
 
 router = APIRouter()
 
@@ -15,7 +14,6 @@ async def extract_data_from_cv(
     include_raw_text: bool = Query(
         False, description="Include extracted raw text in response"
     ),
-    _: str = get_api_key_dependency(),
 ):
     """
     Extract structured information from a CV
