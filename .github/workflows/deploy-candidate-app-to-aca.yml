@@ -38,7 +38,7 @@ jobs:
 
       - name: Deploy candidate-app to STAGING
         run: |
-          echo "🟡 === Deploying candidate-app to STAGING ==="
+          echo "=== Deploying candidate-app to STAGING ==="
 
           # Variables for staging
           APP_NAME="aca-candidate-app-staging"
@@ -48,7 +48,7 @@ jobs:
           if [ "${{ github.event_name }}" == "workflow_run" ]; then
             IMAGE_TAG="${{ github.event.workflow_run.head_sha }}"
           else
-            IMAGE_TAG="${{ github.sha }}"
+            IMAGE_TAG="latest"
           fi
 
           if az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
@@ -78,8 +78,8 @@ jobs:
           fi
       - name: Get staging URL
         run: |
-          echo "🎉 candidate-app deployed to STAGING successfully!"
-          echo "🔗 Staging URL: https://$(az containerapp show --name xpertsphere-candidate-app-staging --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
+          echo "candidate-app deployed to STAGING successfully!"
+          echo "Staging URL: https://$(az containerapp show --name xpertsphere-candidate-app-staging --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
 
   deploy-production:
     runs-on: ubuntu-latest
@@ -96,17 +96,17 @@ jobs:
 
       - name: Deploy candidate-app to PRODUCTION
         run: |
-          echo "🟢 === Deploying candidate-app to PRODUCTION ==="
+          echo "=== Deploying candidate-app to PRODUCTION ==="
 
           # Variables for production
-          APP_NAME="xpertsphere-candidate-app"
+          APP_NAME="aca-candidate-app-prod"
           ENVIRONMENT_NAME="aca-env-xpertsphere-prod"
 
           # Utiliser le SHA du workflow trigger
           if [ "${{ github.event_name }}" == "workflow_run" ]; then
             IMAGE_TAG="${{ github.event.workflow_run.head_sha }}"
           else
-            IMAGE_TAG="${{ github.sha }}"
+            IMAGE_TAG="latest"
           fi
 
           if az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
@@ -137,5 +137,5 @@ jobs:
 
       - name: Get production URL
         run: |
-          echo "🎉 candidate-app deployed to PRODUCTION successfully!"
-          echo "🔗 Production URL: https://$(az containerapp show --name xpertsphere-candidate-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
+          echo "candidate-app deployed to PRODUCTION successfully!"
+          echo "Production URL: https://$(az containerapp show --name xpertsphere-candidate-app --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"

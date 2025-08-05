@@ -30,7 +30,7 @@ import EssentialLink, { type EssentialLinkProps } from '../components/EssentialL
 
 const linksList: EssentialLinkProps[] = [
   {
-    title: 'Docs',
+    title: 'Docs Candidate',
     caption: 'quasar.dev',
     icon: 'school',
     link: 'https://quasar.dev',
