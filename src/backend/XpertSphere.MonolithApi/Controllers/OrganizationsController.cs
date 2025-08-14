@@ -1,9 +1,9 @@
-﻿
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using XpertSphere.MonolithApi.DTOs.Organization;
+using XpertSphere.MonolithApi.Extensions;
 using XpertSphere.MonolithApi.Interfaces;
-using XpertSphere.MonolithApi.Models;
-using XpertSphere.MonolithApi.Utils.Pagination;
+using XpertSphere.MonolithApi.Utils.Results;
 
 namespace XpertSphere.MonolithApi.Controllers
 {
@@ -11,24 +11,27 @@ namespace XpertSphere.MonolithApi.Controllers
     [Route("api/[controller]")]
     public class OrganizationsController(IOrganizationService organizationService) : ControllerBase
     {
-        private readonly IOrganizationService _organizationService = organizationService;
-
         /// <summary>
         /// Get all organizations with filtering and pagination
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<ResponseResource<Organization>>> GetOrganizations([FromQuery] OrganizationFilterDto filter)
+        [Authorize(Policy = "RequirePlatformRole")]
+        public async Task<ActionResult<PaginatedResult<OrganizationDto>>> GetOrganizations(
+            [FromQuery] OrganizationFilterDto filter)
         {
-            return Ok(await _organizationService.GetAll(filter));
+            var result = await organizationService.GetAllAsync(filter);
+            return this.ToPaginatedActionResult(result);
         }
 
         /// <summary>
         /// Get organization by ID
         /// </summary>
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<Organization>> GetOrganization(Guid id)
+        [Authorize(Policy = "OrganizationAccess")]
+        public async Task<ActionResult<OrganizationDto>> GetOrganization(Guid id)
         {
-            return Ok(await _organizationService.Get(id));
+            var result = await organizationService.GetByIdAsync(id);
+            return this.ToActionResult(result);
         }
 
 
@@ -36,34 +39,33 @@ namespace XpertSphere.MonolithApi.Controllers
         /// Add a new organization
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<Organization>> AddOrganization(Organization organization)
+        [Authorize(Policy = "RequirePlatformSuperAdminRole")]
+        public async Task<ActionResult<OrganizationDto>> AddOrganization(CreateOrganizationDto organization)
         {
-
-            var org = await _organizationService.Post(organization);
-            return CreatedAtAction(nameof(GetOrganization), new { id = org.Id }, org);
+            var result = await organizationService.CreateAsync(organization);
+            return this.ToActionResult(result);
         }
 
         /// <summary>
         /// Update an existing organization
         /// </summary>
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult<Organization>> UpdateUser(Guid id, Organization organization)
+        [Authorize(Policy = "OrganizationAccess")]
+        public async Task<ActionResult<OrganizationDto>> UpdateOrganization(Guid id, UpdateOrganizationDto organization)
         {
-
-
-            var org = await _organizationService.Put(id, organization);
-
-            return Ok(org);
+            var result = await organizationService.UpdateAsync(id, organization);
+            return this.ToActionResult(result);
         }
 
         /// <summary>
         /// Delete an organization
         /// </summary>
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteUser(Guid id)
+        [Authorize(Policy = "RequirePlatformSuperAdminRole")]
+        public async Task<IActionResult> DeleteOrganization(Guid id)
         {
-            await _organizationService.Delete(id);
-            return Ok();
+            var result = await organizationService.DeleteAsync(id);
+            return this.ToActionResult(result);
         }
     }
 }

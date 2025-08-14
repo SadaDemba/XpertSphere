@@ -4,30 +4,6 @@ namespace XpertSphere.MonolithApi.Extensions;
 
 public static class EnumExtensions
 {
-    public static string ToStringValue(this UserType userType)
-    {
-        return userType switch
-        {
-            UserType.Candidate => "CANDIDATE",
-            UserType.Recruiter => "RECRUITER",
-            UserType.Manager => "MANAGER",
-            UserType.Collaborator => "COLLABORATOR",
-            _ => throw new ArgumentOutOfRangeException(nameof(userType), userType, null)
-        };
-    }
-
-    public static UserType ToUserType(this string value)
-    {
-        return value?.ToUpper() switch
-        {
-            "CANDIDATE" => UserType.Candidate,
-            "RECRUITER" => UserType.Recruiter,
-            "MANAGER" => UserType.Manager,
-            "COLLABORATOR" => UserType.Collaborator,
-            _ => throw new ArgumentException($"Invalid UserType value: {value}", nameof(value))
-        };
-    }
-
     public static string ToStringValue(this OrganizationSize size)
     {
         return size switch
@@ -36,7 +12,6 @@ public static class EnumExtensions
             OrganizationSize.Small => "SMALL",
             OrganizationSize.Medium => "MEDIUM",
             OrganizationSize.Large => "LARGE",
-            OrganizationSize.Enterprise => "ENTERPRISE",
             _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
         };
     }
@@ -49,7 +24,6 @@ public static class EnumExtensions
             "SMALL" => OrganizationSize.Small,
             "MEDIUM" => OrganizationSize.Medium,
             "LARGE" => OrganizationSize.Large,
-            "ENTERPRISE" => OrganizationSize.Enterprise,
             _ => throw new ArgumentException($"Invalid OrganizationSize value: {value}", nameof(value))
         };
     }
@@ -87,6 +61,7 @@ public static class EnumExtensions
             PermissionScope.All => "All",
             PermissionScope.Own => "Own",
             PermissionScope.Organization => "Organization",
+            // I will use it in the next version of the platform
             PermissionScope.Department => "Department",
             _ => throw new ArgumentOutOfRangeException(nameof(scope), scope, null)
         };
@@ -99,6 +74,7 @@ public static class EnumExtensions
             "All" => PermissionScope.All,
             "Own" => PermissionScope.Own,
             "Organization" => PermissionScope.Organization,
+            // I will use it in the next version of the platform (just for biggest companies)
             "Department" => PermissionScope.Department,
             _ => throw new ArgumentException($"Invalid PermissionScope value: {value}", nameof(value))
         };

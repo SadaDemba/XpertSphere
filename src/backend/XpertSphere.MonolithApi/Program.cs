@@ -1,29 +1,41 @@
+using System.Text.Json.Serialization;
+using DotNetEnv;
 using XpertSphere.MonolithApi.Extensions;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Services;
-using System.Text.Json.Serialization;
+
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load .env file if it exists
-var envFile = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", ".env");
-if (File.Exists(envFile))
-{
-    foreach (var line in await File.ReadAllLinesAsync(envFile))
-    {
-        if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
+// Azure Key Vault Configuration
+builder.Services.AddKeyVaultConfiguration(builder);
 
-        var parts = line.Split('=', 2);
-        if (parts.Length == 2)
-        {
-            Environment.SetEnvironmentVariable(parts[0].Trim(), parts[1].Trim());
-        }
-    }
+// Application Insights Telemetry 
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddApplicationInsightsTelemetry();
+}
+
+// Logging configuration
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
+// Application Insights logging
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Logging.AddApplicationInsights();
 }
 
 // Infrastructure Services
 builder.Services.AddDatabase(builder.Configuration, builder.Environment);
 builder.Services.AddSecurity(builder.Configuration, builder.Environment);
+
+// AutoMapper Configuration
+builder.Services.AddAutoMapperConfiguration();
+
+// FluentValidation Configuration
+builder.Services.AddFluentValidationConfiguration();
 
 // Health Checks
 builder.Services.AddHealthChecks();
@@ -42,8 +54,15 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
+// RBAC Services
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+
 // Additional Services
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 var app = builder.Build();
 

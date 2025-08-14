@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+﻿using System.Security.Claims;
 using System.Text;
-using XpertSphere.MonolithApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using XpertSphere.MonolithApi.Data;
+using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Utils;
+using XpertSphere.MonolithApi.Utils.Results;
 
 namespace XpertSphere.MonolithApi.Extensions;
 
@@ -77,8 +80,8 @@ public static class SecurityExtensions
     {
         var jwtKey = GetJwtKey(configuration);
         
-        var jwtIssuer = configuration.GetSection("Jwt:Issuer").Value ?? "XpertSphere";
-        var jwtAudience = configuration.GetSection("Jwt:Audience").Value ?? "XpertSphere-Users";
+        var jwtIssuer = configuration.GetSection("Jwt:Issuer").Value;
+        var jwtAudience = configuration.GetSection("Jwt:Audience").Value;
 
         services.AddAuthentication(options =>
         {
@@ -112,34 +115,70 @@ public static class SecurityExtensions
 
     private static string GetJwtKey(IConfiguration configuration)
     {
-        return configuration.GetSection("Jwt:Key").Value ??
-               Environment.GetEnvironmentVariable("JWT_KEY") ??
-               "your-super-secret-jwt-key-that-is-at-least-32-characters-long-for-development";
+        
+        var jwtKey = configuration["jwt-key"] ?? // Key Vault secret
+                     Environment.GetEnvironmentVariable("JWT_KEY"); // Env var dev
+        
+        return jwtKey ?? throw new InvalidOperationException("No JSON Web Token Key found");
     }
 
     private static JwtBearerEvents ConfigureJwtEvents()
     {
         return new JwtBearerEvents
         {
-            OnAuthenticationFailed = context =>
-            {
-                if (context.Exception != null)
-                {
-                    context.Response.Headers.Append("Authentication-Failed", "true");
-                }
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = context =>
-            {
-                // Add custom validation logic here
-                return Task.CompletedTask;
-            },
-            OnChallenge = context =>
-            {
-                // Custom challenge response
-                return Task.CompletedTask;
-            }
+            OnAuthenticationFailed = HandleAuthenticationFailed,
+            OnTokenValidated = _ => Task.CompletedTask,
+            OnChallenge = HandleChallenge
         };
+    }
+
+    private static async Task HandleAuthenticationFailed(AuthenticationFailedContext context)
+    {
+        if (context.Exception == null)
+            return;
+
+        context.Response.Headers.Append("Authentication-Failed", "true");
+
+        var result = context.Exception switch
+        {
+            SecurityTokenExpiredException => CreateTokenExpiredResult(context.Response),
+            _ => ServiceResult.Unauthorized("Authentication failed")
+        };
+
+        await WriteServiceResultToResponse(context.Response, result);
+    }
+
+    private static async Task HandleChallenge(JwtBearerChallengeContext context)
+    {
+        context.HandleResponse();
+        
+        if (!context.Response.HasStarted)
+        {
+            var result = ServiceResult.Unauthorized("You are not authorized to access this resource");
+            await WriteServiceResultToResponse(context.Response, result);
+        }
+    }
+
+    private static ServiceResult CreateTokenExpiredResult(HttpResponse response)
+    {
+        response.Headers.Append("Token-Expired", "true");
+        return ServiceResult.Unauthorized("Token has expired");
+    }
+
+    private static async Task WriteServiceResultToResponse(HttpResponse response, ServiceResult result)
+    {
+        response.StatusCode = result.StatusCode ?? 401;
+        response.ContentType = "application/json";
+        
+        var errorResponse = new
+        {
+            success = result.IsSuccess,
+            message = result.Message,
+            errors = result.Errors,
+            timestamp = DateTime.UtcNow
+        };
+        
+        await response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResponse));
     }
 
     private static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services)
@@ -147,24 +186,98 @@ public static class SecurityExtensions
         services.AddAuthorization(options =>
         {
             // Role-based policies
+            
             options.AddPolicy("RequireRecruiterRole", policy =>
-                policy.RequireClaim("UserType", "Recruiter"));
+                policy.RequireRole(Roles.Recruiter.Name));
 
             options.AddPolicy("RequireManagerRole", policy =>
-                policy.RequireClaim("UserType", "Manager"));
+                policy.RequireRole(Roles.Manager.Name));
 
-            options.AddPolicy("RequireAdminRole", policy =>
-                policy.RequireClaim("UserType", "Admin"));
+            options.AddPolicy("RequireOrganizationAdminRole", policy =>
+                policy.RequireRole(Roles.OrganizationAdmin.Name));
 
             options.AddPolicy("RequireInternalUser", policy =>
-                policy.RequireClaim("UserType", "Recruiter", "Manager", "Admin", "TechnicalEvaluator"));
+                policy.RequireRole(Roles.InternalRoles));
+            
+            options.AddPolicy("RequireOrganisationRole", policy =>
+                policy.RequireRole(Roles.OrganizationRoles));
+            
+            options.AddPolicy("RequirePlatformRole", policy =>
+                policy.RequireRole(Roles.PlatformRoles));
+            
+            options.AddPolicy("RequirePlatformSuperAdminRole", policy =>
+                policy.RequireRole(Roles.PlatformSuperAdmin.Name));
+            
+            options.AddPolicy("RequireCandidateRole", policy =>
+                policy.RequireRole(Roles.Candidate.Name));
 
-            // Organization-based policy
+            
+            // Organization-based policies
             options.AddPolicy("SameOrganization", policy =>
                 policy.RequireAssertion(context =>
                 {
                     var userOrgClaim = context.User.FindFirst("OrganizationId");
                     return userOrgClaim != null;
+                }));
+            
+            options.AddPolicy("OrganizationAccess", policy =>
+                policy.RequireAssertion(context =>
+                {
+                    if (context.User.IsInRole(Roles.PlatformAdmin.Name) || 
+                        context.User.IsInRole(Roles.PlatformSuperAdmin.Name))
+                    {
+                        return true;
+                    }
+                    
+                    var userOrgClaim = context.User.FindFirst("OrganizationId");
+                    if (userOrgClaim != null && Guid.TryParse(userOrgClaim.Value, out var userOrgId))
+                    {
+                        var httpContext = context.Resource as DefaultHttpContext;
+                        if (httpContext?.Request.RouteValues.TryGetValue("organizationId", out var orgIdValue) == true ||
+                            httpContext?.Request.RouteValues.TryGetValue("id", out orgIdValue) == true)
+                        {
+                            if (Guid.TryParse(orgIdValue?.ToString(), out var requestedOrgId))
+                            {
+                                return userOrgId == requestedOrgId;
+                            }
+                        }
+                    }
+
+                    return false;
+                }));
+            
+            options.AddPolicy("CandidateOwnDataAccess", policy =>
+                policy.RequireAssertion(context =>
+                {
+                    if (context.User.IsInRole(Roles.PlatformAdmin.Name) || 
+                        context.User.IsInRole(Roles.PlatformSuperAdmin.Name))
+                    {
+                        return true;
+                    }
+                    
+                    if (Roles.OrganizationRoles.Any(role => context.User.IsInRole(role)))
+                    {
+                        return true;
+                    }
+                    
+                    if (context.User.IsInRole(Roles.Candidate.Name))
+                    {
+                        var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
+                        if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+                        {
+                            var httpContext = context.Resource as DefaultHttpContext;
+                            if (httpContext?.Request.RouteValues.TryGetValue("userId", out var userIdValue) == true ||
+                                httpContext?.Request.RouteValues.TryGetValue("id", out userIdValue) == true)
+                            {
+                                if (Guid.TryParse(userIdValue?.ToString(), out var requestedUserId))
+                                {
+                                    return userId == requestedUserId;
+                                }
+                            }
+                        }
+                    }
+
+                    return false;
                 }));
         });
 
@@ -211,10 +324,10 @@ public static class SecurityExtensions
 public class JwtSettings
 {
     public string Key { get; set; } = string.Empty;
-    public string Issuer { get; set; } = "XpertSphere";
-    public string Audience { get; set; } = "XpertSphere-Users";
-    public int AccessTokenExpirationMinutes { get; set; } = 60;
-    public int RefreshTokenExpirationDays { get; set; } = 7;
+    public string Issuer { get; set; } = string.Empty;
+    public string Audience { get; set; } = string.Empty;
+    public int AccessTokenExpirationMinutes { get; set; }
+    public int RefreshTokenExpirationDays { get; set; }
     public bool RequireHttpsMetadata { get; set; } = true;
     public bool SaveToken { get; set; } = true;
     public bool ValidateIssuerSigningKey { get; set; } = true;

@@ -92,7 +92,7 @@ jobs:
                 AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }} \
               --cpu 0.5 \
               --memory 1.0Gi \
-              --min-replicas 1 \
+              --min-replicas 0 \
               --max-replicas 2
           fi
 
@@ -189,7 +189,7 @@ jobs:
                 AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }} \
               --cpu 0.5 \
               --memory 1.0Gi \
-              --min-replicas 1 \
+              --min-replicas 0 \
               --max-replicas 3
           fi
 

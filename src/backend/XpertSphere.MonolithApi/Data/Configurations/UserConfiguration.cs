@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Data.Configurations.Base;
 using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Extensions;
-using XpertSphere.MonolithApi.Data.Configurations.Base;
+using XpertSphere.MonolithApi.Models;
 
 namespace XpertSphere.MonolithApi.Data.Configurations;
 
@@ -13,30 +13,16 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.ToTable("Users", t =>
         {
-            t.HasCheckConstraint(
-                "CK_User_Internal_OrganizationRequired",
-                "([UserType] = 'RECRUITER' AND [OrganizationId] IS NOT NULL) OR" +
-                "([UserType] = 'MANAGER' AND [OrganizationId] IS NOT NULL) OR" +
-                "([UserType] = 'COLLABORATOR' AND [OrganizationId] IS NOT NULL)" +
-                "OR ([UserType] = 'CANDIDATE' AND [OrganizationId] IS NULL)");
 
             t.HasCheckConstraint(
-                "CK_User_Experience",
-                "[Experience] IS NULL OR [Experience] >= 0");
+                "CK_User_YearsOfExperience",
+                "[YearsOfExperience] IS NULL OR [YearsOfExperience] >= 0");
 
             t.HasCheckConstraint(
                 "CK_User_DesiredSalary",
                 "[DesiredSalary] IS NULL OR [DesiredSalary] > 0");
         });
-
-
-        // Configure enum as string
-        builder.Property(u => u.UserType)
-            .HasConversion(
-                v => v.ToStringValue(),
-                v => v.ToUserType())
-            .HasMaxLength(50);
-
+        
         // Configure Address as owned entity (ComplexType)
         builder.OwnsOne(
             u => u.Address,
@@ -69,8 +55,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasDatabaseName("IX_Users_OrganizationId_EmployeeId")
             .HasFilter("[OrganizationId] IS NOT NULL AND [EmployeeId] IS NOT NULL");
 
-        builder.HasIndex(u => u.UserType).HasDatabaseName("IX_Users_UserType");
-
         builder.HasIndex(u => u.LastLoginAt).HasDatabaseName("IX_Users_LastLoginAt");
 
         // Relationships - Use Restrict to avoid cascade cycles
@@ -84,6 +68,18 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMany(u => u.UserRoles)
             .WithOne(ur => ur.User)
             .HasForeignKey(ur => ur.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder
+            .HasMany(u => u.Experiences)
+            .WithOne(e => e.User)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder
+            .HasMany(u => u.Trainings)
+            .WithOne(t => t.User)
+            .HasForeignKey(t => t.UserId)
             .OnDelete(DeleteBehavior.Restrict);
         
         ConfigureAuditProperties(builder);

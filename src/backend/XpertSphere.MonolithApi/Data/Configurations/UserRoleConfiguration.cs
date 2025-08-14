@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Data.Configurations.Base;
+using XpertSphere.MonolithApi.Models;
 
 namespace XpertSphere.MonolithApi.Data.Configurations;
 

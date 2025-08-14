@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using XpertSphere.MonolithApi.Models.Base;
+using System.Text.Json.Serialization;
 using XpertSphere.MonolithApi.Enums;
+using XpertSphere.MonolithApi.Models.Base;
 
 namespace XpertSphere.MonolithApi.Models;
 
@@ -26,5 +27,6 @@ public class Permission : AuditableEntity
     public string? Description { get; set; }
 
     // Navigation properties
+    [JsonIgnore]
     public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
 }

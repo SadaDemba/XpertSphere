@@ -1,45 +1,73 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using FluentValidation;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using XpertSphere.MonolithApi.DTOs.Auth;
+using XpertSphere.MonolithApi.DTOs.User;
 using XpertSphere.MonolithApi.Extensions;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Utils.Results;
 
-namespace XpertSphere.MonolithApi.Services;
+namespace XpertSphere.MonolithApi.Services; 
 
-public class AuthenticationService : Interfaces.IAuthenticationService
+public class AuthenticationService : IAuthenticationService
 {
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly JwtSettings _jwtSettings;
     private readonly ILogger<AuthenticationService> _logger;
+    private readonly IValidator<RegisterDto> _registerValidator;
+    private readonly IValidator<LoginDto> _loginValidator;
+    private readonly IValidator<RefreshTokenDto> _refreshTokenValidator;
+    private readonly IValidator<ResetPasswordDto> _resetPasswordValidator;
+    private readonly IValidator<ConfirmEmailDto> _confirmEmailValidator;
+    private readonly IValidator<ForgotPasswordDto> _forgotPasswordValidator;
 
     public AuthenticationService(
         UserManager<User> userManager,
         SignInManager<User> signInManager,
         IOptions<JwtSettings> jwtSettings,
-        ILogger<AuthenticationService> logger)
+        ILogger<AuthenticationService> logger,
+        IValidator<RegisterDto> registerValidator,
+        IValidator<LoginDto> loginValidator,
+        IValidator<RefreshTokenDto> refreshTokenValidator,
+        IValidator<ResetPasswordDto> resetPasswordValidator,
+        IValidator<ConfirmEmailDto> confirmEmailValidator,
+        IValidator<ForgotPasswordDto> forgotPasswordValidator)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtSettings = jwtSettings.Value;
         _logger = logger;
+        _registerValidator = registerValidator;
+        _loginValidator = loginValidator;
+        _refreshTokenValidator = refreshTokenValidator;
+        _resetPasswordValidator = resetPasswordValidator;
+        _confirmEmailValidator = confirmEmailValidator;
+        _forgotPasswordValidator = forgotPasswordValidator;
     }
 
     public async Task<AuthResult> RegisterAsync(RegisterDto registerDto)
     {
         try
         {
+            var validationResult = await _registerValidator.ValidateAsync(registerDto);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                return AuthResult.ValidationError(errors);
+            }
+
             var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
             if (existingUser != null)
             {
-                return AuthResult.Failure("User with this email already exists");
+                return AuthResult.Conflict("User with this email already exists");
             }
 
             var user = new User
@@ -48,8 +76,6 @@ public class AuthenticationService : Interfaces.IAuthenticationService
                 Email = registerDto.Email,
                 FirstName = registerDto.FirstName,
                 LastName = registerDto.LastName,
-                UserType = registerDto.UserType,
-                OrganizationId = registerDto.OrganizationId,
                 PhoneNumber = registerDto.PhoneNumber,
                 EmailConfirmed = false,
                 CreatedAt = DateTime.UtcNow,
@@ -85,7 +111,18 @@ public class AuthenticationService : Interfaces.IAuthenticationService
     {
         try
         {
-            var user = await _userManager.FindByEmailAsync(loginDto.Email);
+            var validationResult = await _loginValidator.ValidateAsync(loginDto);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                return AuthResult.ValidationError(errors);
+            }
+
+            var user = await _userManager.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+            
             if (user == null)
             {
                 _logger.LogWarning("Login attempt with non-existent email: {Email}", loginDto.Email);
@@ -113,7 +150,7 @@ public class AuthenticationService : Interfaces.IAuthenticationService
                 await _userManager.UpdateAsync(user);
 
                 // Generate tokens
-                var accessToken = await GenerateAccessTokenAsync(user);
+                var accessToken = GenerateAccessToken(user);
                 var refreshToken = GenerateRefreshToken();
 
                 // Save refresh token
@@ -164,7 +201,18 @@ public class AuthenticationService : Interfaces.IAuthenticationService
     {
         try
         {
-            var user = await _userManager.FindByEmailAsync(refreshTokenDto.Email);
+            var validationResult = await _refreshTokenValidator.ValidateAsync(refreshTokenDto);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                return AuthResult.ValidationError(errors);
+            }
+
+            var user = await _userManager.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == refreshTokenDto.Email);
+            
             if (user == null || !user.IsTokenValid || user.RefreshToken != refreshTokenDto.RefreshToken)
             {
                 _logger.LogWarning("Invalid refresh token attempt for {Email}", refreshTokenDto.Email);
@@ -172,7 +220,7 @@ public class AuthenticationService : Interfaces.IAuthenticationService
             }
 
             // Generate new tokens
-            var accessToken = await GenerateAccessTokenAsync(user);
+            var accessToken = GenerateAccessToken(user);
             var newRefreshToken = GenerateRefreshToken();
 
             // Update refresh token
@@ -222,20 +270,27 @@ public class AuthenticationService : Interfaces.IAuthenticationService
         }
     }
 
-    public async Task<AuthResult> ConfirmEmailAsync(string email, string token)
+    public async Task<AuthResult> ConfirmEmailAsync(ConfirmEmailDto confirmEmailDto)
     {
         try
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            var validationResult = await _confirmEmailValidator.ValidateAsync(confirmEmailDto);
+            if (!validationResult.IsValid)
+            {
+                var validationErrors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                return AuthResult.ValidationError(validationErrors);
+            }
+            
+            var user = await _userManager.FindByEmailAsync(confirmEmailDto.Email);
             if (user == null)
             {
                 return AuthResult.Failure("User not found");
             }
 
-            var result = await _userManager.ConfirmEmailAsync(user, token);
+            var result = await _userManager.ConfirmEmailAsync(user, confirmEmailDto.Token);
             if (result.Succeeded)
             {
-                _logger.LogInformation("Email confirmed for user: {Email}", email);
+                _logger.LogInformation("Email confirmed for user: {Email}", confirmEmailDto.Email);
                 return AuthResult.Success("Email confirmed successfully");
             }
 
@@ -244,19 +299,25 @@ public class AuthenticationService : Interfaces.IAuthenticationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred during email confirmation for {Email}", email);
+            _logger.LogError(ex, "Error occurred during email confirmation for {Email}", confirmEmailDto.Email);
             return AuthResult.Failure("An error occurred during email confirmation");
         }
     }
 
-    public async Task<AuthResult> ForgotPasswordAsync(string email)
+    public async Task<AuthResult> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto)
     {
         try
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            var validationResult = await _forgotPasswordValidator.ValidateAsync(forgotPasswordDto);
+            if (!validationResult.IsValid)
+            {
+                var validationErrors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                return AuthResult.ValidationError(validationErrors);
+            }
+            
+            var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
             if (user == null)
             {
-                // Don't reveal that the user doesn't exist
                 return AuthResult.Success("If an account with that email exists, a password reset link has been sent");
             }
 
@@ -264,13 +325,13 @@ public class AuthenticationService : Interfaces.IAuthenticationService
             user.SetPasswordResetToken(resetToken, TimeSpan.FromHours(1));
             await _userManager.UpdateAsync(user);
 
-            _logger.LogInformation("Password reset token generated for user: {Email}", email);
+            _logger.LogInformation("Password reset token generated for user: {Email}", forgotPasswordDto.Email);
 
             return AuthResult.SuccessWithUser(user, "Password reset email sent", resetToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred during password reset request for {Email}", email);
+            _logger.LogError(ex, "Error occurred during password reset request for {Email}", forgotPasswordDto.Email);
             return AuthResult.Failure("An error occurred while processing your request");
         }
     }
@@ -279,6 +340,13 @@ public class AuthenticationService : Interfaces.IAuthenticationService
     {
         try
         {
+            var validationResult = await _resetPasswordValidator.ValidateAsync(resetPasswordDto);
+            if (!validationResult.IsValid)
+            {
+                var validationErrors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                return AuthResult.ValidationError(validationErrors);
+            }
+
             var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
             if (user == null)
             {
@@ -306,15 +374,53 @@ public class AuthenticationService : Interfaces.IAuthenticationService
             return AuthResult.Failure("An error occurred during password reset");
         }
     }
+    
+    public async Task<ServiceResult<UserDto>> GetCurrentUserAsync(Guid userId)
+    {
+        try
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                return ServiceResult<UserDto>.NotFound("User not found");
+            }
 
-    private async Task<string> GenerateAccessTokenAsync(User user)
+            var roles = await _userManager.GetRolesAsync(user);
+            
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email!,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                FullName = user.FullName,
+                OrganizationId = user.OrganizationId,
+                OrganizationName = user.Organization?.Name,
+                IsActive = user.IsActive,
+                PhoneNumber = user.PhoneNumber,
+                EmailConfirmed = user.EmailConfirmed,
+                LastLoginAt = user.LastLoginAt,
+                ProfileCompletionPercentage = user.ProfileCompletionPercentage,
+                Roles = roles.ToList()
+            };
+
+            return ServiceResult<UserDto>.Success(userDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving current user {UserId}", userId);
+            return ServiceResult<UserDto>.InternalError("An error occurred while retrieving user information");
+        }
+    }
+
+
+    private string GenerateAccessToken(User user)
     {
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email!),
             new(ClaimTypes.Name, user.FullName),
-            new("UserType", user.UserType.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         };
@@ -326,8 +432,9 @@ public class AuthenticationService : Interfaces.IAuthenticationService
         }
 
         // Add role claims
-        var roles = await _userManager.GetRolesAsync(user);
-        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+        var userRoles = user.UserRoles.Where(ur => ur.IsActive).Select(ur => ur.Role.Name).ToList();
+        claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

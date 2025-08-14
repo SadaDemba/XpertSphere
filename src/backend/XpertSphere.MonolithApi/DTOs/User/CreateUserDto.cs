@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using XpertSphere.MonolithApi.Models.Base;
 using XpertSphere.MonolithApi.Enums;
+using XpertSphere.MonolithApi.Models.Base;
 
 namespace XpertSphere.MonolithApi.DTOs.User;
 
@@ -22,9 +22,6 @@ public class CreateUserDto
     [MaxLength(20)]
     public string? PhoneNumber { get; set; }
 
-    [Required]
-    public UserType UserType { get; set; }
-
     // For internal users
     public Guid? OrganizationId { get; set; }
 
@@ -42,7 +39,11 @@ public class CreateUserDto
 
     public string? Skills { get; set; }
 
-    public int? Experience { get; set; }
+    public int? YearsOfExperience { get; set; }
+    
+    public List<Training>? Trainings { get; set; } = [];
+    
+    public List<Experience>? Experiences { get; set; } = [];
 
     public decimal? DesiredSalary { get; set; }
 
