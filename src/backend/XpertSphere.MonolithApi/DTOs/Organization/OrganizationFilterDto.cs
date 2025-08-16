@@ -1,5 +1,5 @@
-﻿using XpertSphere.MonolithApi.Enums;
-using XpertSphere.MonolithApi.Models.Base;
+﻿using XpertSphere.MonolithApi.DTOs.Base;
+using XpertSphere.MonolithApi.Enums;
 
 namespace XpertSphere.MonolithApi.DTOs.Organization
 {

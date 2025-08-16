@@ -2,14 +2,14 @@ name: Candidate App CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
     paths:
       - "src/frontend/packages/candidate-app/**"
       - "src/frontend/package*.json"
       - "src/frontend/eslint.config.mjs"
       - "src/frontend/.prettierrc"
   pull_request:
-    branches: [main, develop]
+    branches: [ main, develop ]
     paths:
       - "src/frontend/packages/candidate-app/**"
       - "src/frontend/package*.json"

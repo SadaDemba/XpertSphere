@@ -1,11 +1,11 @@
-using XpertSphere.MonolithApi.Models.Base;
+using XpertSphere.MonolithApi.DTOs.Base;
 using XpertSphere.MonolithApi.Enums;
+using XpertSphere.MonolithApi.Models.Base;
 
 namespace XpertSphere.MonolithApi.DTOs.User;
 
 public class UserFilterDto: Filter
 {
-    public UserType? UserType { get; set; }
     public Guid? OrganizationId { get; set; }
     public string? Department { get; set; }
     public bool? IsActive { get; set; }

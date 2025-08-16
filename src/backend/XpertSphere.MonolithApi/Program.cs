@@ -1,29 +1,39 @@
-using XpertSphere.MonolithApi.Extensions;
-using XpertSphere.MonolithApi.Interfaces;
-using XpertSphere.MonolithApi.Services;
 using System.Text.Json.Serialization;
+using DotNetEnv;
+using XpertSphere.MonolithApi.Extensions;
+using XpertSphere.MonolithApi.Extensions.DependencyInjections;
+using XpertSphere.MonolithApi.Interfaces;
+using XpertSphere.MonolithApi.Middleware;
+using XpertSphere.MonolithApi.Services;
+
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load .env file if it exists
-var envFile = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", ".env");
-if (File.Exists(envFile))
+if (!builder.Environment.IsDevelopment())
 {
-    foreach (var line in await File.ReadAllLinesAsync(envFile))
-    {
-        if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
-
-        var parts = line.Split('=', 2);
-        if (parts.Length == 2)
-        {
-            Environment.SetEnvironmentVariable(parts[0].Trim(), parts[1].Trim());
-        }
-    }
+    // Azure Key Vault Configuration
+    builder.Services.AddKeyVaultConfiguration(builder);
+    
+    // Application Insights Telemetry 
+    builder.Services.AddApplicationInsightsTelemetry();
+    
+    // Logging configuration
+    builder.Logging.ClearProviders();
+    builder.Logging.AddConsole();
+    
+    builder.Logging.AddApplicationInsights();
 }
 
 // Infrastructure Services
 builder.Services.AddDatabase(builder.Configuration, builder.Environment);
 builder.Services.AddSecurity(builder.Configuration, builder.Environment);
+
+// AutoMapper Configuration
+builder.Services.AddAutoMapperConfiguration();
+
+// FluentValidation Configuration
+builder.Services.AddFluentValidationConfiguration();
 
 // Health Checks
 builder.Services.AddHealthChecks();
@@ -42,8 +52,23 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
+// RBAC Services
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+
+// Authentication Error Handling & Logging Services
+builder.Services.AddAuthenticationLogging();
+builder.Services.AddEntraIdFallback();
+builder.Services.AddEntraIdRateLimit();
+
+// HTTP Client for Entra ID APIs
+builder.Services.AddHttpClient("EntraId", client => client.ConfigureForEntraId());
+
 // Additional Services
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 var app = builder.Build();
 
@@ -60,6 +85,7 @@ app.MapHealthChecks("/health");
 app.UseHttpsRedirection();
 app.UseCookiePolicy();
 app.UseAuthentication();
+app.UseMiddleware<ClaimsEnrichmentMiddleware>();
 app.UseAuthorization();
 
 // Application Pipeline

@@ -2,10 +2,10 @@ name: Deploy Candidate app to Azure Container Apps
 
 on:
   workflow_run:
-    workflows: ["Candidate App CI"]
+    workflows: [ "Candidate App CI" ]
     types:
       - completed
-    branches: [main, develop]
+    branches: [ main, develop ]
   workflow_dispatch:
     inputs:
       environment:

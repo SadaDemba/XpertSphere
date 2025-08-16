@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace XpertSphere.MonolithApi.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateMigration : Migration
+    public partial class Initial_Create : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -108,25 +108,33 @@ namespace XpertSphere.MonolithApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AuditableEntity",
+                name: "Experiences",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CompanyName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    BeginPeriod = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    EndPeriod = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    IsCurrent = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AuditableEntity", x => x.Id);
+                    table.PrimaryKey("PK_Experiences", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Organizations",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Address_StreetNumber = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
@@ -141,61 +149,15 @@ namespace XpertSphere.MonolithApi.Migrations
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     Industry = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Size = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Website = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                    Website = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Organizations", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Organizations_AuditableEntity_Id",
-                        column: x => x.Id,
-                        principalTable: "AuditableEntity",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Permissions",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Resource = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Action = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Scope = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Category = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Permissions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Permissions_AuditableEntity_Id",
-                        column: x => x.Id,
-                        principalTable: "AuditableEntity",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Roles",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    DisplayName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Roles", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Roles_AuditableEntity_Id",
-                        column: x => x.Id,
-                        principalTable: "AuditableEntity",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -224,7 +186,7 @@ namespace XpertSphere.MonolithApi.Migrations
                     LinkedInProfile = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     CvPath = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Skills = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Experience = table.Column<int>(type: "int", nullable: true),
+                    YearsOfExperience = table.Column<int>(type: "int", nullable: true),
                     DesiredSalary = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Availability = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RefreshToken = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
@@ -267,8 +229,8 @@ namespace XpertSphere.MonolithApi.Migrations
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
                     table.CheckConstraint("CK_User_DesiredSalary", "[DesiredSalary] IS NULL OR [DesiredSalary] > 0");
-                    table.CheckConstraint("CK_User_Experience", "[Experience] IS NULL OR [Experience] >= 0");
                     table.CheckConstraint("CK_User_Internal_OrganizationRequired", "([UserType] = 'RECRUITER' AND [OrganizationId] IS NOT NULL) OR([UserType] = 'MANAGER' AND [OrganizationId] IS NOT NULL) OR([UserType] = 'COLLABORATOR' AND [OrganizationId] IS NOT NULL)OR ([UserType] = 'CANDIDATE' AND [OrganizationId] IS NULL)");
+                    table.CheckConstraint("CK_User_YearsOfExperience", "[YearsOfExperience] IS NULL OR [YearsOfExperience] >= 0");
                     table.ForeignKey(
                         name: "FK_Users_Organizations_OrganizationId",
                         column: x => x.OrganizationId,
@@ -290,22 +252,111 @@ namespace XpertSphere.MonolithApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Permissions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Resource = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Action = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Scope = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Category = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Permissions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Permissions_Users_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Permissions_Users_UpdatedBy",
+                        column: x => x.UpdatedBy,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Roles",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    DisplayName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Roles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Roles_Users_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Roles_Users_UpdatedBy",
+                        column: x => x.UpdatedBy,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Trainings",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Institution = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    BeginPeriod = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    EndPeriod = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    FieldOfStudy = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Degree = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Trainings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Trainings_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "RolePermissions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PermissionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    PermissionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_RolePermissions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_RolePermissions_AuditableEntity_Id",
-                        column: x => x.Id,
-                        principalTable: "AuditableEntity",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_RolePermissions_Permissions_PermissionId",
                         column: x => x.PermissionId,
@@ -316,6 +367,18 @@ namespace XpertSphere.MonolithApi.Migrations
                         name: "FK_RolePermissions_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_RolePermissions_Users_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_RolePermissions_Users_UpdatedBy",
+                        column: x => x.UpdatedBy,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -330,18 +393,16 @@ namespace XpertSphere.MonolithApi.Migrations
                     AssignedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     AssignedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_UserRoles", x => x.Id);
                     table.CheckConstraint("CK_UserRole_ExpiresAt", "[ExpiresAt] IS NULL OR [ExpiresAt] > [AssignedAt]");
-                    table.ForeignKey(
-                        name: "FK_UserRoles_AuditableEntity_Id",
-                        column: x => x.Id,
-                        principalTable: "AuditableEntity",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_UserRoles_Roles_RoleId",
                         column: x => x.RoleId,
@@ -351,6 +412,18 @@ namespace XpertSphere.MonolithApi.Migrations
                     table.ForeignKey(
                         name: "FK_UserRoles_Users_AssignedBy",
                         column: x => x.AssignedBy,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UserRoles_Users_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UserRoles_Users_UpdatedBy",
+                        column: x => x.UpdatedBy,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -390,26 +463,25 @@ namespace XpertSphere.MonolithApi.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AuditableEntity_CreatedAt",
-                table: "AuditableEntity",
-                column: "CreatedAt");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AuditableEntity_CreatedBy",
-                table: "AuditableEntity",
-                column: "CreatedBy");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AuditableEntity_UpdatedBy",
-                table: "AuditableEntity",
-                column: "UpdatedBy");
+                name: "IX_Experiences_UserId",
+                table: "Experiences",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Organizations_Code",
                 table: "Organizations",
                 column: "Code",
-                unique: true,
-                filter: "[Code] IS NOT NULL");
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Organizations_CreatedAt",
+                table: "Organizations",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Organizations_CreatedBy",
+                table: "Organizations",
+                column: "CreatedBy");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Organizations_Industry",
@@ -432,9 +504,24 @@ namespace XpertSphere.MonolithApi.Migrations
                 column: "Size");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Organizations_UpdatedBy",
+                table: "Organizations",
+                column: "UpdatedBy");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Permissions_Category",
                 table: "Permissions",
                 column: "Category");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Permissions_CreatedAt",
+                table: "Permissions",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Permissions_CreatedBy",
+                table: "Permissions",
+                column: "CreatedBy");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Permissions_Resource",
@@ -446,7 +533,22 @@ namespace XpertSphere.MonolithApi.Migrations
                 table: "Permissions",
                 columns: new[] { "Resource", "Action", "Scope" },
                 unique: true,
-                filter: "[Resource] IS NOT NULL AND [Action] IS NOT NULL AND [Scope] IS NOT NULL");
+                filter: "[Scope] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Permissions_UpdatedBy",
+                table: "Permissions",
+                column: "UpdatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RolePermissions_CreatedAt",
+                table: "RolePermissions",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RolePermissions_CreatedBy",
+                table: "RolePermissions",
+                column: "CreatedBy");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RolePermissions_PermissionId",
@@ -462,8 +564,22 @@ namespace XpertSphere.MonolithApi.Migrations
                 name: "IX_RolePermissions_RoleId_PermissionId",
                 table: "RolePermissions",
                 columns: new[] { "RoleId", "PermissionId" },
-                unique: true,
-                filter: "[RoleId] IS NOT NULL AND [PermissionId] IS NOT NULL");
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RolePermissions_UpdatedBy",
+                table: "RolePermissions",
+                column: "UpdatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Roles_CreatedAt",
+                table: "Roles",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Roles_CreatedBy",
+                table: "Roles",
+                column: "CreatedBy");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roles_IsActive",
@@ -474,8 +590,17 @@ namespace XpertSphere.MonolithApi.Migrations
                 name: "IX_Roles_Name",
                 table: "Roles",
                 column: "Name",
-                unique: true,
-                filter: "[Name] IS NOT NULL");
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Roles_UpdatedBy",
+                table: "Roles",
+                column: "UpdatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Trainings_UserId",
+                table: "Trainings",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRoles_AssignedAt",
@@ -486,6 +611,16 @@ namespace XpertSphere.MonolithApi.Migrations
                 name: "IX_UserRoles_AssignedBy",
                 table: "UserRoles",
                 column: "AssignedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRoles_CreatedAt",
+                table: "UserRoles",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRoles_CreatedBy",
+                table: "UserRoles",
+                column: "CreatedBy");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRoles_ExpiresAt",
@@ -503,11 +638,15 @@ namespace XpertSphere.MonolithApi.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserRoles_UpdatedBy",
+                table: "UserRoles",
+                column: "UpdatedBy");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserRoles_UserId_RoleId",
                 table: "UserRoles",
                 columns: new[] { "UserId", "RoleId" },
-                unique: true,
-                filter: "[UserId] IS NOT NULL AND [RoleId] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
@@ -593,16 +732,24 @@ namespace XpertSphere.MonolithApi.Migrations
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_AuditableEntity_Users_CreatedBy",
-                table: "AuditableEntity",
+                name: "FK_Experiences_Users_UserId",
+                table: "Experiences",
+                column: "UserId",
+                principalTable: "Users",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Organizations_Users_CreatedBy",
+                table: "Organizations",
                 column: "CreatedBy",
                 principalTable: "Users",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_AuditableEntity_Users_UpdatedBy",
-                table: "AuditableEntity",
+                name: "FK_Organizations_Users_UpdatedBy",
+                table: "Organizations",
                 column: "UpdatedBy",
                 principalTable: "Users",
                 principalColumn: "Id",
@@ -613,12 +760,12 @@ namespace XpertSphere.MonolithApi.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_AuditableEntity_Users_CreatedBy",
-                table: "AuditableEntity");
+                name: "FK_Organizations_Users_CreatedBy",
+                table: "Organizations");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_AuditableEntity_Users_UpdatedBy",
-                table: "AuditableEntity");
+                name: "FK_Organizations_Users_UpdatedBy",
+                table: "Organizations");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
@@ -636,7 +783,13 @@ namespace XpertSphere.MonolithApi.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Experiences");
+
+            migrationBuilder.DropTable(
                 name: "RolePermissions");
+
+            migrationBuilder.DropTable(
+                name: "Trainings");
 
             migrationBuilder.DropTable(
                 name: "UserRoles");
@@ -655,9 +808,6 @@ namespace XpertSphere.MonolithApi.Migrations
 
             migrationBuilder.DropTable(
                 name: "Organizations");
-
-            migrationBuilder.DropTable(
-                name: "AuditableEntity");
         }
     }
 }
