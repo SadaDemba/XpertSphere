@@ -112,7 +112,7 @@ public static class ControllerExtensions
     /// <summary>
     /// Get the current user's organization ID from claims
     /// </summary>
-    private static Guid? GetCurrentUserOrganizationId(this ControllerBase controller)
+    public static Guid? GetCurrentUserOrganizationId(this ControllerBase controller)
     {
         var orgIdClaim = controller.User.FindFirst("OrganizationId");
         return Guid.TryParse(orgIdClaim?.Value, out var orgId) ? orgId : null;
