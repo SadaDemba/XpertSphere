@@ -4,6 +4,10 @@ namespace XpertSphere.MonolithApi.Config;
 
 public class EntraIdB2BSettings
 {
+    public string ClientId { get; set; } = string.Empty;
+    
+    public string ClientSecret { get; set; } = string.Empty;
+
     [Required]
     public string Authority { get; set; } = string.Empty;
 
@@ -19,6 +23,8 @@ public class EntraIdB2BSettings
     };
 
     public List<string> RedirectUris { get; set; } = new();
+
+    public string RedirectUri => RedirectUris.FirstOrDefault() ?? string.Empty;
 
     public string GraphApiUrl { get; set; } = "https://graph.microsoft.com/v1.0";
 

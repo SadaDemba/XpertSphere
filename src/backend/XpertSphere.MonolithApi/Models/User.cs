@@ -48,6 +48,9 @@ public class User : IdentityUser<Guid>, IAuditableEntity
     public DateTime? Availability { get; set; }
 
     // Authentication & Security
+    [MaxLength(255)]
+    public string? ExternalId { get; set; }
+
     [MaxLength(500)]
     public string? RefreshToken { get; set; }
 

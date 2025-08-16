@@ -49,19 +49,9 @@ public interface IUserService
     Task<ServiceResult<UploadCvResponseDto>> UploadCvAsync(Guid userId, UploadCvDto dto);
 
     /// <summary>
-    /// Get user statistics
-    /// </summary>
-    Task<ServiceResult<UserStatsDto>> GetStatsAsync(Guid id);
-
-    /// <summary>
     /// Get users by organization
     /// </summary>
     Task<ServiceResult<List<UserSearchResultDto>>> GetByOrganizationAsync(Guid organizationId);
-
-    /// <summary>
-    /// Get dashboard statistics for a user
-    /// </summary>
-    Task<ServiceResult<UserDashboardStatsDto>> GetDashboardStatsAsync(Guid id);
 
     /// <summary>
     /// Activate a user account

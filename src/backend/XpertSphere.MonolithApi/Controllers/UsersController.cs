@@ -123,38 +123,6 @@ public class UsersController : ControllerBase
 
     #endregion
 
-    #region User Statistics & Analytics
-
-    /// <summary>
-    /// Get comprehensive user statistics
-    /// </summary>
-    /// <param name="id">User ID</param>
-    /// <returns>Detailed user statistics</returns>
-    [HttpGet("{id:guid}/stats")]
-    [ProducesResponseType(typeof(UserStatsDto), 200)]
-    [ProducesResponseType(404)]
-    public async Task<ActionResult<UserStatsDto>> GetUserStats(Guid id)
-    {
-        var result = await _userService.GetStatsAsync(id);
-        return this.ToActionResult(result);
-    }
-
-    /// <summary>
-    /// Get dashboard statistics for a user
-    /// </summary>
-    /// <param name="id">User ID</param>
-    /// <returns>Dashboard statistics</returns>
-    [HttpGet("{id:guid}/dashboard")]
-    [ProducesResponseType(typeof(UserDashboardStatsDto), 200)]
-    [ProducesResponseType(404)]
-    public async Task<ActionResult<UserDashboardStatsDto>> GetUserDashboard(Guid id)
-    {
-        var result = await _userService.GetDashboardStatsAsync(id);
-        return this.ToActionResult(result);
-    }
-
-    #endregion
-
     #region User Management Actions
 
     /// <summary>

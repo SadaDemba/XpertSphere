@@ -108,7 +108,76 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Get current user information
+    /// Generate Entra ID login URL based on user type
+    /// </summary>
+    /// <param name="email">User email to determine organization membership</param>
+    /// <param name="returnUrl">URL to redirect after authentication</param>
+    /// <returns>Entra ID login URL or local login instruction</returns>
+    [HttpGet("login-url")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthUrlResponseDto), 200)]
+    public ActionResult<AuthUrlResponseDto> GetLoginUrl([FromQuery] string? email, [FromQuery] string? returnUrl = "/dashboard")
+    {
+        var result = _authService.GetLoginUrl(email, returnUrl);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Generate Entra ID signup URL for candidates
+    /// </summary>
+    /// <param name="returnUrl">URL to redirect after registration</param>
+    /// <returns>Entra ID B2C signup URL or local registration instruction</returns>
+    [HttpGet("signup-url")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthUrlResponseDto), 200)]
+    public ActionResult<AuthUrlResponseDto> GetSignupUrl([FromQuery] string? returnUrl = "/profile")
+    {
+        var result = _authService.GetSignupUrl(returnUrl);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Link Entra ID account to existing user
+    /// </summary>
+    /// <param name="linkAccountDto">Account linking data</param>
+    /// <returns>Link result</returns>
+    [HttpPost("link-account")]
+    [Authorize]
+    [ProducesResponseType(typeof(AuthResponseDto), 200)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<AuthResponseDto>> LinkAccount([FromBody] LinkAccountDto linkAccountDto)
+    {
+        var userId = this.GetCurrentUserId();
+        if (!userId.HasValue)
+        {
+            return Unauthorized(new AuthResponseDto
+            {
+                Success = false,
+                Message = "Invalid user context",
+                Errors = ["User not authenticated"]
+            });
+        }
+
+        var result = await _authService.LinkEntraIdAccount(userId.Value.ToString(), linkAccountDto.EntraIdToken);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Determine user type for appropriate authentication flow
+    /// </summary>
+    /// <param name="email">User email address</param>
+    /// <returns>User type and recommended authentication method</returns>
+    [HttpGet("user-type")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(UserTypeResponseDto), 200)]
+    public async Task<ActionResult<UserTypeResponseDto>> GetUserType([FromQuery] string email)
+    {
+        var result = await _authService.GetUserTypeAsync(email);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Get current user information with Entra ID claims support
     /// </summary>
     [HttpGet("me")]
     [Authorize]
@@ -123,7 +192,6 @@ public class AuthController : ControllerBase
         var result = await _authService.GetCurrentUserAsync(userId.Value);
         return this.ToActionResult(result);
     }
-
 
     /// <summary>
     /// Health check endpoint

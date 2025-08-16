@@ -36,8 +36,8 @@ public static class DatabaseExtensions
                 options.EnableDetailedErrors();
             }
 
-            // Production optimizations
-            else if(environment.IsProduction())
+            // Production or Staging optimizations
+            else if(!environment.IsDevelopment())
             {
                 options.EnableServiceProviderCaching();
                 options.EnableSensitiveDataLogging(false);
@@ -74,10 +74,11 @@ public static class DatabaseExtensions
 
     private static string GetConnectionString(IConfiguration configuration,  IWebHostEnvironment environment)
     {
-        var connectionString = environment.IsDevelopment() ?
-            Environment.GetEnvironmentVariable("DEFAULTCONNECTIONSTRING")
-            :
-            Environment.GetEnvironmentVariable("AZURESQLCONNECTIONSTRING");
+        var connectionString = environment.IsDevelopment()
+            ? Environment.GetEnvironmentVariable("DEFAULTCONNECTIONSTRING")
+            : Environment.GetEnvironmentVariable("DEFAULTCONNECTIONSTRING");
+        //TODO: reset after the test prod
+            //Environment.GetEnvironmentVariable("AZURESQLCONNECTIONSTRING");
         
         if (string.IsNullOrEmpty(connectionString)) throw new InvalidOperationException("No connection string found");
 
@@ -180,8 +181,8 @@ public static class DatabaseExtensions
     {
         var adminConfig = configuration.GetSection("Seeding:PlatformSuperAdmin");
         
-        var adminEmail = configuration["ADMIN-EMAIL"] ?? throw new InvalidOperationException("No admin email found");
-        var adminPassword = configuration["ADMIN-PASSWORD"] ?? throw new InvalidOperationException("No admin password found");
+        var adminEmail = configuration["Admin:Email"] ?? throw new InvalidOperationException("No admin email found");
+        var adminPassword = configuration["Admin:Password"] ?? throw new InvalidOperationException("No admin password found");
         var adminFirstName = adminConfig["FirstName"] ?? throw new InvalidOperationException("No First Name found");
         var adminLastName = adminConfig["LastName"] ?? throw new InvalidOperationException("No Last Name found");
 

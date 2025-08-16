@@ -2,13 +2,13 @@ name: Backend Communication Service CI/CD
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
     paths:
       - "src/backend/XpertSphere.CommunicationService/**"
       - "XpertSphere.sln"
       - "docker/backend/communication-service/**"
   pull_request:
-    branches: [main, develop]
+    branches: [ main, develop ]
     paths:
       - "src/backend/XpertSphere.CommunicationService/**"
       - "XpertSphere.sln"
@@ -92,7 +92,7 @@ jobs:
           else
             echo "🗑️ Tags to delete:"
             echo "$TAGS_TO_DELETE"
-            
+          
             for TAG in $TAGS_TO_DELETE; do
               if [ ! -z "$TAG" ]; then
                 echo "Deleting tag: $TAG"
@@ -103,7 +103,7 @@ jobs:
                   --yes || echo "⚠️ Failed to delete tag: $TAG"
               fi
             done
-            
+          
             echo "✅ Cleanup completed!"
           fi
 

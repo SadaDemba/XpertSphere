@@ -2,17 +2,20 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using XpertSphere.MonolithApi.Config;
 using XpertSphere.MonolithApi.DTOs.Auth;
 using XpertSphere.MonolithApi.DTOs.User;
 using XpertSphere.MonolithApi.Extensions;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Utils.Results;
+using System.Web;
 
 namespace XpertSphere.MonolithApi.Services; 
 
@@ -21,6 +24,8 @@ public class AuthenticationService : IAuthenticationService
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly JwtSettings _jwtSettings;
+    private readonly EntraIdSettings _entraIdSettings;
+    private readonly IMapper _mapper;
     private readonly ILogger<AuthenticationService> _logger;
     private readonly IValidator<RegisterDto> _registerValidator;
     private readonly IValidator<LoginDto> _loginValidator;
@@ -28,22 +33,28 @@ public class AuthenticationService : IAuthenticationService
     private readonly IValidator<ResetPasswordDto> _resetPasswordValidator;
     private readonly IValidator<ConfirmEmailDto> _confirmEmailValidator;
     private readonly IValidator<ForgotPasswordDto> _forgotPasswordValidator;
+    private readonly IWebHostEnvironment _environment;
 
     public AuthenticationService(
         UserManager<User> userManager,
         SignInManager<User> signInManager,
         IOptions<JwtSettings> jwtSettings,
+        IOptions<EntraIdSettings> entraIdSettings,
+        IMapper mapper,
         ILogger<AuthenticationService> logger,
         IValidator<RegisterDto> registerValidator,
         IValidator<LoginDto> loginValidator,
         IValidator<RefreshTokenDto> refreshTokenValidator,
         IValidator<ResetPasswordDto> resetPasswordValidator,
         IValidator<ConfirmEmailDto> confirmEmailValidator,
-        IValidator<ForgotPasswordDto> forgotPasswordValidator)
+        IValidator<ForgotPasswordDto> forgotPasswordValidator,
+        IWebHostEnvironment environment)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtSettings = jwtSettings.Value;
+        _entraIdSettings = entraIdSettings.Value;
+        _mapper = mapper;
         _logger = logger;
         _registerValidator = registerValidator;
         _loginValidator = loginValidator;
@@ -51,6 +62,7 @@ public class AuthenticationService : IAuthenticationService
         _resetPasswordValidator = resetPasswordValidator;
         _confirmEmailValidator = confirmEmailValidator;
         _forgotPasswordValidator = forgotPasswordValidator;
+        _environment = environment;
     }
 
     public async Task<AuthResult> RegisterAsync(RegisterDto registerDto)
@@ -68,6 +80,19 @@ public class AuthenticationService : IAuthenticationService
             if (existingUser != null)
             {
                 return AuthResult.Conflict("User with this email already exists");
+            }
+
+            // In non-development environments, check if we should redirect to Entra ID
+            if (!_environment.IsDevelopment())
+
+            {
+                // For candidates (users without organization), offer Entra ID B2C registration
+                var entraIdSignUpUrl = GenerateEntraIdSignUpUrl(registerDto.ReturnUrl ?? "/profile");
+                if (!string.IsNullOrEmpty(entraIdSignUpUrl))
+                {
+                    _logger.LogInformation("Redirecting candidate {Email} to Entra ID B2C registration", registerDto.Email);
+                    return AuthResult.SuccessWithRedirect(entraIdSignUpUrl, "Complete your registration with your preferred identity provider");
+                }
             }
 
             var user = new User
@@ -116,6 +141,26 @@ public class AuthenticationService : IAuthenticationService
             {
                 var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
                 return AuthResult.ValidationError(errors);
+            }
+
+            // In non-development environments, check if we should redirect to Entra ID
+            if (!_environment.IsDevelopment())
+            {
+                // Check if this email belongs to an organizational user (B2B)
+                var potentialUser = await _userManager.FindByEmailAsync(loginDto.Email);
+                if (potentialUser != null && potentialUser.OrganizationId.HasValue)
+                {
+                    // This is an organizational user - they should use Entra ID B2B authentication
+                    var entraIdLoginUrl = GenerateEntraIdLoginUrl(loginDto.ReturnUrl ?? "/dashboard");
+                    if (!string.IsNullOrEmpty(entraIdLoginUrl))
+                    {
+                        _logger.LogInformation("Redirecting organizational user {Email} to Entra ID B2B login", loginDto.Email);
+                        return AuthResult.SuccessWithRedirect(entraIdLoginUrl, "Please use your organizational account to login");
+                    }
+                }
+                
+                // For users without organization (candidates), they can still use JWT auth in staging/prod
+                // or redirect to B2C if they prefer SSO
             }
 
             var user = await _userManager.Users
@@ -379,31 +424,21 @@ public class AuthenticationService : IAuthenticationService
     {
         try
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            var user = await _userManager.Users
+                .Include(u => u.Organization)
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .Include(u => u.Address)
+                .Include(u => u.Experiences)
+                .Include(u => u.Trainings)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+                
             if (user == null)
             {
                 return ServiceResult<UserDto>.NotFound("User not found");
             }
 
-            var roles = await _userManager.GetRolesAsync(user);
-            
-            var userDto = new UserDto
-            {
-                Id = user.Id,
-                Email = user.Email!,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                FullName = user.FullName,
-                OrganizationId = user.OrganizationId,
-                OrganizationName = user.Organization?.Name,
-                IsActive = user.IsActive,
-                PhoneNumber = user.PhoneNumber,
-                EmailConfirmed = user.EmailConfirmed,
-                LastLoginAt = user.LastLoginAt,
-                ProfileCompletionPercentage = user.ProfileCompletionPercentage,
-                Roles = roles.ToList()
-            };
-
+            var userDto = _mapper.Map<UserDto>(user);
             return ServiceResult<UserDto>.Success(userDto);
         }
         catch (Exception ex)
@@ -457,4 +492,513 @@ public class AuthenticationService : IAuthenticationService
         rng.GetBytes(randomNumber);
         return Convert.ToBase64String(randomNumber);
     }
+
+    #region Entra ID Authentication Methods
+
+    public string GenerateEntraIdLoginUrl(string returnUrl = "/")
+    {
+        if (_environment.IsDevelopment())
+        {
+            _logger.LogWarning("Entra ID authentication is not available in Development environment. Use JWT authentication instead.");
+            return string.Empty;
+        }
+
+        var state = GenerateStateParameter(returnUrl, "B2B");
+        var nonce = Guid.NewGuid().ToString();
+        
+        var queryParams = new Dictionary<string, string>
+        {
+            ["client_id"] = _entraIdSettings.B2B.ClientId,
+            ["response_type"] = "code",
+            ["redirect_uri"] = _entraIdSettings.B2B.RedirectUri,
+            ["response_mode"] = "query",
+            ["scope"] = string.Join(" ", _entraIdSettings.B2B.Scopes),
+            ["state"] = state,
+            ["nonce"] = nonce,
+            ["prompt"] = "select_account"
+        };
+
+        var queryString = string.Join("&", queryParams.Select(kvp => 
+            $"{HttpUtility.UrlEncode(kvp.Key)}={HttpUtility.UrlEncode(kvp.Value)}"));
+
+        var authorizeUrl = $"{_entraIdSettings.B2B.Authority}/oauth2/v2.0/authorize?{queryString}";
+        
+        _logger.LogInformation("Generated B2B login URL for client_id: {ClientId}", _entraIdSettings.B2B.ClientId);
+        return authorizeUrl;
+    }
+
+    public string GenerateEntraIdSignUpUrl(string returnUrl = "/profile")
+    {
+        if (_environment.IsDevelopment())
+        {
+            _logger.LogWarning("Entra ID authentication is not available in Development environment. Use JWT authentication instead.");
+            return string.Empty;
+        }
+
+        var state = GenerateStateParameter(returnUrl, "B2C");
+        var nonce = Guid.NewGuid().ToString();
+        
+        var queryParams = new Dictionary<string, string>
+        {
+            ["client_id"] = _entraIdSettings.B2C.ClientId,
+            ["response_type"] = "code",
+            ["redirect_uri"] = _entraIdSettings.B2C.RedirectUri,
+            ["response_mode"] = "query",
+            ["scope"] = string.Join(" ", _entraIdSettings.B2C.Scopes),
+            ["state"] = state,
+            ["nonce"] = nonce,
+            ["p"] = _entraIdSettings.B2C.SignUpSignInPolicyId
+        };
+
+        var queryString = string.Join("&", queryParams.Select(kvp => 
+            $"{HttpUtility.UrlEncode(kvp.Key)}={HttpUtility.UrlEncode(kvp.Value)}"));
+
+        var authorizeUrl = $"{_entraIdSettings.B2C.Authority}/oauth2/v2.0/authorize?{queryString}";
+        
+        _logger.LogInformation("Generated B2C signup URL for client_id: {ClientId}", _entraIdSettings.B2C.ClientId);
+        return authorizeUrl;
+    }
+
+    public async Task<AuthResult> HandleEntraIdCallback(string code, string state, string? error = null)
+    {
+        try
+        {
+            if (_environment.IsDevelopment())
+            {
+                return AuthResult.Failure("Entra ID authentication is not available in Development environment");
+            }
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                _logger.LogWarning("Entra ID callback returned error: {Error}", error);
+                return AuthResult.Failure($"Authentication failed: {error}");
+            }
+
+            if (string.IsNullOrEmpty(code))
+            {
+                return AuthResult.Failure("Authorization code is required");
+            }
+
+            // Parse and validate state parameter
+            var returnUrl = ParseStateParameter(state);
+
+            // Exchange authorization code for tokens
+            var tokenResult = await ExchangeAuthCodeForTokens(code, state);
+            if (!tokenResult.IsSuccess)
+            {
+                return tokenResult;
+            }
+
+            var tokenResponse = tokenResult.Data as dynamic;
+            var accessToken = tokenResponse?.access_token?.ToString();
+            var idToken = tokenResponse?.id_token?.ToString();
+
+            if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(idToken))
+            {
+                return AuthResult.Failure("Failed to obtain tokens from Entra ID");
+            }
+
+            // Extract user information from ID token
+            var userInfo = GetUserFromEntraIdToken(idToken);
+            if (userInfo == null)
+            {
+                return AuthResult.Failure("Failed to extract user information from token");
+            }
+
+            // Find or create user in database (this will be handled by ClaimsEnrichmentMiddleware)
+            string userEmail = userInfo.Email;
+            var existingUser = await _userManager.FindByEmailAsync(userEmail);
+
+            if (existingUser != null)
+            {
+                // Update last login
+                existingUser.UpdateLastLogin();
+                await _userManager.UpdateAsync(existingUser);
+
+                // Generate JWT tokens for API usage
+                var jwtAccessToken = GenerateAccessToken(existingUser);
+                var refreshToken = GenerateRefreshToken();
+
+                existingUser.SetRefreshToken(refreshToken, TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays));
+                await _userManager.UpdateAsync(existingUser);
+
+                _logger.LogInformation("Entra ID user {Email} authenticated successfully", userEmail);
+
+                return AuthResult.SuccessWithTokens(
+                    existingUser,
+                    jwtAccessToken,
+                    refreshToken,
+                    DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
+                    "Entra ID authentication successful",
+                    returnUrl
+                );
+            }
+
+            // New user will be created by ClaimsEnrichmentMiddleware
+            _logger.LogInformation("New Entra ID user {Email} will be created via middleware", userEmail);
+            
+            return AuthResult.Success("Authentication successful. User profile will be created automatically.", returnUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred during Entra ID callback processing");
+            return AuthResult.Failure("An error occurred during authentication");
+        }
+    }
+
+    public async Task<AuthResult> LinkEntraIdAccount(string userId, string entraIdToken)
+    {
+        try
+        {
+            if (_environment.IsDevelopment())
+            {
+                return AuthResult.Failure("Entra ID linking is not available in Development environment");
+            }
+
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return AuthResult.Failure("Invalid user ID");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return AuthResult.Failure("User not found");
+            }
+
+            // Extract user info from Entra ID token
+            var entraUserInfo = GetUserFromEntraIdToken(entraIdToken);
+            if (entraUserInfo == null)
+            {
+                return AuthResult.Failure("Invalid Entra ID token");
+            }
+
+            // Check if email matches
+            if (!string.Equals(user.Email, entraUserInfo.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                return AuthResult.Failure("Email address mismatch. Cannot link accounts with different email addresses.");
+            }
+
+            // Check if this Entra ID is already linked to another user
+            var existingUserWithEntraId = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.ExternalId == entraUserInfo.ExternalId && u.Id != userGuid);
+
+            if (existingUserWithEntraId != null)
+            {
+                return AuthResult.Failure("This Entra ID account is already linked to another user");
+            }
+
+            // Link accounts
+            user.ExternalId = entraUserInfo.ExternalId;
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Successfully linked Entra ID account {EntraId} to user {UserId}", 
+                    entraUserInfo.ExternalId, userId);
+                return AuthResult.Success("Account successfully linked to Entra ID");
+            }
+
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            return AuthResult.Failure($"Failed to link account: {errors}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while linking Entra ID account for user {UserId}", userId);
+            return AuthResult.Failure("An error occurred while linking accounts");
+        }
+    }
+
+    public EntraIdUserInfo? GetUserFromEntraIdToken(string idToken)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(idToken))
+            {
+                return null;
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.ReadJwtToken(idToken);
+
+            var userInfo = new EntraIdUserInfo
+            {
+                ExternalId = token.Claims.FirstOrDefault(c => c.Type is "sub" or "oid")?.Value ?? string.Empty,
+                Email = token.Claims.FirstOrDefault(c => c.Type is "email" or ClaimTypes.Email)?.Value ?? string.Empty,
+                FirstName = token.Claims.FirstOrDefault(c => c.Type is "given_name" or ClaimTypes.GivenName)?.Value ?? string.Empty,
+                LastName = token.Claims.FirstOrDefault(c => c.Type is "family_name" or ClaimTypes.Surname)?.Value ?? string.Empty,
+                DisplayName = token.Claims.FirstOrDefault(c => c.Type is "name" or ClaimTypes.Name)?.Value ?? string.Empty,
+                Groups = token.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList(),
+                Roles = token.Claims.Where(c => c.Type == "roles").Select(c => c.Value).ToList(),
+                AuthType = DetermineAuthType(token.Claims)
+            };
+
+            // If display name is empty, construct it from first and last name
+            if (string.IsNullOrEmpty(userInfo.DisplayName) && (!string.IsNullOrEmpty(userInfo.FirstName) || !string.IsNullOrEmpty(userInfo.LastName)))
+            {
+                userInfo.DisplayName = $"{userInfo.FirstName} {userInfo.LastName}".Trim();
+            }
+
+            return userInfo;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while parsing Entra ID token");
+            return null;
+        }
+    }
+
+    private static string DetermineAuthType(IEnumerable<Claim> claims)
+    {
+        var issuer = claims.FirstOrDefault(c => c.Type == "iss")?.Value ?? string.Empty;
+        
+        // B2C issuers typically contain the tenant name and policy
+        if (issuer.Contains(".b2clogin.com") || issuer.Contains("tfp"))
+        {
+            return "B2C";
+        }
+        
+        // B2B issuers typically use login.microsoftonline.com
+        if (issuer.Contains("login.microsoftonline.com"))
+        {
+            return "B2B";
+        }
+        
+        return "Unknown";
+    }
+
+    private async Task<AuthResult> ExchangeAuthCodeForTokens(string code, string state)
+    {
+        try
+        {
+            var authType = DetermineAuthTypeFromState(state);
+            var tokenEndpoint = authType == "B2C" 
+                ? $"{_entraIdSettings.B2C.Authority}/oauth2/v2.0/token?p={_entraIdSettings.B2C.SignUpSignInPolicyId}"
+                : $"{_entraIdSettings.B2B.Authority}/oauth2/v2.0/token";
+
+            var clientId = authType == "B2C" ? _entraIdSettings.B2C.ClientId : _entraIdSettings.B2B.ClientId;
+            var clientSecret = authType == "B2C" ? _entraIdSettings.B2C.ClientSecret : _entraIdSettings.B2B.ClientSecret;
+            var redirectUri = authType == "B2C" ? _entraIdSettings.B2C.RedirectUri : _entraIdSettings.B2B.RedirectUri;
+            var scopes = authType == "B2C" ? _entraIdSettings.B2C.Scopes : _entraIdSettings.B2B.Scopes;
+
+            using var httpClient = new HttpClient();
+            
+            var tokenRequestParams = new Dictionary<string, string>
+            {
+                ["grant_type"] = "authorization_code",
+                ["client_id"] = clientId,
+                ["client_secret"] = clientSecret,
+                ["code"] = code,
+                ["redirect_uri"] = redirectUri,
+                ["scope"] = string.Join(" ", scopes)
+            };
+
+            var tokenRequest = new HttpRequestMessage(HttpMethod.Post, tokenEndpoint)
+            {
+                Content = new FormUrlEncodedContent(tokenRequestParams)
+            };
+
+            var response = await httpClient.SendAsync(tokenRequest);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Token exchange failed: {StatusCode} - {Content}", response.StatusCode, responseContent);
+                return AuthResult.Failure("Failed to exchange authorization code for tokens");
+            }
+
+            var tokenResponse = System.Text.Json.JsonSerializer.Deserialize<object>(responseContent);
+            return AuthResult.SuccessWithData(tokenResponse!, "Token exchange successful");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during token exchange");
+            return AuthResult.Failure("Token exchange failed");
+        }
+    }
+
+    private static string DetermineAuthTypeFromState(string state)
+    {
+        try
+        {
+            var stateJson = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
+            var stateData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(stateJson);
+            
+            if (stateData?.TryGetValue("authType", out var authTypeValue) == true)
+            {
+                return authTypeValue?.ToString() ?? "B2B";
+            }
+        }
+        catch
+        {
+            // If we can't parse state, assume B2B 
+        }
+        
+        return "B2B";
+    }
+
+    private static string ParseStateParameter(string state)
+    {
+        try
+        {
+            var stateJson = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
+            var stateData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(stateJson);
+            
+            if (stateData?.TryGetValue("returnUrl", out var returnUrlValue) == true)
+            {
+                return returnUrlValue?.ToString() ?? "/";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail - just return default
+            Console.WriteLine($"Failed to parse state parameter: {ex.Message}");
+        }
+        
+        return "/";
+    }
+
+    private static string GenerateStateParameter(string returnUrl, string authType = "B2B")
+    {
+        var stateData = new
+        {
+            returnUrl,
+            authType,
+            timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            nonce = Guid.NewGuid().ToString("N")[..8]
+        };
+        
+        var json = System.Text.Json.JsonSerializer.Serialize(stateData);
+        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(json));
+    }
+
+    #endregion
+
+    #region URL Generation Methods
+
+    public ServiceResult<AuthUrlResponseDto> GetLoginUrl(string? email, string? returnUrl)
+    {
+        try
+        {
+            var loginUrl = GenerateEntraIdLoginUrl(returnUrl ?? "/dashboard");
+            
+            if (string.IsNullOrEmpty(loginUrl))
+            {
+                var response = new AuthUrlResponseDto
+                {
+                    UseLocalAuth = true,
+                    LocalEndpoint = "/api/auth/login",
+                    Message = "Use local authentication"
+                };
+                return ServiceResult<AuthUrlResponseDto>.Success(response);
+            }
+
+            var entraResponse = new AuthUrlResponseDto
+            {
+                UseLocalAuth = false,
+                EntraIdUrl = loginUrl,
+                AuthType = "B2B",
+                Message = "Redirect to Entra ID for authentication"
+            };
+            
+            return ServiceResult<AuthUrlResponseDto>.Success(entraResponse);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating login URL for email {Email}", email);
+            return ServiceResult<AuthUrlResponseDto>.InternalError("Failed to generate login URL");
+        }
+    }
+
+    public ServiceResult<AuthUrlResponseDto> GetSignupUrl(string? returnUrl)
+    {
+        try
+        {
+            var signupUrl = GenerateEntraIdSignUpUrl(returnUrl ?? "/profile");
+            
+            if (string.IsNullOrEmpty(signupUrl))
+            {
+                var response = new AuthUrlResponseDto
+                {
+                    UseLocalAuth = true,
+                    LocalEndpoint = "/api/auth/register",
+                    Message = "Use local registration"
+                };
+                return ServiceResult<AuthUrlResponseDto>.Success(response);
+            }
+
+            var entraResponse = new AuthUrlResponseDto
+            {
+                UseLocalAuth = false,
+                EntraIdUrl = signupUrl,
+                AuthType = "B2C",
+                Message = "Redirect to Entra ID for registration"
+            };
+            
+            return ServiceResult<AuthUrlResponseDto>.Success(entraResponse);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating signup URL");
+            return ServiceResult<AuthUrlResponseDto>.InternalError("Failed to generate signup URL");
+        }
+    }
+
+    public async Task<ServiceResult<UserTypeResponseDto>> GetUserTypeAsync(string email)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return ServiceResult<UserTypeResponseDto>.ValidationError(["Email address is required"]);
+            }
+
+            // Check if user exists in database
+            var existingUser = await _userManager.FindByEmailAsync(email);
+            if (existingUser != null)
+            {
+                var userType = existingUser.OrganizationId.HasValue ? "organizational" : "candidate";
+                var authType = existingUser.OrganizationId.HasValue ? "B2B" : "B2C";
+                var endpoint = existingUser.OrganizationId.HasValue ? "/api/auth/login-url" : "/api/auth/signup-url";
+                
+                var response = new UserTypeResponseDto
+                {
+                    Email = email,
+                    UserType = userType,
+                    RecommendedAuth = authType,
+                    AuthEndpoint = endpoint,
+                    Message = userType == "organizational" 
+                        ? "Use organizational account for authentication" 
+                        : "Use candidate authentication"
+                };
+                
+                return ServiceResult<UserTypeResponseDto>.Success(response);
+            }
+
+            // For new users, determine type based on email domain
+            var domain = email.Split('@').LastOrDefault();
+            var isOrganizationalDomain = !string.IsNullOrEmpty(domain) && 
+                                       !new[] { "gmail.com", "yahoo.com", "hotmail.com", "outlook.com" }.Contains(domain.ToLower());
+
+            var newUserResponse = new UserTypeResponseDto
+            {
+                Email = email,
+                UserType = isOrganizationalDomain ? "organizational" : "candidate",
+                RecommendedAuth = isOrganizationalDomain ? "B2B" : "B2C",
+                AuthEndpoint = isOrganizationalDomain ? "/api/auth/login-url" : "/api/auth/signup-url",
+                Message = isOrganizationalDomain 
+                    ? "Use organizational account for authentication" 
+                    : "Use candidate registration or authentication"
+            };
+            
+            return ServiceResult<UserTypeResponseDto>.Success(newUserResponse);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error determining user type for email {Email}", email);
+            return ServiceResult<UserTypeResponseDto>.InternalError("Failed to determine user type");
+        }
+    }
+
+    #endregion
 }

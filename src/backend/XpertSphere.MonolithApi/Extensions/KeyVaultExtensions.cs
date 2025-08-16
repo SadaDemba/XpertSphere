@@ -1,41 +1,32 @@
 using Azure.Identity;
+using Microsoft.Kiota.Abstractions.Extensions;
 
 namespace XpertSphere.MonolithApi.Extensions;
 
 public static class KeyVaultExtensions
 {
-    private static Dictionary<string, string> GetSecretMappings(string environment)
+    private static List<string> GetSecretMappings(string environment)
     {
-        var mappings = new Dictionary<string, string>
+        var mappings = new List<string>
         {
-            // JWT Secrets
-            ["JWT-KEY"] = "Jwt:Key",
-            
-            // Database Connection Strings
-            ["AZURESQLCONNECTIONSTRING"] = "ConnectionStrings:AzureSqlConnectionString",
-            
-            // Admin Configuration
-            ["ADMIN-EMAIL"] = "Seeding:PlatformSuperAdmin:Email",
-            ["ADMIN-PASSWORD"] = "Seeding:PlatformSuperAdmin:Password",
-            
-            // Application Insights
-            ["APPLICATIONINSIGHTS-CONNECTION-STRING"] = "ApplicationInsights:ConnectionString"
+            "Jwt:Key",
+            "Admin:Email",
+            "Admin:Password",
+            "ConnectionStrings:AzureSQL",
+            "ApplicationInsights:ConnectionString"
         };
-
         // Add DEFAULTCONNECTIONSTRING only for Development (Docker DB)
         if (environment == "Development")
         {
-            mappings["DEFAULTCONNECTIONSTRING"] = "ConnectionStrings:DefaultConnection";
+            mappings.Add("ConnectionStrings:DefaultConnection");
         }
-
-        // Add Entra ID secrets with environment prefix for Staging/Production
-        if (environment != "Development")
+        else
         {
-            var envPrefix = environment.ToUpper() == "Production" ? "PROD" : "STAGING";
-            mappings[$"{envPrefix}-ENTRAID-B2B-CLIENTSECRET"] = "EntraId:B2B:ClientSecret";
-            mappings[$"{envPrefix}-ENTRAID-B2C-CLIENTSECRET"] = "EntraId:B2C:ClientSecret";
+            // Add Entra ID secrets with environment prefix for Staging/Production
+            var envPrefix = environment.Equals("Production", StringComparison.CurrentCultureIgnoreCase) ? "PROD" : "STAGING";
+            mappings.Add($"EntraId:B2B:ClientSecret:{envPrefix}");
+            mappings.Add($"EntraId:B2C:ClientSecret:{envPrefix}");
         }
-
         return mappings;
     }
 
@@ -89,24 +80,25 @@ public static class KeyVaultExtensions
             ManagedIdentityClientId = clientId
         });
     }
-
+    
+    
     private static void ValidateSecretsLoading(IConfiguration configuration, string environment)
     {
         var missingSecrets = new List<string>();
+       
         var secretMappings = GetSecretMappings(environment);
         
         // All secrets are checked (Development uses .env, Staging/Prod uses Key Vault)
-        var secretsToCheck = secretMappings;
-
-        foreach (var (secretName, configPath) in secretsToCheck)
-        {
+        Console.WriteLine("DEBUG - Checking secrets from Key Vault:");
+        secretMappings.ToList().ForEach(configPath => {
             var value = configuration[configPath];
-            if (string.IsNullOrEmpty(value) || value.Contains("***MOVED_TO_ENV***"))
+            Console.WriteLine($"{configPath}): {(string.IsNullOrEmpty(value) ? "MISSING" : "FOUND")}");
+            if (string.IsNullOrEmpty(value))
             {
-                missingSecrets.Add($"{secretName} -> {configPath}");
+                missingSecrets.Add(configPath);
             }
-        }
-
+        });
+        
         if (missingSecrets.Any())
         {
             Console.WriteLine($"WARNING - Missing or placeholder secrets in {environment}:");

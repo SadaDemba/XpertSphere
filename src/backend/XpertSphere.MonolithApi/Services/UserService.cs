@@ -37,11 +37,6 @@ public class UserService : IUserService
         _uploadCvValidator = uploadCvValidator;
         _logger = logger;
     }
-
-    public async Task<bool> Exists(Guid id)
-    {
-        return await _context.Users.AnyAsync(u => u.Id == id);
-    }
     
     public async Task<ServiceResult<UserDto>> GetByIdAsync(Guid id)
     {
@@ -355,92 +350,6 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ServiceResult<UserStatsDto>> GetStatsAsync(Guid id)
-    {
-        try
-        {
-            var user = await _context.Users
-                .Include(u => u.Organization)
-                .FirstOrDefaultAsync(u => u.Id == id);
-
-            if (user == null)
-            {
-                return ServiceResult<UserStatsDto>.NotFound($"User with ID {id} not found");
-            }
-
-            var stats = new UserStatsDto
-            {
-                UserId = user.Id,
-                FullName = $"{user.FirstName} {user.LastName}",
-                Email = user.Email!,
-                ProfileCompletionPercentage = user.ProfileCompletionPercentage,
-                ProfileLastUpdatedAt = user.UpdatedAt,
-                CreatedAt = user.CreatedAt,
-                LastLoginAt = user.LastLoginAt,
-                
-                // Basic activity stats (would need additional tables for full implementation)
-                TotalLogins = 0, // TODO: Implement login tracking
-                LoginThisMonth = 0,
-                AverageSessionDuration = null,
-                LastPasswordChange = null,
-                
-                // Security stats
-                FailedLoginAttempts = 0, // TODO: Implement security tracking
-                LastFailedLogin = null,
-                IsAccountLocked = !user.IsActive,
-                AccountLockedUntil = null,
-                
-                // GDPR compliance
-                ConsentGivenAt = user.CreatedAt, // Assume consent given at registration
-                ConsentWithdrawnAt = null,
-                DataRetentionUntil = null,
-                IsAnonymized = false
-            };
-
-            // Add role-specific stats based on the user type
-            if (user.IsCandidate)
-            {
-                stats.CandidateStats = new CandidateStatsDto
-                {
-                    TotalApplications = 0, // TODO: Count from Applications table
-                    ApplicationsThisMonth = 0,
-                    ApplicationsInProgress = 0,
-                    ApplicationsAccepted = 0,
-                    ApplicationsRejected = 0,
-                    InterviewsScheduled = 0,
-                    InterviewsCompleted = 0,
-                    LastApplicationDate = null,
-                    AverageResponseTime = null,
-                    SuccessRate = null
-                };
-            }
-            else if (user.IsXpertSphereUser == false)
-            {
-                stats.RecruiterStats = new RecruiterStatsDto
-                {
-                    JobPostingsCreated = 0, // TODO: Count from JobPostings table
-                    JobPostingsActive = 0,
-                    CandidatesReviewed = 0,
-                    CandidatesInterviewed = 0,
-                    CandidatesHired = 0,
-                    InterviewsScheduled = 0,
-                    InterviewsCompleted = 0,
-                    LastJobPosting = null,
-                    AverageTimeToHire = null,
-                    HireRate = null
-                };
-            }
-
-            _logger.LogInformation("Retrieved stats for user {UserId}", id);
-            return ServiceResult<UserStatsDto>.Success(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving stats for user {UserId}", id);
-            return ServiceResult<UserStatsDto>.InternalError("An error occurred while retrieving user stats");
-        }
-    }
-
     public async Task<ServiceResult<List<UserSearchResultDto>>> GetByOrganizationAsync(Guid organizationId)
     {
         try
@@ -467,55 +376,6 @@ public class UserService : IUserService
         {
             _logger.LogError(ex, "Error retrieving users for organization {OrganizationId}", organizationId);
             return ServiceResult<List<UserSearchResultDto>>.InternalError("An error occurred while retrieving users for the organization");
-        }
-    }
-
-    public async Task<ServiceResult<UserDashboardStatsDto>> GetDashboardStatsAsync(Guid id)
-    {
-        try
-        {
-            var user = await _context.Users
-                .Include(u => u.Organization)
-                .FirstOrDefaultAsync(u => u.Id == id);
-
-            if (user == null)
-            {
-                return ServiceResult<UserDashboardStatsDto>.NotFound($"User with ID {id} not found");
-            }
-
-            var dashboardStats = new UserDashboardStatsDto
-            {
-                UserId = user.Id,
-                FullName = $"{user.FirstName} {user.LastName}",
-                ProfileCompletionPercentage = user.ProfileCompletionPercentage,
-                LastLogin = user.LastLoginAt,
-                UnreadNotifications = 0, // TODO: Count from Notifications table
-                PendingTasks = 0, // TODO: Count from Tasks table
-                RecentActivities = [], // TODO: Implement from ActivityLog table
-                QuickStats = new Dictionary<string, object>()
-            };
-            
-            // Add user-type-specific quick stats
-            if (user.IsCandidate)
-            {
-                dashboardStats.QuickStats.Add("Applications", 0); // TODO: Count applications
-                dashboardStats.QuickStats.Add("Interviews", 0); // TODO: Count interviews
-                dashboardStats.QuickStats.Add("Profile Views", 0); // TODO: Count profile views
-            }
-            else if (! user.IsXpertSphereUser)
-            {
-                dashboardStats.QuickStats.Add("Active Jobs", 0); // TODO: Count active job postings
-                dashboardStats.QuickStats.Add("Candidates", 0); // TODO: Count candidates under review
-                dashboardStats.QuickStats.Add("Interviews Today", 0); // TODO: Count today's interviews
-            }
-            
-            _logger.LogInformation("Retrieved dashboard stats for user {UserId}", id);
-            return ServiceResult<UserDashboardStatsDto>.Success(dashboardStats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving dashboard stats for user {UserId}", id);
-            return ServiceResult<UserDashboardStatsDto>.InternalError("An error occurred while retrieving dashboard stats");
         }
     }
 

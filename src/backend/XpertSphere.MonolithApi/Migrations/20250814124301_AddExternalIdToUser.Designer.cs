@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using XpertSphere.MonolithApi.Data;
 
@@ -11,9 +12,11 @@ using XpertSphere.MonolithApi.Data;
 namespace XpertSphere.MonolithApi.Migrations
 {
     [DbContext(typeof(XpertSphereDbContext))]
-    partial class XpertSphereDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250814124301_AddExternalIdToUser")]
+    partial class AddExternalIdToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

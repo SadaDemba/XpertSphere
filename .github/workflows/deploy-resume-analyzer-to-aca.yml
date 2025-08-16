@@ -2,10 +2,10 @@ name: Deploy Resume Analyzer to Azure Container Apps
 
 on:
   workflow_run:
-    workflows: ["Backend Resume Analyzer CI"]
+    workflows: [ "Backend Resume Analyzer CI" ]
     types:
       - completed
-    branches: [main, develop]
+    branches: [ main, develop ]
   workflow_dispatch:
     inputs:
       environment:

@@ -14,4 +14,9 @@ public interface IAuthenticationService
     Task<AuthResult> ForgotPasswordAsync(ForgotPasswordDto  forgotPasswordDto);
     Task<AuthResult> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
     Task<ServiceResult<UserDto>> GetCurrentUserAsync(Guid userId);
+    Task<AuthResult> HandleEntraIdCallback(string code, string state, string? error = null);
+    Task<AuthResult> LinkEntraIdAccount(string userId, string entraIdToken);
+    ServiceResult<AuthUrlResponseDto> GetLoginUrl(string? email, string? returnUrl);
+    ServiceResult<AuthUrlResponseDto> GetSignupUrl(string? returnUrl);
+    Task<ServiceResult<UserTypeResponseDto>> GetUserTypeAsync(string email);
 }

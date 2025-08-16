@@ -2,10 +2,10 @@ name: Deploy Monolith API to Azure Container Apps
 
 on:
   workflow_run:
-    workflows: ["Backend Monolith API CI/CD"]
+    workflows: [ "Backend Monolith API CI/CD" ]
     types:
       - completed
-    branches: [main, develop]
+    branches: [ main, develop ]
   workflow_dispatch:
     inputs:
       environment:

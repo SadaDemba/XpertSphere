@@ -9,13 +9,44 @@ namespace XpertSphere.MonolithApi.Utils.Results;
 /// </summary>
 public class AuthResult : ServiceResult<AuthResponseDto>
 {
-    protected AuthResult() : base() { }
+    private AuthResult() : base() { }
+    
+    /// <summary>
+    /// Additional metadata for this authentication result
+    /// </summary>
+    public Dictionary<string, object> Metadata { get; private set; } = new();
 
-    public new static AuthResult Success(string message = "Operation successful")
+    public static AuthResult Success(string message = "Operation successful", string? returnUrl = null)
     {
+        var response = new AuthResponseDto
+        {
+            Success = true,
+            Message = message,
+            RedirectUrl = returnUrl
+        };
+
         return new AuthResult
         {
             IsSuccess = true,
+            Data = response,
+            Message = message,
+            StatusCode = 200
+        };
+    }
+
+    public static AuthResult SuccessWithRedirect(string redirectUrl, string message = "Redirecting...")
+    {
+        var response = new AuthResponseDto
+        {
+            Success = true,
+            Message = message,
+            RedirectUrl = redirectUrl
+        };
+
+        return new AuthResult
+        {
+            IsSuccess = true,
+            Data = response,
             Message = message,
             StatusCode = 200
         };
@@ -53,7 +84,7 @@ public class AuthResult : ServiceResult<AuthResponseDto>
         };
     }
 
-    public static AuthResult SuccessWithTokens(User user, string accessToken, string refreshToken, DateTime tokenExpiry, string message = "Login successful")
+    public static AuthResult SuccessWithTokens(User user, string accessToken, string refreshToken, DateTime tokenExpiry, string message = "Login successful", string? returnUrl = null)
     {
         var response = new AuthResponseDto
         {
@@ -62,6 +93,7 @@ public class AuthResult : ServiceResult<AuthResponseDto>
             AccessToken = accessToken,
             RefreshToken = refreshToken,
             TokenExpiry = tokenExpiry,
+            RedirectUrl = returnUrl,
             User = new UserDto
             {
                 Id = user.Id,
@@ -131,6 +163,17 @@ public class AuthResult : ServiceResult<AuthResponseDto>
         };
     }
 
+    public static AuthResult SuccessWithData(object data, string message = "Operation successful")
+    {
+        return new AuthResult
+        {
+            IsSuccess = true,
+            Data = data as AuthResponseDto,
+            Message = message,
+            StatusCode = 200
+        };
+    }
+
     /// <summary>
     /// Convert to DTO for backward compatibility
     /// </summary>
@@ -148,5 +191,42 @@ public class AuthResult : ServiceResult<AuthResponseDto>
             Errors = Errors
         };
     }
-
+    
+    /// <summary>
+    /// Add metadata to this authentication result
+    /// </summary>
+    public AuthResult WithMetadata(string key, object value)
+    {
+        Metadata[key] = value;
+        return this;
+    }
+    
+    /// <summary>
+    /// Set the status code for this authentication result
+    /// </summary>
+    public AuthResult WithStatusCode(int statusCode)
+    {
+        StatusCode = statusCode;
+        return this;
+    }
+    
+    /// <summary>
+    /// Get metadata value by key
+    /// </summary>
+    public T? GetMetadata<T>(string key)
+    {
+        if (Metadata.TryGetValue(key, out var value) && value is T typedValue)
+        {
+            return typedValue;
+        }
+        return default;
+    }
+    
+    /// <summary>
+    /// Check if metadata contains a specific key
+    /// </summary>
+    public bool HasMetadata(string key)
+    {
+        return Metadata.ContainsKey(key);
+    }
 }

@@ -24,7 +24,8 @@ public class UserMappingProfile : Profile
             .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.Organization != null ? src.Organization.Name : null))
             .ForMember(dest => dest.Experiences, opt => opt.MapFrom(src => src.Experiences.ToList()))
             .ForMember(dest => dest.Trainings, opt => opt.MapFrom(src => src.Trainings.ToList()))
-            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Where(ur => ur.IsActive).Select(ur => ur.Role.Name).ToList()));
+            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Where(ur => ur.IsActive).Select(ur => ur.Role.Name).ToList()))
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
 
         // User -> UserProfileDto
         CreateMap<User, UserProfileDto>()

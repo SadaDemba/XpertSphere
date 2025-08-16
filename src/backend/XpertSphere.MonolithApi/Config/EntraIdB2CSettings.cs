@@ -4,6 +4,10 @@ namespace XpertSphere.MonolithApi.Config;
 
 public class EntraIdB2CSettings
 {
+    public string ClientId { get; set; } = string.Empty;
+    
+    public string ClientSecret { get; set; } = string.Empty;
+
     [Required]
     public string Authority { get; set; } = string.Empty;
 
@@ -21,6 +25,8 @@ public class EntraIdB2CSettings
     public List<string> Scopes { get; set; } = new();
 
     public List<string> RedirectUris { get; set; } = new();
+
+    public string RedirectUri => RedirectUris.FirstOrDefault() ?? string.Empty;
 
     public List<string> PostLogoutRedirectUris { get; set; } = new();
 

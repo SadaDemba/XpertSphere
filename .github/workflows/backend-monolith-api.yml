@@ -2,13 +2,13 @@ name: Backend Monolith API CI/CD
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
     paths:
       - "src/backend/XpertSphere.MonolithApi/**"
       - "XpertSphere.sln"
       - "docker/backend/monolith-api/**"
   pull_request:
-    branches: [main, develop]
+    branches: [ main, develop ]
     paths:
       - "src/backend/XpertSphere.MonolithApi/**"
       - "XpertSphere.sln"
@@ -94,7 +94,7 @@ jobs:
           else
             echo "🗑️ Tags to delete:"
             echo "$TAGS_TO_DELETE"
-            
+          
             # Supprimer chaque tag
             for TAG in $TAGS_TO_DELETE; do
               if [ ! -z "$TAG" ]; then
@@ -106,7 +106,7 @@ jobs:
                   --yes || echo "⚠️ Failed to delete tag: $TAG"
               fi
             done
-            
+          
             echo "✅ Cleanup completed!"
           fi
 
