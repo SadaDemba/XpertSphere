@@ -28,6 +28,8 @@ public class XpertSphereDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Role> Roles { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<JobOffer> JobOffers { get; set; }
+    public DbSet<Application> Applications { get; set; }
+    public DbSet<ApplicationStatusHistory> ApplicationStatusHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

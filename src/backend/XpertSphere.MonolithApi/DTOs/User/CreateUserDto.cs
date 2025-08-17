@@ -49,6 +49,30 @@ public class CreateUserDto
 
     public DateTime? Availability { get; set; }
 
+    [MaxLength(500)]
+    public string? CvPath { get; set; }
+
+    // Communication preferences
+    public bool EmailNotificationsEnabled { get; set; } = true;
+    public bool SmsNotificationsEnabled { get; set; } = false;
+    [MaxLength(20)]
+    public string? PreferredLanguage { get; set; } = "fr";
+    [MaxLength(50)]
+    public string? TimeZone { get; set; } = "UTC";
+
+    // Consent
+    public DateTime? ConsentGivenAt { get; set; }
+
+    // Authentication & Security
+    [MaxLength(255)]
+    public string? ExternalId { get; set; }
+    
+    [Required]
+    public string? Password { get; set; }
+    
+    public bool EmailConfirmed { get; set; } = false;
+    public bool IsActive { get; set; } = true;
+
     // Address
     public AddressDto? Address { get; set; }
 }
@@ -58,7 +82,7 @@ public class AddressDto
     [MaxLength(10)]
     public string? StreetNumber { get; set; }
 
-    [MaxLength(255)]
+    [MaxLength(200)]
     public string? StreetName { get; set; }
 
     [MaxLength(100)]
@@ -73,6 +97,6 @@ public class AddressDto
     [MaxLength(100)]
     public string? Country { get; set; } = "France";
 
-    [MaxLength(255)]
+    [MaxLength(100)]
     public string? AddressLine2 { get; set; }
 }

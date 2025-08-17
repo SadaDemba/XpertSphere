@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using XpertSphere.MonolithApi.DTOs.User;
 using XpertSphere.MonolithApi.Extensions;
@@ -25,6 +26,7 @@ public class UsersController : ControllerBase
     /// <param name="filter">Filter criteria for searching users</param>
     /// <returns>Paginated list of users</returns>
     [HttpGet]
+    [Authorize(Policy = "OrganizationIsolation")]
     [ProducesResponseType(typeof(PaginatedResult<UserSearchResultDto>), 200)]
     [ProducesResponseType(400)]
     public async Task<ActionResult<PaginatedResult<UserSearchResultDto>>> GetUsers([FromQuery] UserFilterDto filter)
@@ -39,6 +41,7 @@ public class UsersController : ControllerBase
     /// <param name="id">User ID</param>
     /// <returns>User details</returns>
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = "CandidateOwnDataAccess")]
     [ProducesResponseType(typeof(UserDto), 200)]
     [ProducesResponseType(404)]
     public async Task<ActionResult<UserDto>> GetUser(Guid id)
@@ -53,6 +56,7 @@ public class UsersController : ControllerBase
     /// <param name="id">User ID</param>
     /// <returns>Detailed user profile</returns>
     [HttpGet("{id:guid}/profile")]
+    [Authorize(Policy = "CandidateOwnDataAccess")]
     [ProducesResponseType(typeof(UserProfileDto), 200)]
     [ProducesResponseType(404)]
     public async Task<ActionResult<UserProfileDto>> GetUserProfile(Guid id)
@@ -67,6 +71,7 @@ public class UsersController : ControllerBase
     /// <param name="createUserDto">User creation data</param>
     /// <returns>Created user</returns>
     [HttpPost]
+    [Authorize(Policy = "CanCreateUsers")]
     [ProducesResponseType(typeof(UserDto), 201)]
     [ProducesResponseType(400)]
     [ProducesResponseType(409)]
@@ -83,6 +88,7 @@ public class UsersController : ControllerBase
     /// <param name="updateUserDto">User update data</param>
     /// <returns>Updated user</returns>
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = "CandidateOwnDataAccess")]
     [ProducesResponseType(typeof(UserDto), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -99,6 +105,7 @@ public class UsersController : ControllerBase
     /// <param name="id">User ID</param>
     /// <returns>Success or error result</returns>
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = "CanCreateUsers")]
     [ProducesResponseType(typeof(object), 200)]
     [ProducesResponseType(404)]
     public async Task<ActionResult> DeleteUser(Guid id)
@@ -113,6 +120,7 @@ public class UsersController : ControllerBase
     /// <param name="id">User ID</param>
     /// <returns>Success or error result</returns>
     [HttpDelete("{id:guid}/permanent")]
+    [Authorize(Policy = "RequirePlatformSuperAdminRole")]
     [ProducesResponseType(typeof(object), 200)]
     [ProducesResponseType(404)]
     public async Task<ActionResult> HardDeleteUser(Guid id)

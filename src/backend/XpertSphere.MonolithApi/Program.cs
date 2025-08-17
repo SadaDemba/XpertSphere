@@ -28,6 +28,7 @@ if (!builder.Environment.IsDevelopment())
 // Infrastructure Services
 builder.Services.AddDatabase(builder.Configuration, builder.Environment);
 builder.Services.AddSecurity(builder.Configuration, builder.Environment);
+builder.Services.AddBlobStorage(builder.Configuration);
 
 // AutoMapper Configuration
 builder.Services.AddAutoMapperConfiguration();
@@ -48,15 +49,7 @@ builder.Services.AddControllers()
 builder.Services.AddSwaggerDocumentation();
 
 // Application Services
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IOrganizationService, OrganizationService>();
-builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-
-// RBAC Services
-builder.Services.AddScoped<IRoleService, RoleService>();
-builder.Services.AddScoped<IUserRoleService, UserRoleService>();
-builder.Services.AddScoped<IPermissionService, PermissionService>();
-builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+builder.Services.AddApplicationServices();
 
 // Authentication Error Handling & Logging Services
 builder.Services.AddAuthenticationLogging();
@@ -68,7 +61,6 @@ builder.Services.AddHttpClient("EntraId", client => client.ConfigureForEntraId()
 
 // Additional Services
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 var app = builder.Build();
 
@@ -85,7 +77,13 @@ app.MapHealthChecks("/health");
 app.UseHttpsRedirection();
 app.UseCookiePolicy();
 app.UseAuthentication();
-app.UseMiddleware<ClaimsEnrichmentMiddleware>();
+
+// Claims enrichment only needed for EntraID in production
+if (!app.Environment.IsDevelopment())
+{
+    app.UseMiddleware<ClaimsEnrichmentMiddleware>();
+}
+
 app.UseAuthorization();
 
 // Application Pipeline

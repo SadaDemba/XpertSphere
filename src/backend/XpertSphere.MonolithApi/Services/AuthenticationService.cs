@@ -11,10 +11,13 @@ using Microsoft.IdentityModel.Tokens;
 using XpertSphere.MonolithApi.Config;
 using XpertSphere.MonolithApi.DTOs.Auth;
 using XpertSphere.MonolithApi.DTOs.User;
+using XpertSphere.MonolithApi.Data;
 using XpertSphere.MonolithApi.Extensions;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Models.Base;
 using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils;
 using System.Web;
 
 namespace XpertSphere.MonolithApi.Services; 
@@ -34,6 +37,9 @@ public class AuthenticationService : IAuthenticationService
     private readonly IValidator<ConfirmEmailDto> _confirmEmailValidator;
     private readonly IValidator<ForgotPasswordDto> _forgotPasswordValidator;
     private readonly IWebHostEnvironment _environment;
+    private readonly IUserService _userService;
+    private readonly IResumeService _resumeService;
+    private readonly XpertSphereDbContext _context;
 
     public AuthenticationService(
         UserManager<User> userManager,
@@ -48,7 +54,10 @@ public class AuthenticationService : IAuthenticationService
         IValidator<ResetPasswordDto> resetPasswordValidator,
         IValidator<ConfirmEmailDto> confirmEmailValidator,
         IValidator<ForgotPasswordDto> forgotPasswordValidator,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment,
+        IUserService userService,
+        IResumeService resumeService,
+        XpertSphereDbContext context)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -63,6 +72,9 @@ public class AuthenticationService : IAuthenticationService
         _confirmEmailValidator = confirmEmailValidator;
         _forgotPasswordValidator = forgotPasswordValidator;
         _environment = environment;
+        _userService = userService;
+        _resumeService = resumeService;
+        _context = context;
     }
 
     public async Task<AuthResult> RegisterAsync(RegisterDto registerDto)
@@ -130,6 +142,154 @@ public class AuthenticationService : IAuthenticationService
             _logger.LogError(ex, "Error occurred during user registration for {Email}", registerDto.Email);
             return AuthResult.Failure("An error occurred during registration");
         }
+    }
+
+    public async Task<AuthResult> RegisterCandidateAsync(RegisterCandidateDto registerDto, IFormFile? resumeFile = null)
+    {
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+            // Basic validation
+            if (!registerDto.AcceptTerms || !registerDto.AcceptPrivacyPolicy)
+            {
+                return AuthResult.ValidationError(["You must accept the terms and privacy policy"]);
+            }
+
+            var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
+            if (existingUser != null)
+            {
+                return AuthResult.Conflict("User with this email already exists");
+            }
+
+            // Create user using UserManager directly
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                UserName = registerDto.Email,
+                Email = registerDto.Email,
+                FirstName = registerDto.FirstName,
+                LastName = registerDto.LastName,
+                PhoneNumber = registerDto.PhoneNumber,
+                EmailConfirmed = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                OrganizationId = null, // Candidates don't belong to organizations
+                
+                // Address
+                Address = new Address
+                {
+                    StreetNumber = registerDto.StreetNumber,
+                    Street = registerDto.Street,
+                    City = registerDto.City,
+                    PostalCode = registerDto.PostalCode,
+                    Region = registerDto.Region,
+                    Country = registerDto.Country,
+                    AddressLine2 = registerDto.AddressLine2
+                },
+                
+                // Professional info
+                Skills = registerDto.Skills,
+                YearsOfExperience = registerDto.YearsOfExperience,
+                DesiredSalary = registerDto.DesiredSalary,
+                Availability = registerDto.Availability,
+                LinkedInProfile = registerDto.LinkedInProfile,
+                
+                // Communication preferences
+                EmailNotificationsEnabled = registerDto.EmailNotificationsEnabled,
+                SmsNotificationsEnabled = registerDto.SmsNotificationsEnabled,
+                PreferredLanguage = registerDto.PreferredLanguage,
+                TimeZone = registerDto.TimeZone,
+                
+                // Consent
+                ConsentGivenAt = registerDto.ConsentGivenAt ?? DateTime.UtcNow,
+                ExternalId = registerDto.ExternalId
+            };
+
+            // Create user with password
+            var createResult = await _userManager.CreateAsync(user, registerDto.Password);
+            if (!createResult.Succeeded)
+            {
+                var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                return AuthResult.Failure($"User creation failed: {errors}");
+            }
+
+            // Upload resume within transaction if provided
+            if (resumeFile != null)
+            {
+                var resumeUploadResult = await _resumeService.UploadResumeAsync(resumeFile, user.Id);
+                if (resumeUploadResult.IsSuccess)
+                {
+                    user.CvPath = resumeUploadResult.Data;
+                    await _userManager.UpdateAsync(user);
+                }
+            }
+
+            // Add trainings if provided
+            if (registerDto.Trainings?.Any() == true)
+            {
+                foreach (var training in registerDto.Trainings)
+                {
+                    training.Id = Guid.NewGuid();
+                    training.UserId = user.Id;
+                    training.CreatedAt = DateTime.UtcNow;
+                    training.UpdatedAt = DateTime.UtcNow;
+                    _context.Trainings.Add(training);
+                }
+            }
+
+            // Add experiences if provided
+            if (registerDto.Experiences?.Any() == true)
+            {
+                foreach (var experience in registerDto.Experiences)
+                {
+                    experience.Id = Guid.NewGuid();
+                    experience.UserId = user.Id;
+                    experience.CreatedAt = DateTime.UtcNow;
+                    experience.UpdatedAt = DateTime.UtcNow;
+                    _context.Experiences.Add(experience);
+                }
+            }
+
+            // Assign candidate role
+            var candidateRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == Roles.Candidate.Name);
+            if (candidateRole != null)
+            {
+                var userRole = new UserRole
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    RoleId = candidateRole.Id,
+                    AssignedAt = DateTime.UtcNow
+                };
+                _context.UserRoles.Add(userRole);
+            }
+
+            // Calculate profile completion
+            user.CalculateProfileCompletion();
+            await _userManager.UpdateAsync(user);
+
+            // Save all changes
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            _logger.LogInformation("Candidate {Email} registered successfully with complete profile", registerDto.Email);
+
+            // Generate email confirmation token
+            var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            return AuthResult.SuccessWithUser(user, "Registration successful. Please check your email to confirm your account.", emailConfirmationToken);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error occurred during candidate registration for {Email}", registerDto.Email);
+                return AuthResult.Failure("An error occurred during registration");
+            }
+        });
     }
 
     public async Task<AuthResult> LoginAsync(LoginDto loginDto)

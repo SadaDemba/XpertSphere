@@ -20,13 +20,24 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Register a new user account
+    /// Register a new user account (restricted to authorized users only)
     /// </summary>
     [HttpPost("register")]
-    [AllowAnonymous]
+    [Authorize(Policy = "CanCreateUsers")]
     public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterDto registerDto)
     {
         var result = await _authService.RegisterAsync(registerDto);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Register a new candidate with complete profile and optional resume
+    /// </summary>
+    [HttpPost("register/candidate")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponseDto>> RegisterCandidate([FromForm] RegisterCandidateDto registerDto, IFormFile? resume = null)
+    {
+        var result = await _authService.RegisterCandidateAsync(registerDto, resume);
         return this.ToActionResult(result);
     }
 

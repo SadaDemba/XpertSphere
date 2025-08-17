@@ -220,6 +220,20 @@ public class ServiceResult
             StatusCode = 200
         };
     }
+    
+    /// <summary>
+    /// Create a validation error result
+    /// </summary>
+    public static ServiceResult ValidationError(List<string> validationErrors)
+    {
+        return new ServiceResult
+        {
+            IsSuccess = false,
+            Message = "Validation failed",
+            Errors = validationErrors,
+            StatusCode = 422
+        };
+    }
 
     /// <summary>
     /// Create a failure result

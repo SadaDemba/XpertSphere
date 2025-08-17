@@ -45,7 +45,7 @@ public class UserRolesController : ControllerBase
     /// Assign a role to a user
     /// </summary>
     [HttpPost("assign")]
-    [Authorize(Policy = "RequireInternalUser")]
+    [Authorize(Policy = "CanCreateUsers")]
     public async Task<ActionResult<UserRoleDto>> AssignRoleToUser([FromBody] AssignRoleDto assignRoleDto)
     {
         var result = await _userRoleService.AssignRoleToUserAsync(assignRoleDto);
@@ -56,7 +56,7 @@ public class UserRolesController : ControllerBase
     /// Remove a role from a user
     /// </summary>
     [HttpDelete("{userRoleId:guid}")]
-    [Authorize(Policy = "RequireInternalUser")]
+    [Authorize(Policy = "CanCreateUsers")]
     public async Task<ActionResult> RemoveRoleFromUser(Guid userRoleId)
     {
         var result = await _userRoleService.RemoveRoleFromUserAsync(userRoleId);
