@@ -7,6 +7,7 @@ namespace XpertSphere.MonolithApi.Interfaces;
 public interface IAuthenticationService
 {
     Task<AuthResult> RegisterAsync(RegisterDto registerDto);
+    Task<AuthResult> RegisterCandidateAsync(RegisterCandidateDto registerDto, IFormFile? resumeFile = null);
     Task<AuthResult> LoginAsync(LoginDto loginDto);
     Task<AuthResult> RefreshTokenAsync(RefreshTokenDto refreshTokenDto);
     Task<AuthResult> LogoutAsync(string email);

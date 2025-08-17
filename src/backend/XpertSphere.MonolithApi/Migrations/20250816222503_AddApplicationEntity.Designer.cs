@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using XpertSphere.MonolithApi.Data;
 
@@ -11,9 +12,11 @@ using XpertSphere.MonolithApi.Data;
 namespace XpertSphere.MonolithApi.Migrations
 {
     [DbContext(typeof(XpertSphereDbContext))]
-    partial class XpertSphereDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250816222503_AddApplicationEntity")]
+    partial class AddApplicationEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -166,12 +169,6 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.Property<DateTime>("AppliedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("AssignedManagerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("AssignedTechnicalEvaluatorId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("CandidateId")
                         .HasColumnType("uniqueidentifier");
 
@@ -209,10 +206,6 @@ namespace XpertSphere.MonolithApi.Migrations
 
                     b.HasIndex("AppliedAt")
                         .HasDatabaseName("IX_Applications_AppliedAt");
-
-                    b.HasIndex("AssignedManagerId");
-
-                    b.HasIndex("AssignedTechnicalEvaluatorId");
 
                     b.HasIndex("CandidateId")
                         .HasDatabaseName("IX_Applications_CandidateId");
@@ -1144,16 +1137,6 @@ namespace XpertSphere.MonolithApi.Migrations
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.Application", b =>
                 {
-                    b.HasOne("XpertSphere.MonolithApi.Models.User", "AssignedManager")
-                        .WithMany()
-                        .HasForeignKey("AssignedManagerId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("XpertSphere.MonolithApi.Models.User", "AssignedTechnicalEvaluator")
-                        .WithMany()
-                        .HasForeignKey("AssignedTechnicalEvaluatorId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("XpertSphere.MonolithApi.Models.User", "Candidate")
                         .WithMany()
                         .HasForeignKey("CandidateId")
@@ -1175,10 +1158,6 @@ namespace XpertSphere.MonolithApi.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedBy")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("AssignedManager");
-
-                    b.Navigation("AssignedTechnicalEvaluator");
 
                     b.Navigation("Candidate");
 

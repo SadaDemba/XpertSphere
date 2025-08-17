@@ -80,6 +80,13 @@ public static class SecurityExtensions
     private static IServiceCollection AddMultiModeAuthentication(this IServiceCollection services,
         IConfiguration configuration, IWebHostEnvironment environment)
     {
+        // Force pure JWT authentication in development to avoid multi-scheme complexity
+        if (environment.IsDevelopment())
+        {
+            services.AddJwtAuthentication(configuration, environment);
+            return services;
+        }
+
         var entraIdSettings = configuration.GetSection("EntraId").Get<EntraIdSettings>();
         var hasEntraId = entraIdSettings != null && !string.IsNullOrEmpty(entraIdSettings.TenantId);
 
@@ -337,6 +344,7 @@ public static class SecurityExtensions
         var jwtIssuer = configuration.GetSection("Jwt:Issuer").Value;
         var jwtAudience = configuration.GetSection("Jwt:Audience").Value;
 
+
         options.SaveToken = true;
         options.RequireHttpsMetadata = !environment.IsDevelopment();
         options.TokenValidationParameters = new TokenValidationParameters
@@ -375,9 +383,10 @@ public static class SecurityExtensions
 
     private static string GetJwtKey(IConfiguration configuration)
     {
+        // Try multiple sources
+        var jwtKey = configuration["JWT:KEY"] ?? // From JWT__KEY env var
+                     configuration["Jwt:Key"];
         
-        var jwtKey = configuration["Jwt:Key"] ?? // Key Vault secret
-                     Environment.GetEnvironmentVariable("JWT_KEY"); // Env var dev
         
         return jwtKey ?? throw new InvalidOperationException("No JSON Web Token Key found");
     }
@@ -576,6 +585,91 @@ public static class SecurityExtensions
 
                     return false;
                 }));
+
+            // Critical authorization rules for organization isolation
+            options.AddPolicy("CanCreateUsers", policy =>
+                policy.RequireAssertion(context =>
+                {
+                    // Only SuperAdmin from XpertSphere can create users
+                    var organizationClaim = context.User.FindFirst("OrganizationName");
+                    if (organizationClaim?.Value == "XpertSphere" && 
+                        context.User.IsInRole(Roles.PlatformSuperAdmin.Name))
+                    {
+                        return true;
+                    }
+                    
+                    // Admin in client organization can create users only for their own organization
+                    if (organizationClaim?.Value != "XpertSphere" && 
+                        context.User.IsInRole(Roles.OrganizationAdmin.Name))
+                    {
+                        // Verify that the admin is creating for their own organization
+                        var userOrgIdClaim = context.User.FindFirst("OrganizationId");
+                        if (userOrgIdClaim != null && Guid.TryParse(userOrgIdClaim.Value, out var userOrgId))
+                        {
+                            var httpContext = context.Resource as DefaultHttpContext;
+                            if (httpContext?.Request.RouteValues.TryGetValue("organizationId", out var orgIdValue) == true)
+                            {
+                                if (Guid.TryParse(orgIdValue?.ToString(), out var requestedOrgId))
+                                {
+                                    return userOrgId == requestedOrgId;
+                                }
+                            }
+                        }
+                    }
+                    
+                    return false;
+                }));
+
+            options.AddPolicy("CanCreateAdminsForOtherOrganizations", policy =>
+                policy.RequireAssertion(context =>
+                {
+                    // XpertSphere roles can create Admins for other organizations
+                    var organizationClaim = context.User.FindFirst("OrganizationName");
+                    return organizationClaim?.Value == "XpertSphere" && 
+                           (context.User.IsInRole(Roles.PlatformSuperAdmin.Name) || 
+                            context.User.IsInRole(Roles.PlatformAdmin.Name));
+                }));
+
+            options.AddPolicy("OrganizationIsolation", policy =>
+                policy.RequireAssertion(context =>
+                {
+                    // XpertSphere users can access all organizations
+                    var organizationClaim = context.User.FindFirst("OrganizationName");
+                    if (organizationClaim?.Value == "XpertSphere")
+                    {
+                        return true;
+                    }
+                    
+                    // Others can only access their own organization data
+                    var userOrgIdClaim = context.User.FindFirst("OrganizationId");
+                    if (userOrgIdClaim != null && Guid.TryParse(userOrgIdClaim.Value, out var userOrgId))
+                    {
+                        var httpContext = context.Resource as DefaultHttpContext;
+                        if (httpContext?.Request.RouteValues.TryGetValue("organizationId", out var orgIdValue) == true)
+                        {
+                            if (Guid.TryParse(orgIdValue?.ToString(), out var requestedOrgId))
+                            {
+                                return userOrgId == requestedOrgId;
+                            }
+                        }
+                    }
+                    
+                    return false;
+                }));
+
+            options.AddPolicy("CanManageJobOffers", policy =>
+                policy.RequireAssertion(context =>
+                {
+                    // Only recruiters can manage job offers
+                    return context.User.IsInRole(Roles.Recruiter.Name);
+                }));
+
+            options.AddPolicy("CanAssignEvaluators", policy =>
+                policy.RequireAssertion(context =>
+                {
+                    // Only recruiters can assign evaluators
+                    return context.User.IsInRole(Roles.Recruiter.Name);
+                }));
         });
 
         return services;
@@ -585,7 +679,14 @@ public static class SecurityExtensions
         IConfiguration configuration, IWebHostEnvironment environment)
     {
         // JWT Settings
-        services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
+        services.Configure<JwtSettings>(options =>
+        {
+            var jwtSection = configuration.GetSection("Jwt");
+            jwtSection.Bind(options);
+            
+            // Set the Key from environment or configuration
+            options.Key = GetJwtKey(configuration);
+        });
 
         // Token provider options
         services.Configure<DataProtectionTokenProviderOptions>(options =>
