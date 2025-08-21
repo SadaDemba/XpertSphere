@@ -7,12 +7,14 @@ on:
       - "src/backend/XpertSphere.MonolithApi/**"
       - "XpertSphere.sln"
       - "docker/backend/monolith-api/**"
+      - ".github/workflows/backend-monolith-api.yml"
   pull_request:
     branches: [main, develop]
     paths:
       - "src/backend/XpertSphere.MonolithApi/**"
       - "XpertSphere.sln"
       - "docker/backend/monolith-api/**"
+      - ".github/workflows/backend-monolith-api.yml"
   workflow_dispatch:
 
 env:
