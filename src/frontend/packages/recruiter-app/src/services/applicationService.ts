@@ -9,7 +9,6 @@ import type {
   UpdateApplicationStatusDto,
   AssignUserDto,
 } from '../models/application';
-import type { ApplicationStatus, ApplicationSource } from '../enums';
 
 export class ApplicationService extends BaseClient {
   constructor() {

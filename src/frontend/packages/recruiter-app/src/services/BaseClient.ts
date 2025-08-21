@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { settings } from '../settings';
 import axios from 'axios';
 import { scopes, msalInstance } from './MsalService';

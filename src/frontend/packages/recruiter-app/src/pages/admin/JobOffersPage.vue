@@ -311,6 +311,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, onMounted, computed, watch } from 'vue';
 import { useJobOfferStore } from '../../stores/jobOfferStore';
 import { JobOfferStatus, WorkMode, ContractType } from '../../enums';

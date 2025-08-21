@@ -1,7 +1,23 @@
 import { boot } from 'quasar/wrappers';
 
 export default boot(({ app }) => {
-  // TODO: Re-enable when vue-axe supports Vue 3
-  // Temporarily disabled due to compatibility issues
-  console.log('Accessibility testing disabled - vue-axe compatibility issue');
+  if (process.env.DEV) {
+    import('vue-axe')
+      .then((VueAxeModule) => {
+        const VueAxe = VueAxeModule.default;
+
+        app.use(VueAxe, {
+          config: {
+            tags: ['wcag2a', 'wcag2aa', 'wcag21aa'],
+          },
+          clearConsoleOnUpdate: false,
+          auto: true,
+        });
+
+        console.log('Vue-axe accessibility testing enabled');
+      })
+      .catch((error) => {
+        console.warn('Failed to load vue-axe:', error);
+      });
+  }
 });

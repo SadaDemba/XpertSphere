@@ -42,16 +42,15 @@ import { storeToRefs } from 'pinia';
 import { useAuthStore } from '../stores/authStore';
 import { useNotification } from '../composables/notification';
 import MultiStepRegisterForm from '../components/register/MultiStepRegisterForm.vue';
-import AppLogo from '../components/AppLogo.vue';
-import type { RegisterCandidateDto, ResumeAnalysisResponse } from '../models/auth';
+import type { RegisterCandidateDto } from '../models/auth';
 
 // Composables
 const router = useRouter();
-const { showSuccessNotification, showErrorNotification } = useNotification();
+const { showSuccessNotification } = useNotification();
 
 // Store
 const authStore = useAuthStore();
-const { isLoading, error, hasError } = storeToRefs(authStore);
+const { error, hasError } = storeToRefs(authStore);
 
 // Methods
 const handleRegister = async (formData: RegisterCandidateDto, cvFile: File | null) => {
@@ -59,16 +58,9 @@ const handleRegister = async (formData: RegisterCandidateDto, cvFile: File | nul
 
   console.log('Registering with CV file:', cvFile?.name);
 
-  const success = await authStore.registerCandidate(formData);
+  const success = await authStore.registerCandidate(formData, cvFile || undefined);
   if (success) {
     showSuccessNotification('Compte créé avec succès ! Vous êtes maintenant connecté.');
-
-    // TODO: Handle CV file upload to backend after registration
-    if (cvFile) {
-      console.log('CV file to upload:', cvFile.name);
-      // Implement CV upload logic here
-    }
-
     // Redirect to job listings
     router.push('/');
   }

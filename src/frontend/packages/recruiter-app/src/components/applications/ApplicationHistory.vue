@@ -73,7 +73,7 @@ import { computed } from 'vue';
 import { date } from 'quasar';
 import { useApplicationStore } from 'src/stores/applicationStore';
 import { applicationStatusConfig } from 'src/models/application';
-import type { ApplicationDto, ApplicationStatusHistoryDto } from 'src/models/application';
+import type { ApplicationDto } from 'src/models/application';
 import type { ApplicationStatus } from 'src/enums/ApplicationStatus';
 
 interface Props {

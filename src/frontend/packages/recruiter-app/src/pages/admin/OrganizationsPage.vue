@@ -240,6 +240,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, onMounted, reactive } from 'vue';
 import type { Ref } from 'vue';
 import type { QTableColumn } from 'quasar';
@@ -506,7 +507,8 @@ const saveOrganization = async () => {
 
     closeDialog();
     await fetchOrganizations();
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification("Erreur lors de l'enregistrement");
   }
 };
@@ -523,6 +525,7 @@ const toggleOrganizationStatus = async (organization: OrganizationDto, isActive:
     );
     await fetchOrganizations();
   } catch (error) {
+    console.log(error);
     notification.showErrorNotification('Erreur lors de la modification du statut');
   }
 };
@@ -568,6 +571,7 @@ const deleteOrganization = async (organization: OrganizationDto) => {
     notification.showSuccessNotification('Organisation supprimée avec succès');
     await fetchOrganizations();
   } catch (error) {
+    console.log(error);
     notification.showErrorNotification('Erreur lors de la suppression');
   }
 };

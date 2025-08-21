@@ -5,10 +5,6 @@ import type {
   CreateJobOfferDto,
   UpdateJobOfferDto,
   JobOfferFilterDto,
-  CreateJobOffer,
-  UpdateJobOffer,
-  JobOfferFilter,
-  PaginatedJobOffers,
 } from '../models/job';
 import { jobOfferService } from '../services/jobOfferService';
 import { JobOfferStatus } from '../enums';

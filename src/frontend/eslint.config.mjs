@@ -24,6 +24,9 @@ export default defineConfigWithVueTs(
     js.configs.recommended,
     pluginVue.configs['flat/recommended'],
 
+    // Vue + TypeScript recommended (this handles the parsing correctly)
+    vueTsConfigs.recommended,
+
     // Accessibility configuration for Vue
     {
         files: ['packages/**/*.vue'],
@@ -59,23 +62,10 @@ export default defineConfigWithVueTs(
         }
     },
 
-    // TypeScript configuration
-    {
-        files: ['packages/**/*.ts', 'packages/**/*.vue'],
-        rules: {
-            '@typescript-eslint/consistent-type-imports': [
-                'error',
-                { prefer: 'type-imports' }
-            ],
-        }
-    },
-
-    // Vue + TypeScript recommended (this handles the parsing correctly)
-    vueTsConfigs.recommended,
 
     {
         // Apply to all files in packages
-        files: ['packages/**/*.{js,ts,vue,mjs}'],
+        files: ['packages/src/*.{js,ts,vue,mjs}'],
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'module',
@@ -105,7 +95,10 @@ export default defineConfigWithVueTs(
             'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
             'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
             'spaced-comment': ['error', 'always'],
-
+            '@typescript-eslint/consistent-type-imports': [
+                'error',
+                { prefer: 'type-imports' }
+            ],
             // Disable some strict rules for development
             'prefer-promise-reject-errors': 'off',
         }

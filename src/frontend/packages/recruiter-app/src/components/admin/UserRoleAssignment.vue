@@ -158,6 +158,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoleStore } from '../../stores/roleStore';
 import { useUserRoleStore } from '../../stores/userRoleStore';
@@ -255,7 +256,8 @@ const assignRole = async () => {
     await userRoleStore.fetchUserRoles(selectedUser.value.id);
     selectedRole.value = null;
     expiryDate.value = '';
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     $q.notify({
       type: 'negative',
       message: "Erreur lors de l'assignation du rôle",
@@ -270,7 +272,8 @@ const toggleUserRoleStatus = async (userRole: UserRoleDto) => {
       type: 'positive',
       message: 'Statut mis à jour avec succès',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     $q.notify({
       type: 'negative',
       message: 'Erreur lors de la modification du statut',
@@ -296,7 +299,8 @@ const confirmExtendRole = async () => {
     showExtendDialog.value = false;
     extendingUserRole.value = null;
     newExpiryDate.value = '';
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     $q.notify({
       type: 'negative',
       message: "Erreur lors de l'extension du rôle",
@@ -317,7 +321,8 @@ const removeRole = async (userRole: UserRoleDto) => {
         type: 'positive',
         message: 'Rôle retiré avec succès',
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.log(error.message);
       $q.notify({
         type: 'negative',
         message: 'Erreur lors de la suppression du rôle',

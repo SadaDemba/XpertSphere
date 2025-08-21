@@ -227,6 +227,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, onMounted, reactive } from 'vue';
 import type { Ref } from 'vue';
 import type { QTableColumn } from 'quasar';
@@ -449,7 +450,8 @@ const saveRole = async () => {
 
     closeDialog();
     await fetchRoles();
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification("Erreur lors de l'enregistrement");
   }
 };
@@ -464,7 +466,8 @@ const toggleRoleStatus = async (role: RoleDto, isActive: boolean) => {
       notification.showSuccessNotification('Rôle désactivé avec succès');
     }
     await fetchRoles();
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification('Erreur lors de la modification du statut');
   }
 };
@@ -509,7 +512,8 @@ const deleteRole = async (role: RoleDto) => {
     await roleStore.deleteRole(role.id);
     notification.showSuccessNotification('Rôle supprimé avec succès');
     await fetchRoles();
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification('Erreur lors de la suppression');
   }
 };
@@ -522,7 +526,8 @@ const toggleUserRoleStatus = async (userRole: UserRoleDto) => {
   try {
     await userRoleStore.updateUserRoleStatus(userRole.id, !userRole.isActive);
     notification.showSuccessNotification('Statut mis à jour avec succès');
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification('Erreur lors de la modification du statut');
   }
 };
@@ -531,7 +536,8 @@ const removeUserRole = async (userRole: UserRoleDto) => {
   try {
     await userRoleStore.removeRoleFromUser(userRole.id);
     notification.showSuccessNotification('Rôle retiré avec succès');
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification('Erreur lors de la suppression du rôle');
   }
 };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { authService } from '../services/authService';

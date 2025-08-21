@@ -304,6 +304,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { date, copyToClipboard } from 'quasar';
@@ -437,7 +438,8 @@ const handleWithdraw = async () => {
     } else {
       showErrorNotification(applicationStore.error || 'Erreur lors du retrait');
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     showErrorNotification('Une erreur inattendue est survenue');
   } finally {
     withdrawLoading.value = false;
@@ -465,7 +467,8 @@ const copyApplicationId = async () => {
   try {
     await copyToClipboard(currentApplication.value.id);
     showSuccessNotification('ID de candidature copié');
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     showErrorNotification('Erreur lors de la copie');
   }
 };

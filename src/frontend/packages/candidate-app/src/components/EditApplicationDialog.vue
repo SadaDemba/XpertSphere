@@ -62,6 +62,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, reactive, watch } from 'vue';
 import { date } from 'quasar';
 import { useApplicationStore } from '../stores/applicationStore';
@@ -132,7 +133,8 @@ const submitUpdate = async () => {
     } else {
       showErrorNotification(applicationStore.error || 'Erreur lors de la mise à jour');
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     showErrorNotification('Une erreur inattendue est survenue');
   } finally {
     isSubmitting.value = false;

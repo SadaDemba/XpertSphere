@@ -17,12 +17,10 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { storeToRefs } from 'pinia';
 import { useAuthStore } from './stores/authStore';
 
 // Store
 const authStore = useAuthStore();
-const { isLoading } = storeToRefs(authStore);
 
 // State
 const isInitializing = ref(true);

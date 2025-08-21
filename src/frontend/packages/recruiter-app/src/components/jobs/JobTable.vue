@@ -117,6 +117,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref } from 'vue';
 import type { Ref } from 'vue';
 import type { QTableColumn } from 'quasar';

@@ -118,7 +118,7 @@ const props = withDefaults(defineProps<Props>(), {
   hasApplied: false,
 });
 
-const emit = defineEmits<Emits>();
+defineEmits<Emits>();
 
 // Computed
 const statusConfig = computed(() => jobOfferStatusConfig[props.job.status]);

@@ -4,10 +4,6 @@ import type {
   CreateJobOfferDto,
   UpdateJobOfferDto,
   JobOfferFilterDto,
-  CreateJobOffer,
-  UpdateJobOffer,
-  JobOfferFilter,
-  PaginatedJobOffers,
 } from '../models/job';
 import type { PaginatedResult } from '../models/base';
 

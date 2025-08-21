@@ -23,20 +23,35 @@ export class AuthService extends BaseClient {
     return this.post<AuthResponseDto>('/login', loginDto, 'Erreur lors de la connexion');
   }
 
-  async registerCandidate(registerDto: RegisterCandidateDto): Promise<AuthResponseDto | null> {
+  async registerCandidate(
+    registerDto: RegisterCandidateDto,
+    resume?: File,
+  ): Promise<AuthResponseDto | null> {
     try {
-      // Prepare the data - handle nested objects and arrays
-      const preparedData = {
-        ...registerDto,
-        // Convert trainings and experiences to JSON strings if needed
-        trainings: registerDto.trainings ? JSON.stringify(registerDto.trainings) : undefined,
-        experiences: registerDto.experiences ? JSON.stringify(registerDto.experiences) : undefined,
-      };
+      const formData = new FormData();
 
-      const response = await this.apiClient.post<AuthResponseDto>(
-        '/register/candidate',
-        preparedData,
-      );
+      // Add all form fields
+      Object.entries(registerDto).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (key === 'trainings' || key === 'experiences') {
+            // Convert arrays to JSON strings
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, String(value));
+          }
+        }
+      });
+
+      // Add resume file if provided
+      if (resume) {
+        formData.append('resume', resume);
+      }
+
+      const response = await this.apiClient.post<AuthResponseDto>('/register/candidate', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : "Erreur lors de l'inscription");

@@ -131,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useApplicationStore } from 'src/stores/applicationStore';
 import { useUserStore } from 'src/stores/userStore';
 import { useAuthStore } from 'src/stores/authStore';

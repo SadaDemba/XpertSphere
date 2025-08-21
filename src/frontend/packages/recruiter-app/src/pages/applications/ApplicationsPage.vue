@@ -220,6 +220,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import type { QTableProps } from 'quasar';

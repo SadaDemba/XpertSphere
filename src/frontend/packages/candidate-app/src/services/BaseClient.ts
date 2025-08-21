@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
 import type {
   AxiosInstance,
   AxiosError,
   AxiosRequestConfig,
-  AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
 import { settings } from '../settings';

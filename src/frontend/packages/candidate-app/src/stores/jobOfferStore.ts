@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { jobOfferService } from '../services/jobOfferService';
-import type { JobOfferDto, JobOfferFilterDto, PaginatedJobOffers } from '../models/job';
-import { WorkMode, ContractType, JobOfferStatus } from '../enums';
+import type { JobOfferDto, JobOfferFilterDto } from '../models/job';
+import { JobOfferStatus } from '../enums';
 
 export const useJobOfferStore = defineStore('jobOffer', () => {
   // State

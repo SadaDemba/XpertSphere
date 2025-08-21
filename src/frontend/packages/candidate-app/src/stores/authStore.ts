@@ -77,12 +77,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
-  const registerCandidate = async (registerDto: RegisterCandidateDto): Promise<boolean> => {
+  const registerCandidate = async (
+    registerDto: RegisterCandidateDto,
+    resume?: File,
+  ): Promise<boolean> => {
     try {
       setLoading(true);
       clearError();
 
-      const response = await authService.registerCandidate(registerDto);
+      const response = await authService.registerCandidate(registerDto, resume);
       if (response?.success) {
         setAuth(response);
         return true;

@@ -129,6 +129,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed } from 'vue';
 import { date, copyToClipboard } from 'quasar';
 import type { ApplicationDto } from '../models/application';
@@ -146,7 +147,7 @@ interface Emits {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
+defineEmits<Emits>();
 
 // Composables
 const { showSuccessNotification, showErrorNotification, showInfoNotification } = useNotification();
@@ -243,7 +244,8 @@ const copyApplicationId = async () => {
   try {
     await copyToClipboard(props.application.id);
     showSuccessNotification('ID de candidature copié');
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     showErrorNotification('Erreur lors de la copie');
   }
 };

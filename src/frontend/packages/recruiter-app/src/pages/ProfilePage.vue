@@ -211,6 +211,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, onMounted, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
@@ -283,7 +284,8 @@ const updateProfile = async () => {
       type: 'positive',
       message: 'Profil mis à jour avec succès',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     $q.notify({
       type: 'negative',
       message: 'Erreur lors de la mise à jour du profil',
@@ -324,7 +326,8 @@ const changePassword = async () => {
         message: result?.message || 'Erreur lors du changement de mot de passe',
       });
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     $q.notify({
       type: 'negative',
       message: 'Erreur lors du changement de mot de passe',
@@ -349,7 +352,8 @@ const logout = async () => {
     });
 
     router.push('/auth/login');
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     $q.notify({
       type: 'negative',
       message: 'Erreur lors de la déconnexion',

@@ -479,12 +479,7 @@ import { ref, reactive, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '../../stores/authStore';
 import { useNotification } from '../../composables/notification';
-import type {
-  RegisterCandidateDto,
-  Training,
-  Experience,
-  ResumeAnalysisResponse,
-} from '../../models/auth';
+import type { RegisterCandidateDto, ResumeAnalysisResponse } from '../../models/auth';
 
 // Emits
 const emit = defineEmits<{

@@ -99,7 +99,7 @@
 
           <template #body-cell-actions="props">
             <q-td :props="props">
-              <q-btn flat round dense icon="more_vert" color="grey-6">
+              <q-btn flat round dense icon="moreerror : anyvert" color="grey-6">
                 <q-menu anchor="bottom right" self="top right">
                   <q-list style="min-width: 180px">
                     <q-item v-close-popup clickable @click="editUser(props.row)">
@@ -111,14 +111,14 @@
 
                     <q-item v-close-popup clickable @click="manageUserRoles(props.row)">
                       <q-item-section avatar>
-                        <q-icon name="admin_panel_settings" color="info" />
+                        <q-icon name="adminerror : anypanelerror : anysettings" color="info" />
                       </q-item-section>
                       <q-item-section>Gérer les rôles</q-item-section>
                     </q-item>
 
                     <q-item v-close-popup clickable @click="openResetPasswordDialog(props.row)">
                       <q-item-section avatar>
-                        <q-icon name="lock_reset" color="warning" />
+                        <q-icon name="lockerror : anyreset" color="warning" />
                       </q-item-section>
                       <q-item-section>Réinitialiser le mot de passe</q-item-section>
                     </q-item>
@@ -126,7 +126,7 @@
                     <q-item v-close-popup clickable @click="confirmToggleStatus(props.row)">
                       <q-item-section avatar>
                         <q-icon
-                          :name="props.row.isActive ? 'pause' : 'play_arrow'"
+                          :name="props.row.isActive ? 'pause' : 'playerror : anyarrow'"
                           :color="props.row.isActive ? 'warning' : 'positive'"
                         />
                       </q-item-section>
@@ -293,7 +293,7 @@
                   flat
                   round
                   dense
-                  :icon="props.row.isActive ? 'pause' : 'play_arrow'"
+                  :icon="props.row.isActive ? 'pause' : 'playerror : anyarrow'"
                   :color="props.row.isActive ? 'warning' : 'positive'"
                   @click="toggleUserRoleStatus(props.row)"
                 />
@@ -417,8 +417,8 @@
     </q-dialog>
   </q-page>
 </template>
-
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, onMounted, reactive, computed } from 'vue';
 import type { Ref } from 'vue';
 import type { QTableColumn } from 'quasar';
@@ -733,7 +733,8 @@ const saveUser = async () => {
 
     closeDialog();
     await fetchUsers();
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification("Erreur lors de l'enregistrement");
   }
 };
@@ -748,7 +749,8 @@ const toggleUserStatus = async (user: UserSearchResultDto, isActive: boolean) =>
       notification.showSuccessNotification('Utilisateur désactivé avec succès');
     }
     await fetchUsers();
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification('Erreur lors de la modification du statut');
   }
 };
@@ -793,7 +795,8 @@ const deleteUser = async (user: UserSearchResultDto) => {
     await userStore.deleteUser(user.id);
     notification.showSuccessNotification('Utilisateur supprimé avec succès');
     await fetchUsers();
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification('Erreur lors de la suppression');
   }
 };
@@ -837,7 +840,8 @@ const assignRole = async () => {
     // Refresh user roles
     await userRoleStore.fetchUserRoles(selectedUser.value.id);
     closeAssignRoleDialog();
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification("Erreur lors de l'assignation du rôle");
   }
 };
@@ -851,7 +855,8 @@ const toggleUserRoleStatus = async (userRole: UserRoleDto) => {
     if (selectedUser.value) {
       await userRoleStore.fetchUserRoles(selectedUser.value.id);
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification('Erreur lors de la modification du statut du rôle');
   }
 };
@@ -865,7 +870,8 @@ const removeUserRole = async (userRole: UserRoleDto) => {
     if (selectedUser.value) {
       await userRoleStore.fetchUserRoles(selectedUser.value.id);
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification('Erreur lors de la suppression du rôle');
   }
 };
@@ -918,7 +924,8 @@ const resetUserPassword = async () => {
     } else {
       notification.showErrorNotification(result?.message || 'Erreur lors de la réinitialisation');
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     notification.showErrorNotification('Erreur lors de la réinitialisation du mot de passe');
   } finally {
     resettingPassword.value = false;

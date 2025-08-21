@@ -63,6 +63,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, reactive, watch } from 'vue';
 import { useApplicationStore } from '../stores/applicationStore';
 import { useNotification } from '../composables/notification';
@@ -129,7 +130,8 @@ const submitApplication = async () => {
     } else {
       showErrorNotification(applicationStore.error || "Erreur lors de l'envoi de la candidature");
     }
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message);
     showErrorNotification('Une erreur inattendue est survenue');
   } finally {
     isSubmitting.value = false;
