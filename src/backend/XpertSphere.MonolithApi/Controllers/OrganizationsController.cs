@@ -24,6 +24,17 @@ namespace XpertSphere.MonolithApi.Controllers
         }
 
         /// <summary>
+        /// Get all organizations without pagination
+        /// </summary>
+        [HttpGet("all")]
+        [Authorize(Policy = "RequirePlatformRole")]
+        public async Task<ActionResult<IEnumerable<OrganizationDto>>> GetAllOrganizations()
+        {
+            var result = await organizationService.GetAllWithoutPaginationAsync();
+            return this.ToActionResult(result);
+        }
+
+        /// <summary>
         /// Get organization by ID
         /// </summary>
         [HttpGet("{id:guid}")]

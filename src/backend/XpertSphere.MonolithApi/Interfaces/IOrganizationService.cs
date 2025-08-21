@@ -22,6 +22,12 @@ namespace XpertSphere.MonolithApi.Interfaces
         Task<PaginatedResult<OrganizationDto>> GetAllAsync(OrganizationFilterDto organizationFilterDto);
 
         /// <summary>
+        /// Get all organizations without pagination
+        /// </summary>
+        /// <returns></returns>
+        Task<ServiceResult<IEnumerable<OrganizationDto>>> GetAllWithoutPaginationAsync();
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="organization"></param>

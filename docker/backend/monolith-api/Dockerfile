@@ -9,16 +9,23 @@ WORKDIR /src
 
 COPY ["src/backend/XpertSphere.sln", "./"]
 COPY ["src/backend/XpertSphere.MonolithApi/XpertSphere.MonolithApi.csproj", "src/backend/XpertSphere.MonolithApi/"]
+COPY ["src/backend/XpertSphere.MonolithApi.Tests/XpertSphere.MonolithApi.Tests.csproj", "src/backend/XpertSphere.MonolithApi.Tests/"]
 
 RUN dotnet restore "src/backend/XpertSphere.MonolithApi/XpertSphere.MonolithApi.csproj"
+RUN dotnet restore "src/backend/XpertSphere.MonolithApi.Tests/XpertSphere.MonolithApi.Tests.csproj"
 
 COPY . .
 
 WORKDIR "/src/src/backend/XpertSphere.MonolithApi"
 RUN dotnet build "XpertSphere.MonolithApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
+# Run tests
+WORKDIR "/src/src/backend/XpertSphere.MonolithApi.Tests"
+RUN dotnet test "XpertSphere.MonolithApi.Tests.csproj" -c $BUILD_CONFIGURATION --no-restore --verbosity normal
+
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+WORKDIR "/src/src/backend/XpertSphere.MonolithApi"
 RUN dotnet publish "XpertSphere.MonolithApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final

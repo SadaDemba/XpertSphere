@@ -1,35 +1,32 @@
 <template>
-  <q-page class="row items-center justify-evenly">
-    <example-component
-      title="Example component"
-      active
-      :todos="todos"
-      :meta="meta"
-    ></example-component>
+  <q-page class="flex flex-center">
+    <div class="text-center">
+      <q-icon name="construction" size="100px" color="warning" />
+      <h1 class="text-h4 q-mb-md q-mt-lg">Page en construction</h1>
+      <p class="text-subtitle1 text-grey-6">Cette fonctionnalité sera bientôt disponible</p>
+      <q-btn color="primary" label="Retour" icon="arrow_back" class="q-mt-xl" @click="goBack" />
+    </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import type { Todo, Meta } from 'components/models';
-import ExampleComponent from 'components/ExampleComponent.vue';
+import { useRouter } from 'vue-router';
+import { onMounted } from 'vue';
+import { useQuasar } from 'quasar';
 
-const todos = ref<Todo[]>([
-  {
-    id: 1,
-    content: 'ct1',
-  },
-  {
-    id: 2,
-    content: 'ct2',
-  },
-  {
-    id: 3,
-    content: 'ct3',
-  },
-]);
+const router = useRouter();
+const $q = useQuasar();
 
-const meta = ref<Meta>({
-  totalCount: 1200,
+function goBack() {
+  router.back();
+}
+
+onMounted(() => {
+  $q.notify({
+    type: 'info',
+    message: 'Cette fonctionnalité sera bientôt disponible',
+    position: 'top',
+    timeout: 3000,
+  });
 });
 </script>

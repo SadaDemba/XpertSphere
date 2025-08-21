@@ -74,13 +74,19 @@ public static class DatabaseExtensions
 
     private static string GetConnectionString(IConfiguration configuration,  IWebHostEnvironment environment)
     {
-        var connectionString = environment.IsDevelopment()
-            ? Environment.GetEnvironmentVariable("DEFAULTCONNECTIONSTRING")
-            : Environment.GetEnvironmentVariable("DEFAULTCONNECTIONSTRING");
-        //TODO: reset after the test prod
-            //Environment.GetEnvironmentVariable("AZURESQLCONNECTIONSTRING");
+        // Try to get from configuration first (includes Key Vault for staging/prod)
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
         
-        if (string.IsNullOrEmpty(connectionString)) throw new InvalidOperationException("No connection string found");
+        // Fallback to environment variable if not found
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        }
+        
+        if (string.IsNullOrEmpty(connectionString)) 
+        {
+            throw new InvalidOperationException("No connection string found. Please configure ConnectionStrings:DefaultConnection");
+        }
 
         return connectionString;
     }

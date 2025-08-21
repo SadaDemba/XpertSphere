@@ -30,3 +30,8 @@ export default defineStore((/* { ssrContext } */) => {
 
   return pinia;
 });
+
+// Export stores
+export * from './authStore';
+export * from './jobOfferStore';
+export * from './applicationStore';

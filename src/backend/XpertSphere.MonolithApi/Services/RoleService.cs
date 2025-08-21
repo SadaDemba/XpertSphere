@@ -359,10 +359,11 @@ public class RoleService : IRoleService
         // Search terms
         if (!string.IsNullOrEmpty(filter.SearchTerms))
         {
+            var searchTerms = filter.SearchTerms.ToLower();
             query = query.Where(r => 
-                r.Name.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                r.DisplayName.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                r.Description!.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase)
+                r.Name.ToLower().Contains(searchTerms) ||
+                r.DisplayName.ToLower().Contains(searchTerms) ||
+                r.Description!.ToLower().Contains(searchTerms)
                 );
         }
 

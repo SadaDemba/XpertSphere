@@ -12,17 +12,14 @@ public static class KeyVaultExtensions
             "Jwt:Key",
             "Admin:Email",
             "Admin:Password",
-            "ConnectionStrings:AzureSQL",
-            "ApplicationInsights:ConnectionString"
+            "ConnectionStrings:DefaultConnection",
+            "ApplicationInsights:ConnectionString",
+            "ConnectionStrings:BlobStorage"
         };
-        // Add DEFAULTCONNECTIONSTRING only for Development (Docker DB)
-        if (environment == "Development")
+        
+        // Add Entra ID secrets with environment prefix for Staging/Production only
+        if (environment != "Development")
         {
-            mappings.Add("ConnectionStrings:DefaultConnection");
-        }
-        else
-        {
-            // Add Entra ID secrets with environment prefix for Staging/Production
             var envPrefix = environment.Equals("Production", StringComparison.CurrentCultureIgnoreCase) ? "PROD" : "STAGING";
             mappings.Add($"EntraId:B2B:ClientSecret:{envPrefix}");
             mappings.Add($"EntraId:B2C:ClientSecret:{envPrefix}");
@@ -32,22 +29,29 @@ public static class KeyVaultExtensions
 
     public static IServiceCollection AddKeyVaultConfiguration(this IServiceCollection services, WebApplicationBuilder builder)
     {
-        var keyVaultUrl = Environment.GetEnvironmentVariable("KEY_VAULT_URL");
-        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
         var environment = builder.Environment.EnvironmentName;
+        
+        // Skip Key Vault in Development - use local .env file
+        if (builder.Environment.IsDevelopment())
+        {
+            Console.WriteLine("INFO - Development environment detected, using local environment variables (.env file)");
+            return services;
+        }
+        
+        // For Staging/Production, Key Vault is required
+        var keyVaultUrl = Environment.GetEnvironmentVariable("KEY_VAULT_URL");
         
         if (string.IsNullOrEmpty(keyVaultUrl))
         {
-            Console.WriteLine("INFO - Key Vault URL not configured, using environment variables only");
-            LogMissingSecrets(builder.Configuration, environment);
-            return services;
+            throw new InvalidOperationException($"KEY_VAULT_URL is required for {environment} environment");
         }
 
         try
         {
             Console.WriteLine($"INFO - Configuring Key Vault for {environment} environment: {keyVaultUrl}");
             
-            var credential = CreateAzureCredential(clientId);
+            // Use DefaultAzureCredential which automatically handles Managed Identity
+            var credential = new DefaultAzureCredential();
             
             builder.Configuration.AddAzureKeyVault(
                 new Uri(keyVaultUrl),
@@ -58,29 +62,11 @@ public static class KeyVaultExtensions
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ERROR - Key Vault configuration failed: {ex.Message}");
-            Console.WriteLine("INFO - Falling back to environment variables");
-            LogMissingSecrets(builder.Configuration, environment);
+            throw new InvalidOperationException($"Failed to configure Key Vault for {environment}: {ex.Message}", ex);
         }
 
         return services;
     }
-    
-    private static DefaultAzureCredential CreateAzureCredential(string? clientId)
-    {
-        if (string.IsNullOrEmpty(clientId))
-        {
-            Console.WriteLine("INFO - Using default Azure credential");
-            return new DefaultAzureCredential();
-        }
-        
-        Console.WriteLine($"INFO - Using managed identity with Client ID: {clientId}");
-        return new DefaultAzureCredential(new DefaultAzureCredentialOptions
-        {
-            ManagedIdentityClientId = clientId
-        });
-    }
-    
     
     private static void ValidateSecretsLoading(IConfiguration configuration, string environment)
     {
@@ -110,16 +96,6 @@ public static class KeyVaultExtensions
         else
         {
             Console.WriteLine($"INFO - All required secrets loaded successfully for {environment}");
-        }
-    }
-
-    private static void LogMissingSecrets(IConfiguration configuration, string environment)
-    {
-        Console.WriteLine($"INFO - Using environment variables for {environment}");
-        
-        if (environment != "Development")
-        {
-            Console.WriteLine("INFO - For production environments, consider using Azure Key Vault");
         }
     }
 }

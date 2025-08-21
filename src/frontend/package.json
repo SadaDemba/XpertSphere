@@ -28,13 +28,16 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
+    "axe-core": "^4.10.3",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-vue": "^9.30.0",
+    "eslint-plugin-vuejs-accessibility": "^2.4.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
     "prettier": "^3.6.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vue-axe": "^3.1.2"
   },
   "engines": {
     "node": ">=20.0.0",
@@ -60,6 +63,7 @@
     ]
   },
   "dependencies": {
+    "@azure/msal-browser": "^4.20.0",
     "dotenv": "^17.2.0"
   }
 }

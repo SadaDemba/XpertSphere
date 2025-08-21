@@ -36,10 +36,17 @@ public class AuthenticationService : IAuthenticationService
     private readonly IValidator<ResetPasswordDto> _resetPasswordValidator;
     private readonly IValidator<ConfirmEmailDto> _confirmEmailValidator;
     private readonly IValidator<ForgotPasswordDto> _forgotPasswordValidator;
+    private readonly IValidator<AdminResetPasswordDto> _adminResetPasswordValidator;
     private readonly IWebHostEnvironment _environment;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserService _userService;
     private readonly IResumeService _resumeService;
     private readonly XpertSphereDbContext _context;
+    
+    // Check if Entra ID should be used (from environment variable)
+    private bool ShouldUseEntraId => 
+        !_environment.IsDevelopment() && 
+        Environment.GetEnvironmentVariable("USE_ENTRA_ID")?.ToLower() == "true";
 
     public AuthenticationService(
         UserManager<User> userManager,
@@ -54,7 +61,9 @@ public class AuthenticationService : IAuthenticationService
         IValidator<ResetPasswordDto> resetPasswordValidator,
         IValidator<ConfirmEmailDto> confirmEmailValidator,
         IValidator<ForgotPasswordDto> forgotPasswordValidator,
+        IValidator<AdminResetPasswordDto> adminResetPasswordValidator,
         IWebHostEnvironment environment,
+        IHttpContextAccessor httpContextAccessor,
         IUserService userService,
         IResumeService resumeService,
         XpertSphereDbContext context)
@@ -71,7 +80,9 @@ public class AuthenticationService : IAuthenticationService
         _resetPasswordValidator = resetPasswordValidator;
         _confirmEmailValidator = confirmEmailValidator;
         _forgotPasswordValidator = forgotPasswordValidator;
+        _adminResetPasswordValidator = adminResetPasswordValidator;
         _environment = environment;
+        _httpContextAccessor = httpContextAccessor;
         _userService = userService;
         _resumeService = resumeService;
         _context = context;
@@ -94,8 +105,8 @@ public class AuthenticationService : IAuthenticationService
                 return AuthResult.Conflict("User with this email already exists");
             }
 
-            // In non-development environments, check if we should redirect to Entra ID
-            if (!_environment.IsDevelopment())
+            // Check if we should redirect to Entra ID
+            if (ShouldUseEntraId)
 
             {
                 // For candidates (users without organization), offer Entra ID B2C registration
@@ -152,136 +163,136 @@ public class AuthenticationService : IAuthenticationService
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-            // Basic validation
-            if (!registerDto.AcceptTerms || !registerDto.AcceptPrivacyPolicy)
-            {
-                return AuthResult.ValidationError(["You must accept the terms and privacy policy"]);
-            }
-
-            var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
-            if (existingUser != null)
-            {
-                return AuthResult.Conflict("User with this email already exists");
-            }
-
-            // Create user using UserManager directly
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                UserName = registerDto.Email,
-                Email = registerDto.Email,
-                FirstName = registerDto.FirstName,
-                LastName = registerDto.LastName,
-                PhoneNumber = registerDto.PhoneNumber,
-                EmailConfirmed = false,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                OrganizationId = null, // Candidates don't belong to organizations
-                
-                // Address
-                Address = new Address
+                // Basic validation
+                if (!registerDto.AcceptTerms || !registerDto.AcceptPrivacyPolicy)
                 {
-                    StreetNumber = registerDto.StreetNumber,
-                    Street = registerDto.Street,
-                    City = registerDto.City,
-                    PostalCode = registerDto.PostalCode,
-                    Region = registerDto.Region,
-                    Country = registerDto.Country,
-                    AddressLine2 = registerDto.AddressLine2
-                },
-                
-                // Professional info
-                Skills = registerDto.Skills,
-                YearsOfExperience = registerDto.YearsOfExperience,
-                DesiredSalary = registerDto.DesiredSalary,
-                Availability = registerDto.Availability,
-                LinkedInProfile = registerDto.LinkedInProfile,
-                
-                // Communication preferences
-                EmailNotificationsEnabled = registerDto.EmailNotificationsEnabled,
-                SmsNotificationsEnabled = registerDto.SmsNotificationsEnabled,
-                PreferredLanguage = registerDto.PreferredLanguage,
-                TimeZone = registerDto.TimeZone,
-                
-                // Consent
-                ConsentGivenAt = registerDto.ConsentGivenAt ?? DateTime.UtcNow,
-                ExternalId = registerDto.ExternalId
-            };
-
-            // Create user with password
-            var createResult = await _userManager.CreateAsync(user, registerDto.Password);
-            if (!createResult.Succeeded)
-            {
-                var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
-                return AuthResult.Failure($"User creation failed: {errors}");
-            }
-
-            // Upload resume within transaction if provided
-            if (resumeFile != null)
-            {
-                var resumeUploadResult = await _resumeService.UploadResumeAsync(resumeFile, user.Id);
-                if (resumeUploadResult.IsSuccess)
-                {
-                    user.CvPath = resumeUploadResult.Data;
-                    await _userManager.UpdateAsync(user);
+                    return AuthResult.ValidationError(["You must accept the terms and privacy policy"]);
                 }
-            }
 
-            // Add trainings if provided
-            if (registerDto.Trainings?.Any() == true)
-            {
-                foreach (var training in registerDto.Trainings)
+                var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
+                if (existingUser != null)
                 {
-                    training.Id = Guid.NewGuid();
-                    training.UserId = user.Id;
-                    training.CreatedAt = DateTime.UtcNow;
-                    training.UpdatedAt = DateTime.UtcNow;
-                    _context.Trainings.Add(training);
+                    return AuthResult.Conflict("User with this email already exists");
                 }
-            }
 
-            // Add experiences if provided
-            if (registerDto.Experiences?.Any() == true)
-            {
-                foreach (var experience in registerDto.Experiences)
-                {
-                    experience.Id = Guid.NewGuid();
-                    experience.UserId = user.Id;
-                    experience.CreatedAt = DateTime.UtcNow;
-                    experience.UpdatedAt = DateTime.UtcNow;
-                    _context.Experiences.Add(experience);
-                }
-            }
-
-            // Assign candidate role
-            var candidateRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == Roles.Candidate.Name);
-            if (candidateRole != null)
-            {
-                var userRole = new UserRole
+                // Create user using UserManager directly
+                var user = new User
                 {
                     Id = Guid.NewGuid(),
-                    UserId = user.Id,
-                    RoleId = candidateRole.Id,
-                    AssignedAt = DateTime.UtcNow
+                    UserName = registerDto.Email,
+                    Email = registerDto.Email,
+                    FirstName = registerDto.FirstName,
+                    LastName = registerDto.LastName,
+                    PhoneNumber = registerDto.PhoneNumber,
+                    EmailConfirmed = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    OrganizationId = null,
+                
+                    // Address
+                    Address = new Address
+                    {
+                        StreetNumber = registerDto.StreetNumber,
+                        Street = registerDto.Street,
+                        City = registerDto.City,
+                        PostalCode = registerDto.PostalCode,
+                        Region = registerDto.Region,
+                        Country = registerDto.Country,
+                        AddressLine2 = registerDto.AddressLine2
+                    },
+                
+                    // Professional info
+                    Skills = registerDto.Skills,
+                    YearsOfExperience = registerDto.YearsOfExperience,
+                    DesiredSalary = registerDto.DesiredSalary,
+                    Availability = registerDto.Availability,
+                    LinkedInProfile = registerDto.LinkedInProfile,
+                
+                    // Communication preferences
+                    EmailNotificationsEnabled = registerDto.EmailNotificationsEnabled,
+                    SmsNotificationsEnabled = registerDto.SmsNotificationsEnabled,
+                    PreferredLanguage = registerDto.PreferredLanguage,
+                    TimeZone = registerDto.TimeZone,
+                
+                    // Consent
+                    ConsentGivenAt = registerDto.ConsentGivenAt ?? DateTime.UtcNow,
+                    ExternalId = registerDto.ExternalId
                 };
-                _context.UserRoles.Add(userRole);
-            }
 
-            // Calculate profile completion
-            user.CalculateProfileCompletion();
-            await _userManager.UpdateAsync(user);
+                // Create user with password
+                var createResult = await _userManager.CreateAsync(user, registerDto.Password);
+                if (!createResult.Succeeded)
+                {
+                    var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                    return AuthResult.Failure($"User creation failed: {errors}");
+                }
 
-            // Save all changes
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+                // Upload resume within transaction if provided
+                if (resumeFile != null)
+                {
+                    var resumeUploadResult = await _resumeService.UploadResumeAsync(resumeFile, user.Id);
+                    if (resumeUploadResult.IsSuccess)
+                    {
+                        user.CvPath = resumeUploadResult.Data;
+                        await _userManager.UpdateAsync(user);
+                    }
+                }
 
-            _logger.LogInformation("Candidate {Email} registered successfully with complete profile", registerDto.Email);
+                // Add trainings if provided
+                if (registerDto.Trainings?.Count > 0)
+                {
+                    foreach (var training in registerDto.Trainings)
+                    {
+                        training.Id = Guid.NewGuid();
+                        training.UserId = user.Id;
+                        training.CreatedAt = DateTime.UtcNow;
+                        training.UpdatedAt = DateTime.UtcNow;
+                        _context.Trainings.Add(training);
+                    }
+                }
 
-            // Generate email confirmation token
-            var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                // Add experiences if provided
+                if (registerDto.Experiences?.Count > 0)
+                {
+                    foreach (var experience in registerDto.Experiences)
+                    {
+                        experience.Id = Guid.NewGuid();
+                        experience.UserId = user.Id;
+                        experience.CreatedAt = DateTime.UtcNow;
+                        experience.UpdatedAt = DateTime.UtcNow;
+                        _context.Experiences.Add(experience);
+                    }
+                }
 
-            return AuthResult.SuccessWithUser(user, "Registration successful. Please check your email to confirm your account.", emailConfirmationToken);
+                // Assign candidate role
+                var candidateRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == Roles.Candidate.Name);
+                if (candidateRole != null)
+                {
+                    var userRole = new UserRole
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = user.Id,
+                        RoleId = candidateRole.Id,
+                        AssignedAt = DateTime.UtcNow
+                    };
+                    _context.UserRoles.Add(userRole);
+                }
+
+                // Calculate profile completion
+                user.CalculateProfileCompletion();
+                await _userManager.UpdateAsync(user);
+
+                // Save all changes
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Candidate {Email} registered successfully with complete profile", registerDto.Email);
+
+                // Generate email confirmation token
+                var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+                return AuthResult.SuccessWithUser(user, "Registration successful. Please check your email to confirm your account.", emailConfirmationToken);
             }
             catch (Exception ex)
             {
@@ -303,8 +314,8 @@ public class AuthenticationService : IAuthenticationService
                 return AuthResult.ValidationError(errors);
             }
 
-            // In non-development environments, check if we should redirect to Entra ID
-            if (!_environment.IsDevelopment())
+            // Check if we should redirect to Entra ID
+            if (ShouldUseEntraId)
             {
                 // Check if this email belongs to an organizational user (B2B)
                 var potentialUser = await _userManager.FindByEmailAsync(loginDto.Email);
@@ -324,6 +335,7 @@ public class AuthenticationService : IAuthenticationService
             }
 
             var user = await _userManager.Users
+                .Include(u => u.Organization)
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
@@ -334,8 +346,20 @@ public class AuthenticationService : IAuthenticationService
                 return AuthResult.Failure("Invalid credentials");
             }
 
+            // Check if account is locked and auto-unlock if time has passed
+            if (user.AccountLockedUntil.HasValue && user.AccountLockedUntil <= DateTime.UtcNow)
+            {
+                user.ResetFailedLogins();
+                await _userManager.UpdateAsync(user);
+                _logger.LogInformation("Account automatically unlocked for user: {Email}", loginDto.Email);
+            }
+            
             if (user.IsAccountLocked)
             {
+                if (user.AccountLockedUntil.HasValue && user.AccountLockedUntil <= DateTime.UtcNow)
+                {
+                    user.ResetFailedLogins();
+                }
                 _logger.LogWarning("Login attempt on locked account: {Email}", loginDto.Email);
                 return AuthResult.Failure($"Account is locked until {user.AccountLockedUntil:yyyy-MM-dd HH:mm}");
             }
@@ -361,11 +385,11 @@ public class AuthenticationService : IAuthenticationService
                 // Save refresh token
                 user.SetRefreshToken(refreshToken, TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays));
                 await _userManager.UpdateAsync(user);
-
+                
                 _logger.LogInformation("User {Email} logged in successfully", loginDto.Email);
 
                 return AuthResult.SuccessWithTokens(
-                    user,
+                    _mapper.Map<UserDto>(user),
                     accessToken,
                     refreshToken,
                     DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
@@ -435,7 +459,7 @@ public class AuthenticationService : IAuthenticationService
             _logger.LogInformation("Tokens refreshed for user: {Email}", refreshTokenDto.Email);
 
             return AuthResult.SuccessWithTokens(
-                user,
+                _mapper.Map<UserDto>(user),
                 accessToken,
                 newRefreshToken,
                 DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
@@ -579,6 +603,86 @@ public class AuthenticationService : IAuthenticationService
             return AuthResult.Failure("An error occurred during password reset");
         }
     }
+
+    public async Task<AuthResult> AdminResetPasswordAsync(AdminResetPasswordDto adminResetPasswordDto)
+    {
+        try
+        {
+            var validationResult = await _adminResetPasswordValidator.ValidateAsync(adminResetPasswordDto);
+            if (!validationResult.IsValid)
+            {
+                var validationErrors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                return AuthResult.ValidationError(validationErrors);
+            }
+
+            var targetUser = await _userManager.Users
+                .Include(u => u.Organization)
+                .FirstOrDefaultAsync(u => u.Email == adminResetPasswordDto.Email);
+
+            if (targetUser == null)
+            {
+                return AuthResult.Failure("User not found");
+            }
+
+            // Get current admin user information
+            var currentUser = _httpContextAccessor.HttpContext?.User;
+            if (currentUser == null)
+            {
+                return AuthResult.Failure("Invalid admin context");
+            }
+
+            // Check authorization - Organization admins can only reset passwords for users in their organization
+            if (currentUser.IsInRole(Roles.OrganizationAdmin.Name) && 
+                !currentUser.IsInRole(Roles.PlatformSuperAdmin.Name) && 
+                !currentUser.IsInRole(Roles.PlatformAdmin.Name))
+            {
+                var adminOrgIdClaim = currentUser.FindFirst("OrganizationId");
+                if (adminOrgIdClaim == null || !Guid.TryParse(adminOrgIdClaim.Value, out var adminOrgId))
+                {
+                    return AuthResult.Failure("Invalid admin organization context");
+                }
+
+                if (targetUser.OrganizationId != adminOrgId)
+                {
+                    return AuthResult.Failure("You can only reset passwords for users in your organization");
+                }
+            }
+
+            // Remove current password and set new one
+            var removePasswordResult = await _userManager.RemovePasswordAsync(targetUser);
+            if (!removePasswordResult.Succeeded)
+            {
+                var errors = string.Join(", ", removePasswordResult.Errors.Select(e => e.Description));
+                return AuthResult.Failure($"Failed to remove current password: {errors}");
+            }
+
+            var addPasswordResult = await _userManager.AddPasswordAsync(targetUser, adminResetPasswordDto.NewPassword);
+            if (!addPasswordResult.Succeeded)
+            {
+                var errors = string.Join(", ", addPasswordResult.Errors.Select(e => e.Description));
+                return AuthResult.Failure($"Failed to set new password: {errors}");
+            }
+
+            // Update password change timestamp
+            targetUser.LastPasswordChangeAt = DateTime.UtcNow;
+
+            // Clear any existing refresh tokens to force re-authentication
+            targetUser.ClearRefreshToken();
+
+            await _userManager.UpdateAsync(targetUser);
+
+            var adminEmail = currentUser.FindFirst(ClaimTypes.Email)?.Value ?? "Unknown";
+            _logger.LogInformation("Password reset by admin {AdminEmail} for user: {Email}", 
+                adminEmail, adminResetPasswordDto.Email);
+
+            return AuthResult.Success($"Password successfully reset for {targetUser.Email}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred during admin password reset for {Email}", adminResetPasswordDto.Email);
+            return AuthResult.Failure("An error occurred during password reset");
+        }
+    }
     
     public async Task<ServiceResult<UserDto>> GetCurrentUserAsync(Guid userId)
     {
@@ -657,9 +761,9 @@ public class AuthenticationService : IAuthenticationService
 
     public string GenerateEntraIdLoginUrl(string returnUrl = "/")
     {
-        if (_environment.IsDevelopment())
+        if (!ShouldUseEntraId)
         {
-            _logger.LogWarning("Entra ID authentication is not available in Development environment. Use JWT authentication instead.");
+            _logger.LogWarning("Entra ID authentication is disabled. Use JWT authentication instead.");
             return string.Empty;
         }
 
@@ -689,9 +793,9 @@ public class AuthenticationService : IAuthenticationService
 
     public string GenerateEntraIdSignUpUrl(string returnUrl = "/profile")
     {
-        if (_environment.IsDevelopment())
+        if (!ShouldUseEntraId)
         {
-            _logger.LogWarning("Entra ID authentication is not available in Development environment. Use JWT authentication instead.");
+            _logger.LogWarning("Entra ID authentication is disabled. Use JWT authentication instead.");
             return string.Empty;
         }
 
@@ -723,9 +827,9 @@ public class AuthenticationService : IAuthenticationService
     {
         try
         {
-            if (_environment.IsDevelopment())
+            if (!ShouldUseEntraId)
             {
-                return AuthResult.Failure("Entra ID authentication is not available in Development environment");
+                return AuthResult.Failure("Entra ID authentication is disabled");
             }
 
             if (!string.IsNullOrEmpty(error))
@@ -785,7 +889,8 @@ public class AuthenticationService : IAuthenticationService
                 _logger.LogInformation("Entra ID user {Email} authenticated successfully", userEmail);
 
                 return AuthResult.SuccessWithTokens(
-                    existingUser,
+                    
+                    _mapper.Map<UserDto>(existingUser),
                     jwtAccessToken,
                     refreshToken,
                     DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
@@ -810,9 +915,9 @@ public class AuthenticationService : IAuthenticationService
     {
         try
         {
-            if (_environment.IsDevelopment())
+            if (!ShouldUseEntraId)
             {
-                return AuthResult.Failure("Entra ID linking is not available in Development environment");
+                return AuthResult.Failure("Entra ID linking is disabled");
             }
 
             if (!Guid.TryParse(userId, out var userGuid))

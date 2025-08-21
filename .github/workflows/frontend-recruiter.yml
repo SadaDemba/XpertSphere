@@ -2,14 +2,14 @@ name: Recruiter App CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
       - "src/frontend/packages/recruiter-app/**"
       - "src/frontend/package*.json"
       - "src/frontend/eslint.config.mjs"
       - "src/frontend/.prettierrc"
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
       - "src/frontend/packages/recruiter-app/**"
       - "src/frontend/package*.json"
@@ -81,8 +81,24 @@ jobs:
 
       - name: Build and Push
         run: |
+          # Determine environment and add suffix based on branch
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            APP_ENV="production"
+            ENV_SUFFIX="/prod"
+          else
+            APP_ENV="staging"
+            ENV_SUFFIX="/staging"
+          fi
+
+          # Build URL with environment suffix
+          WEB_API_URL="${{ secrets.VITE_WEB_API_BASE_URL }}${ENV_SUFFIX}"
+
           docker build \
-            --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
+            --build-arg VITE_APP_ENV=$APP_ENV \
+            --build-arg VITE_AUTH_MODE=jwt \
+            --build-arg VITE_WEB_API_BASE_URL=$WEB_API_URL \
+            --build-arg VITE_APIM_SUBSCRIPTION_KEY=${{ secrets.VITE_APIM_SUBSCRIPTION_KEY }} \
+            --build-arg VITE_APP_VERSION=1.0.0 \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
             -f docker/recruiter-app/Dockerfile .

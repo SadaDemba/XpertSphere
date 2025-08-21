@@ -4,6 +4,7 @@
 import { defineConfig } from '#q-app/wrappers';
 import { fileURLToPath } from 'node:url';
 
+// @ts-expect-error - Quasar vitePlugins configuration structure doesn't match strict typing
 export default defineConfig((ctx) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
@@ -12,7 +13,7 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['i18n', 'axios'],
+    boot: ['i18n', 'axios', 'axe'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
@@ -79,15 +80,13 @@ export default defineConfig((ctx) => {
         }],
 
         ...(ctx.dev ? [
-          ['vite-plugin-checker',
-            {
-              vueTsc: true,
-              eslint: {
-                lintCommand: 'eslint -c ../../eslint.config.mjs "./src*/**/*.{ts,js,mjs,cjs,vue}"',
-                useFlatConfig: true
-              }
-            }, { server: false }
-          ]
+          ['vite-plugin-checker', {
+            vueTsc: true,
+            eslint: {
+              lintCommand: 'eslint -c ../../eslint.config.mjs "./src*/**/*.{ts,js,mjs,cjs,vue}"',
+              useFlatConfig: true
+            }
+          }, { server: false }]
         ] : [])
 
       ]
@@ -114,7 +113,7 @@ export default defineConfig((ctx) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: [],
+      plugins: ['Dialog', 'Notify'],
     },
 
     // animations: 'all', // --- includes all animations

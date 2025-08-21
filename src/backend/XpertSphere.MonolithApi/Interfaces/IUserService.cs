@@ -19,6 +19,11 @@ public interface IUserService
     Task<ServiceResult<UserProfileDto>> GetProfileAsync(Guid id);
 
     /// <summary>
+    /// Get all users without pagination (for organization filtering)
+    /// </summary>
+    Task<ServiceResult<List<UserSearchResultDto>>> GetAllAsync();
+
+    /// <summary>
     /// Search users with filters and pagination
     /// </summary>
     Task<PaginatedResult<UserSearchResultDto>> SearchAsync(UserFilterDto filter);

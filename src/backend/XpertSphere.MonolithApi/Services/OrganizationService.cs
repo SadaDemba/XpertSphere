@@ -1,11 +1,14 @@
+using System.Security.Claims;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using XpertSphere.MonolithApi.Data;
+using XpertSphere.MonolithApi.Data.Configurations;
 using XpertSphere.MonolithApi.DTOs.Organization;
 using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Utils;
 using XpertSphere.MonolithApi.Utils.Pagination;
 using XpertSphere.MonolithApi.Utils.Results;
 
@@ -19,6 +22,7 @@ namespace XpertSphere.MonolithApi.Services
         private readonly IValidator<UpdateOrganizationDto> _updateValidator;
         private readonly IValidator<OrganizationFilterDto> _filterValidator;
         private readonly ILogger<OrganizationService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public OrganizationService(
             XpertSphereDbContext context,
@@ -26,7 +30,8 @@ namespace XpertSphere.MonolithApi.Services
             IValidator<CreateOrganizationDto> createValidator,
             IValidator<UpdateOrganizationDto> updateValidator,
             IValidator<OrganizationFilterDto> filterValidator,
-            ILogger<OrganizationService> logger)
+            ILogger<OrganizationService> logger,
+            IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
@@ -34,6 +39,7 @@ namespace XpertSphere.MonolithApi.Services
             _updateValidator = updateValidator;
             _filterValidator = filterValidator;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ServiceResult<OrganizationDto>> CreateAsync(CreateOrganizationDto createDto)
@@ -148,13 +154,55 @@ namespace XpertSphere.MonolithApi.Services
                 var pageSize = int.TryParse(filter.PageSize, out var ps) ? ps : 10;
 
                 var paginatedResult = await query.ToPaginatedResultAsync(pageNumber, pageSize);
+                var result = paginatedResult.Map(org => _mapper.Map<OrganizationDto>(org));
                 
-                return paginatedResult.Map(org => _mapper.Map<OrganizationDto>(org));
+                // Apply organization filtering for non-XpertSphere users
+                if (!IsXpertSphereUser() && result.IsSuccess)
+                {
+                    var userOrgId = GetUserOrganizationId();
+                    if (userOrgId.HasValue)
+                    {
+                        result.Items = result.Items.Where(o => o.Id == userOrgId.Value).ToList();
+                        result.Pagination.TotalItems = result.Items?.Count ?? 0;
+                    }
+                }
+                
+                return result;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving organizations with filter {Filter}", filter);
                 return PaginatedResult<OrganizationDto>.Failure("An error occurred while searching organizations");
+            }
+        }
+
+        public async Task<ServiceResult<IEnumerable<OrganizationDto>>> GetAllWithoutPaginationAsync()
+        {
+            try
+            {
+                var organizations = await _context.Organizations
+                    .Where(o => o.IsActive)
+                    .OrderBy(o => o.Name)
+                    .ToListAsync();
+
+                var organizationDtos = _mapper.Map<IEnumerable<OrganizationDto>>(organizations);
+                
+                // Apply organization filtering for non-XpertSphere users
+                if (!IsXpertSphereUser())
+                {
+                    var userOrgId = GetUserOrganizationId();
+                    if (userOrgId.HasValue)
+                    {
+                        organizationDtos = organizationDtos.Where(o => o.Id == userOrgId.Value);
+                    }
+                }
+                
+                return ServiceResult<IEnumerable<OrganizationDto>>.Success(organizationDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving all organizations");
+                return ServiceResult<IEnumerable<OrganizationDto>>.InternalError("An error occurred while retrieving organizations");
             }
         }
 
@@ -223,11 +271,12 @@ namespace XpertSphere.MonolithApi.Services
             // Search terms
             if (!string.IsNullOrEmpty(filter.SearchTerms))
             {
+                var searchTerms = filter.SearchTerms.ToLower();
                 query = query.Where(o => 
-                    o.Name.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                    o.Code.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                    o.ContactEmail!.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                    o.Industry!.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase)
+                    o.Name.ToLower().Contains(searchTerms) ||
+                    o.Code.ToLower().Contains(searchTerms) ||
+                    o.ContactEmail!.ToLower().Contains(searchTerms) ||
+                    o.Industry!.ToLower().Contains(searchTerms)
                     );
             }
 
@@ -270,6 +319,52 @@ namespace XpertSphere.MonolithApi.Services
                     : query.OrderByDescending(o => o.CreatedAt)
                 };
         }
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Check if the current user is affiliated with XpertSphere organization
+        /// </summary>
+        private bool IsXpertSphereUser()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null) return false;
+
+            // Check by organization name
+            var organizationClaim = user.FindFirst("OrganizationName");
+            if (organizationClaim?.Value == "XpertSphere")
+            {
+                return true;
+            }
+
+            // Check by groups
+            if (user.HasClaim("group", "Org-XpertSphere") ||
+                user.HasClaim("group", "XpertSphere"))
+            {
+                return true;
+            }
+
+            // Check by platform roles
+            return user.IsInRole(Roles.PlatformAdmin.Name) || user.IsInRole(Roles.PlatformSuperAdmin.Name);
+        }
+
+        /// <summary>
+        /// Get the organization ID of the current user
+        /// </summary>
+        private Guid? GetUserOrganizationId()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null) return null;
+
+            var orgIdClaim = user.FindFirst("OrganizationId");
+            if (orgIdClaim != null && Guid.TryParse(orgIdClaim.Value, out var orgId))
+            {
+                return orgId;
+            }
+            return null;
+        }
+
+        #endregion
         
     }
 }
