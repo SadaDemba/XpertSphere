@@ -9,7 +9,7 @@ namespace XpertSphere.MonolithApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+
 public class JobOffersController(IJobOfferService jobOfferService) : ControllerBase
 {
     /// <summary>
@@ -133,7 +133,6 @@ public class JobOffersController(IJobOfferService jobOfferService) : ControllerB
     /// Get job offers by organization
     /// </summary>
     [HttpGet("organization/{organizationId:guid}")]
-    [Authorize(Policy = "OrganizationAccess")]
     public async Task<ActionResult<IEnumerable<JobOfferDto>>> GetJobOffersByOrganization(Guid organizationId)
     {
         var result = await jobOfferService.GetJobOffersByOrganizationAsync(organizationId);

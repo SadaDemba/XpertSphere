@@ -472,11 +472,12 @@ public class JobOfferService : IJobOfferService
 
         if (!string.IsNullOrEmpty(filter.SearchTerms))
         {
+            var searchTerms = filter.SearchTerms.ToLower();
             query = query.Where(jo =>
-                jo.Title.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                jo.Description.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                jo.Requirements.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                (jo.Location != null && jo.Location.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase)));
+                jo.Title.ToLower().Contains(searchTerms) ||
+                jo.Description.ToLower().Contains(searchTerms) ||
+                jo.Requirements.ToLower().Contains(searchTerms) ||
+                (jo.Location != null && jo.Location.ToLower().Contains(searchTerms)));
         }
 
         if (!string.IsNullOrEmpty(filter.SortBy))

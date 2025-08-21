@@ -14,4 +14,5 @@ public class UserFilterDto: Filter
     public decimal? MinSalary { get; set; }
     public decimal? MaxSalary { get; set; }
     public string? Skills { get; set; }
+    public string? Role { get; set; }
 }

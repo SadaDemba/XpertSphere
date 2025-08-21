@@ -34,6 +34,8 @@ public record UserDto
     public string FullName { get; init; } = string.Empty;
     public bool EmailConfirmed { get; init; }
     public int ProfileCompletionPercentage { get; init; }
+    
+    public string? CvPath { get; set; }
 
     // Address
     public AddressDto? Address { get; set; }

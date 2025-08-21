@@ -198,8 +198,8 @@ public class EntraIdFallbackService : IEntraIdFallbackService
 
     public bool ShouldUseEntraId(string? email = null)
     {
-        // Never use Entra ID in development
-        if (_environment.IsDevelopment())
+        // Never use Entra ID in development or if disabled
+        if (_environment.IsDevelopment() || Environment.GetEnvironmentVariable("USE_ENTRA_ID")?.ToLower() != "true")
         {
             return false;
         }

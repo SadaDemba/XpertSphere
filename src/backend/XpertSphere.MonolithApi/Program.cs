@@ -10,6 +10,25 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Authentication configuration from environment
+var useEntraId = Environment.GetEnvironmentVariable("USE_ENTRA_ID")?.ToLower() == "true";
+
+// CORS Configuration from environment variables
+var corsOrigins = builder.Environment.IsDevelopment() 
+    ? Environment.GetEnvironmentVariable("CORS__ALLOWED_ORIGINS")?.Split(',') ?? []
+    : Environment.GetEnvironmentVariable("CORS__PRODUCTION_ORIGINS")?.Split(',') ?? [];
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(corsOrigins)
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
+
 if (!builder.Environment.IsDevelopment())
 {
     // Azure Key Vault Configuration
@@ -27,7 +46,7 @@ if (!builder.Environment.IsDevelopment())
 
 // Infrastructure Services
 builder.Services.AddDatabase(builder.Configuration, builder.Environment);
-builder.Services.AddSecurity(builder.Configuration, builder.Environment);
+builder.Services.AddSecurity(builder.Configuration, builder.Environment, useEntraId);
 builder.Services.AddBlobStorage(builder.Configuration);
 
 // AutoMapper Configuration
@@ -51,15 +70,18 @@ builder.Services.AddSwaggerDocumentation();
 // Application Services
 builder.Services.AddApplicationServices();
 
-// Authentication Error Handling & Logging Services
+
 builder.Services.AddAuthenticationLogging();
-builder.Services.AddEntraIdFallback();
-builder.Services.AddEntraIdRateLimit();
+if (useEntraId)
+{
+    // Authentication Error Handling & Logging Services
+    builder.Services.AddEntraIdFallback();
+    builder.Services.AddEntraIdRateLimit();
+    
+    // HTTP Client for Entra ID APIs
+    builder.Services.AddHttpClient("EntraId", client => client.ConfigureForEntraId());
+}
 
-// HTTP Client for Entra ID APIs
-builder.Services.AddHttpClient("EntraId", client => client.ConfigureForEntraId());
-
-// Additional Services
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
@@ -73,14 +95,18 @@ app.UseSwaggerDocumentation();
 // Health Check endpoint
 app.MapHealthChecks("/health");
 
-// Security Pipeline (order matters!)
+// Security Pipeline
 app.UseHttpsRedirection();
 app.UseCookiePolicy();
+
+// Use the configured CORS policy
+app.UseCors();
+
 app.UseAuthentication();
 
-// Claims enrichment only needed for EntraID in production
-if (!app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment() && useEntraId)
 {
+    // Claims enrichment only needed for EntraID in production
     app.UseMiddleware<ClaimsEnrichmentMiddleware>();
 }
 
@@ -90,3 +116,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 await app.RunAsync();
+
+// Make the Program accessible for the testing project
+public partial class Program { }

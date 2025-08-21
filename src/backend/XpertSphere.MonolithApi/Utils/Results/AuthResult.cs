@@ -84,7 +84,7 @@ public class AuthResult : ServiceResult<AuthResponseDto>
         };
     }
 
-    public static AuthResult SuccessWithTokens(User user, string accessToken, string refreshToken, DateTime tokenExpiry, string message = "Login successful", string? returnUrl = null)
+    public static AuthResult SuccessWithTokens(UserDto? user, string accessToken, string refreshToken, DateTime tokenExpiry, string message = "Login successful", string? returnUrl = null)
     {
         var response = new AuthResponseDto
         {
@@ -94,20 +94,7 @@ public class AuthResult : ServiceResult<AuthResponseDto>
             RefreshToken = refreshToken,
             TokenExpiry = tokenExpiry,
             RedirectUrl = returnUrl,
-            User = new UserDto
-            {
-                Id = user.Id,
-                Email = user.Email!,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                FullName = user.FullName,
-                OrganizationId = user.OrganizationId,
-                OrganizationName = user.Organization?.Name,
-                IsActive = user.IsActive,
-                EmailConfirmed = user.EmailConfirmed,
-                LastLoginAt = user.LastLoginAt,
-                ProfileCompletionPercentage = user.ProfileCompletionPercentage
-            }
+            User = user
         };
 
         return new AuthResult

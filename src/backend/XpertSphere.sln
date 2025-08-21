@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XpertSphere.MonolithApi", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domains", "Domains", "{8B38060F-8216-4482-BE4F-8F3E2FF545BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XpertSphere.MonolithApi.Tests", "XpertSphere.MonolithApi.Tests\XpertSphere.MonolithApi.Tests.csproj", "{A9BF54A4-F746-46F2-ABD0-6B7BB2CE182B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{4835FB70-D857-4BC2-94CF-7FDCBED23C46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4835FB70-D857-4BC2-94CF-7FDCBED23C46}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4835FB70-D857-4BC2-94CF-7FDCBED23C46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9BF54A4-F746-46F2-ABD0-6B7BB2CE182B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9BF54A4-F746-46F2-ABD0-6B7BB2CE182B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9BF54A4-F746-46F2-ABD0-6B7BB2CE182B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9BF54A4-F746-46F2-ABD0-6B7BB2CE182B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

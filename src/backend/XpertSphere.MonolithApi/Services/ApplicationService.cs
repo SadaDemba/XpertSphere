@@ -104,6 +104,7 @@ public class ApplicationService : IApplicationService
             var application = await _context.Applications
                 .Include(a => a.JobOffer)
                     .ThenInclude(jo => jo.Organization)
+                .Include(jo => jo.StatusHistory)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
@@ -532,7 +533,7 @@ public class ApplicationService : IApplicationService
                 return ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>.NotFound($"Application with ID {applicationId} not found");
             }
 
-            return await _statusHistoryService.GetHistoryAsync(applicationId);
+            return await _statusHistoryService.GetByApplicationIdAsync(applicationId);
         }
         catch (Exception ex)
         {
@@ -721,11 +722,12 @@ public class ApplicationService : IApplicationService
 
         if (!string.IsNullOrEmpty(filter.SearchTerms))
         {
+            var searchTerms = filter.SearchTerms.ToLower();
             query = query.Where(a =>
-                a.JobOffer.Title.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                (a.Candidate.FirstName + " " + a.Candidate.LastName).Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase) ||
-                (a.CoverLetter != null && a.CoverLetter.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase)) ||
-                (a.AdditionalNotes != null && a.AdditionalNotes.Contains(filter.SearchTerms, StringComparison.CurrentCultureIgnoreCase)));
+                a.JobOffer.Title.ToLower().Contains(searchTerms) ||
+                (a.Candidate.FirstName + " " + a.Candidate.LastName).ToLower().Contains(searchTerms) ||
+                (a.CoverLetter != null && a.CoverLetter.ToLower().Contains(searchTerms)) ||
+                (a.AdditionalNotes != null && a.AdditionalNotes.ToLower().Contains(searchTerms)));
         }
 
         if (!string.IsNullOrEmpty(filter.SortBy))

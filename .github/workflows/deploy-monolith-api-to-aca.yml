@@ -2,10 +2,10 @@ name: Deploy Monolith API to Azure Container Apps
 
 on:
   workflow_run:
-    workflows: [ "Backend Monolith API CI/CD" ]
+    workflows: ["Backend Monolith API CI/CD"]
     types:
       - completed
-    branches: [ main, develop ]
+    branches: [main, develop]
   workflow_dispatch:
     inputs:
       environment:
@@ -38,7 +38,7 @@ jobs:
 
       - name: Deploy monolith-api to STAGING
         run: |
-          echo "🟡 === Deploying monolith-api to STAGING ==="
+          echo "=== Deploying monolith-api to STAGING ==="
 
           # Variables for staging
           APP_NAME="aca-monolith-api-staging"
@@ -52,14 +52,27 @@ jobs:
           fi
 
           if az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
-            echo "Container app exists, updating..."
+            echo "Container app exists, updating image..."
             az containerapp update \
               --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --image acrxpertspheredev.azurecr.io/monolith-api:$IMAGE_TAG \
-              --set-env-vars ASPNETCORE_ENVIRONMENT=Staging \
-                            ConnectionStrings__DefaultConnection="${{ secrets.CONNECTION_STRING_STAGING }}" \
-                            Redis__ConnectionString="${{ secrets.REDIS_CONNECTION_STRING_STAGING }}"
+              --image acrxpertspheredev.azurecr.io/monolith-api:$IMAGE_TAG
+
+            echo "Updating managed identity..."
+            az containerapp identity assign \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --user-assigned "${{ secrets.IDENTITY_ID }}"
+
+            echo "Updating environment variables..."
+            az containerapp update \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --set-env-vars \
+                ASPNETCORE_ENVIRONMENT=Staging \
+                KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
+                USE_ENTRA_ID=false \
+                CORS__PRODUCTION_ORIGINS="${{ secrets.CORS_PRODUCTION_ORIGINS }}"
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
@@ -67,14 +80,17 @@ jobs:
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --environment $ENVIRONMENT_NAME \
               --image acrxpertspheredev.azurecr.io/monolith-api:$IMAGE_TAG \
+              --user-assigned "${{ secrets.IDENTITY_ID }}" \
               --registry-server acrxpertspheredev.azurecr.io \
               --registry-username ${{ secrets.ACR_USERNAME }} \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
               --target-port 8080 \
               --ingress external \
-              --env-vars ASPNETCORE_ENVIRONMENT=Staging \
-                         ConnectionStrings__DefaultConnection="${{ secrets.CONNECTION_STRING_STAGING }}" \
-                         Redis__ConnectionString="${{ secrets.REDIS_CONNECTION_STRING_STAGING }}" \
+              --env-vars \
+                ASPNETCORE_ENVIRONMENT=Staging \
+                KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
+                USE_ENTRA_ID=false \
+                CORS__PRODUCTION_ORIGINS="${{ secrets.CORS_PRODUCTION_ORIGINS }}" \
               --cpu 0.5 \
               --memory 1Gi \
               --min-replicas 0 \
@@ -83,8 +99,8 @@ jobs:
 
       - name: Get staging URL
         run: |
-          echo "🎉 monolith-api deployed to STAGING successfully!"
-          echo "🔗 Staging URL: https://$(az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
+          echo "monolith-api deployed to STAGING successfully!"
+          echo "Staging URL: https://$(az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
 
   deploy-production:
     runs-on: ubuntu-latest
@@ -101,7 +117,7 @@ jobs:
 
       - name: Deploy monolith-api to PRODUCTION
         run: |
-          echo "🟢 === Deploying monolith-api to PRODUCTION ==="
+          echo "=== Deploying monolith-api to PRODUCTION ==="
 
           # Variables for production
           APP_NAME="xpertsphere-monolith-api"
@@ -115,14 +131,27 @@ jobs:
           fi
 
           if az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} > /dev/null 2>&1; then
-            echo "Container app exists, updating..."
+            echo "Container app exists, updating image..."
             az containerapp update \
               --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --image acrxpertspheredev.azurecr.io/monolith-api:$IMAGE_TAG \
-              --set-env-vars ASPNETCORE_ENVIRONMENT=Production \
-                            ConnectionStrings__DefaultConnection="${{ secrets.CONNECTION_STRING_PRODUCTION }}" \
-                            Redis__ConnectionString="${{ secrets.REDIS_CONNECTION_STRING_PRODUCTION }}"
+              --image acrxpertspheredev.azurecr.io/monolith-api:$IMAGE_TAG
+
+            echo "Updating managed identity..."
+            az containerapp identity assign \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --user-assigned "${{ secrets.IDENTITY_ID }}"
+
+            echo "Updating environment variables..."
+            az containerapp update \
+              --name $APP_NAME \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --set-env-vars \
+                ASPNETCORE_ENVIRONMENT=Production \
+                KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
+                USE_ENTRA_ID=false \
+                CORS__PRODUCTION_ORIGINS="${{ secrets.CORS_PRODUCTION_ORIGINS }}"
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
@@ -130,14 +159,17 @@ jobs:
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --environment $ENVIRONMENT_NAME \
               --image acrxpertspheredev.azurecr.io/monolith-api:$IMAGE_TAG \
+              --user-assigned "${{ secrets.IDENTITY_ID }}" \
               --registry-server acrxpertspheredev.azurecr.io \
               --registry-username ${{ secrets.ACR_USERNAME }} \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
               --target-port 8080 \
               --ingress external \
-              --env-vars ASPNETCORE_ENVIRONMENT=Production \
-                         ConnectionStrings__DefaultConnection="${{ secrets.CONNECTION_STRING_PRODUCTION }}" \
-                         Redis__ConnectionString="${{ secrets.REDIS_CONNECTION_STRING_PRODUCTION }}" \
+              --env-vars \
+                ASPNETCORE_ENVIRONMENT=Production \
+                KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
+                USE_ENTRA_ID=false \
+                CORS__PRODUCTION_ORIGINS="${{ secrets.CORS_PRODUCTION_ORIGINS }}" \
               --cpu 1.0 \
               --memory 2Gi \
               --min-replicas 1 \
@@ -146,5 +178,5 @@ jobs:
 
       - name: Get production URL
         run: |
-          echo "🎉 monolith-api deployed to PRODUCTION successfully!"
-          echo "🔗 Production URL: https://$(az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"
+          echo "monolith-api deployed to PRODUCTION successfully!"
+          echo "Production URL: https://$(az containerapp show --name $APP_NAME --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query 'properties.latestRevisionFqdn' -o tsv)"

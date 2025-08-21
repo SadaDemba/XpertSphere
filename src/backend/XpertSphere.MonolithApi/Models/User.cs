@@ -179,7 +179,7 @@ public class User : IdentityUser<Guid>, IAuditableEntity
         FailedLoginAttempts++;
         if (FailedLoginAttempts >= 5)
         {
-            AccountLockedUntil = DateTime.UtcNow.AddMinutes(10);
+            AccountLockedUntil = DateTime.UtcNow.AddMinutes(5);
         }
     }
 

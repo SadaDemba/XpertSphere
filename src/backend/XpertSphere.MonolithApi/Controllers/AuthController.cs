@@ -119,6 +119,17 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Admin reset password for a user by email (SuperAdmin XpertSphere for all, Admin for their organization)
+    /// </summary>
+    [HttpPost("admin-reset-password")]
+    [Authorize(Policy = "CanResetPasswords")]
+    public async Task<ActionResult<AuthResponseDto>> AdminResetPassword([FromBody] AdminResetPasswordDto adminResetPasswordDto)
+    {
+        var result = await _authService.AdminResetPasswordAsync(adminResetPasswordDto);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
     /// Generate Entra ID login URL based on user type
     /// </summary>
     /// <param name="email">User email to determine organization membership</param>

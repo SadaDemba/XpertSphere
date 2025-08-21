@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using XpertSphere.MonolithApi.Data;
 using XpertSphere.MonolithApi.DTOs.User;
@@ -19,6 +20,7 @@ public class UserService : IUserService
     private readonly IValidator<UserFilterDto> _filterValidator;
     private readonly IValidator<UploadCvDto> _uploadCvValidator;
     private readonly ILogger<UserService> _logger;
+    private readonly UserManager<User> _userManager;
     
     public UserService(
         XpertSphereDbContext context,
@@ -27,7 +29,8 @@ public class UserService : IUserService
         IValidator<UpdateUserDto> updateUserValidator,
         IValidator<UserFilterDto> filterValidator,
         IValidator<UploadCvDto> uploadCvValidator,
-        ILogger<UserService> logger)
+        ILogger<UserService> logger,
+        UserManager<User> userManager)
     {
         _context = context;
         _mapper = mapper;
@@ -36,6 +39,7 @@ public class UserService : IUserService
         _filterValidator = filterValidator;
         _uploadCvValidator = uploadCvValidator;
         _logger = logger;
+        _userManager = userManager;
     }
     
     public async Task<ServiceResult<UserDto>> GetByIdAsync(Guid id)
@@ -44,6 +48,8 @@ public class UserService : IUserService
         {
             var user = await _context.Users
                 .Include(u => u.Organization)
+                .Include(u => u.Experiences)
+                .Include(u=>u.Trainings)
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Id == id);
@@ -84,6 +90,27 @@ public class UserService : IUserService
         {
             _logger.LogError(ex, "Error retrieving user profile with ID {UserId}", id);
             return ServiceResult<UserProfileDto>.InternalError("An error occurred while retrieving the user profile");
+        }
+    }
+
+    public async Task<ServiceResult<List<UserSearchResultDto>>> GetAllAsync()
+    {
+        try
+        {
+            var users = await _context.Users
+                .Include(u => u.Organization)
+                .Where(u => u.IsActive)
+                .OrderBy(u => u.FirstName)
+                .ThenBy(u => u.LastName)
+                .ToListAsync();
+
+            var userDtos = _mapper.Map<List<UserSearchResultDto>>(users);
+            return ServiceResult<List<UserSearchResultDto>>.Success(userDtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all users");
+            return ServiceResult<List<UserSearchResultDto>>.InternalError("An error occurred while retrieving users");
         }
     }
 
@@ -144,10 +171,10 @@ public class UserService : IUserService
             
             var user = _mapper.Map<User>(dto);
             user.Id = Guid.NewGuid();
+            user.UserName = dto.Email; // UserManager requires UserName
             user.CalculateProfileCompletion();
             
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var result = await _userManager.CreateAsync(user);
             
             _logger.LogInformation("Created new user with ID {UserId} and email {Email}", user.Id, user.Email);
             
@@ -669,6 +696,8 @@ public class UserService : IUserService
     {
         var query = _context.Users
             .Include(u => u.Organization)
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
             .AsQueryable();
 
         // Apply filters
@@ -710,6 +739,11 @@ public class UserService : IUserService
         if (!string.IsNullOrEmpty(filter.Skills))
         {
             query = query.Where(u => u.Skills != null && u.Skills.Contains(filter.Skills));
+        }
+        
+        if (!string.IsNullOrEmpty(filter.Role))
+        {
+            query = query.Where(u => u.UserRoles.Any(ur => ur.IsActive && ur.Role.Name.ToLower() == filter.Role.ToLower()));
         }
         
         // Search terms
