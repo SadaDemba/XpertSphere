@@ -2,7 +2,7 @@
   <q-page class="job-listings-page">
     <div class="page-header q-pa-lg">
       <h4 class="text-h4 q-my-none">Offres d'emploi</h4>
-      <p class="text-subtitle1 q-mt-sm text-grey-7">Découvrez les dernières opportunités</p>
+      <p class="text-subtitle1 q-mt-sm text-white">Découvrez les dernières opportunités</p>
     </div>
 
     <!-- Search and Filters -->
@@ -30,7 +30,7 @@
             unelevated
             icon="tune"
             label="Filtres"
-            :color="hasActiveFilters ? 'primary' : 'grey-6'"
+            :style="{ backgroundColor: '#764ba2', color: 'white' }"
             @click="showFilters = !showFilters"
           />
         </div>
@@ -164,6 +164,7 @@ const filters = ref({
 });
 
 // Computed
+/*
 const hasActiveFilters = computed(() => {
   return (
     filters.value.location ||
@@ -171,7 +172,7 @@ const hasActiveFilters = computed(() => {
     filters.value.contractType !== null ||
     searchTerm.value
   );
-});
+});*/
 
 const workModeOptions = computed(() =>
   Object.entries(workModeLabels).map(([value, label]) => ({

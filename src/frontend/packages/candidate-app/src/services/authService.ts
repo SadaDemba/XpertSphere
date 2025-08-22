@@ -64,7 +64,7 @@ export class AuthService extends BaseClient {
 
     try {
       const response = await axios.post<ResumeAnalysisResponse>(
-        `${settings.resumeAnalyzer.baseUrl}/extract/?include_raw_text=false`,
+        `${settings.resumeAnalyzer.baseUrl}api/extract/?include_raw_text=false`,
         formData,
         {
           headers: {
