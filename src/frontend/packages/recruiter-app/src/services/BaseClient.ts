@@ -48,7 +48,7 @@ export class BaseClient {
     this.authConfig = getAuthMode();
 
     // Use configured base URL for all auth modes
-    const baseURL = `${settings.webApi.baseUrl}${url}`;
+    const baseURL = `${settings.webApi.baseUrl}/api${url}`;
 
     this.apiClient = axios.create({
       baseURL,

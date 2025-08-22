@@ -64,12 +64,35 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
+      - name: Generate version
+        id: version
+        run: |
+          # Version format: YYYY.MM.DD-{environment}-{short-sha}
+          DATE=$(date +%Y.%m.%d)
+          SHORT_SHA=${GITHUB_SHA:0:8}
+
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            VERSION="${DATE}-prod-${SHORT_SHA}"
+          else
+            VERSION="${DATE}-staging-${SHORT_SHA}"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
+
       - name: Build and Push
         run: |
           docker build \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }} \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
             -f docker/backend/monolith-api/Dockerfile .
 
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+          echo "Pushed versions:"
+          echo "- SHA: ${{ github.sha }}"
+          echo "- Semantic: ${{ steps.version.outputs.version }}"
+          echo "- Latest: latest"

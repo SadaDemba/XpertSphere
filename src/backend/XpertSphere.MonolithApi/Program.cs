@@ -13,21 +13,22 @@ var builder = WebApplication.CreateBuilder(args);
 // Authentication configuration from environment
 var useEntraId = Environment.GetEnvironmentVariable("USE_ENTRA_ID")?.ToLower() == "true";
 
-// CORS Configuration from environment variables
-var corsOrigins = builder.Environment.IsDevelopment() 
-    ? Environment.GetEnvironmentVariable("CORS__ALLOWED_ORIGINS")?.Split(',') ?? []
-    : Environment.GetEnvironmentVariable("CORS__PRODUCTION_ORIGINS")?.Split(',') ?? [];
-
-builder.Services.AddCors(options =>
+// CORS Configuration - Only for Development (local testing)
+if (builder.Environment.IsDevelopment())
 {
-    options.AddDefaultPolicy(policy =>
+    var corsOrigins = Environment.GetEnvironmentVariable("CORS__ALLOWED_ORIGINS")?.Split(',') ?? [];
+    
+    builder.Services.AddCors(options =>
     {
-        policy.WithOrigins(corsOrigins)
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+        options.AddDefaultPolicy(policy =>
+        {
+            policy.WithOrigins(corsOrigins)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        });
     });
-});
+}
 
 if (!builder.Environment.IsDevelopment())
 {
@@ -99,8 +100,11 @@ app.MapHealthChecks("/health");
 app.UseHttpsRedirection();
 app.UseCookiePolicy();
 
-// Use the configured CORS policy
-app.UseCors();
+// Use CORS only in Development
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors();
+}
 
 app.UseAuthentication();
 

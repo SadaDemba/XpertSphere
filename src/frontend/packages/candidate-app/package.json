@@ -1,7 +1,7 @@
 {
   "name": "@xpertsphere/candidate-app",
   "version": "0.0.1",
-  "description": "XpertSphere Candidate Application",
+  "description": "Trouvez votre prochain emploi avec XpertSphere - Plateforme de recrutement innovante qui connecte talents et opportunités",
   "productName": "XpertSphere Candidate",
   "author": "Sada Thiam <sthiam@expertime.com>",
   "type": "module",
