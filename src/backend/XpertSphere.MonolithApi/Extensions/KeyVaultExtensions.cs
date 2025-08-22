@@ -50,8 +50,11 @@ public static class KeyVaultExtensions
         {
             Console.WriteLine($"INFO - Configuring Key Vault for {environment} environment: {keyVaultUrl}");
             
-            // Use DefaultAzureCredential which automatically handles Managed Identity
-            var credential = new DefaultAzureCredential();
+            // Use specific Managed Identity if AZURE_CLIENT_ID is provided, otherwise use DefaultAzureCredential
+            var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+            var credential = string.IsNullOrEmpty(clientId) 
+                ? new DefaultAzureCredential() 
+                : new ManagedIdentityCredential(clientId);
             
             builder.Configuration.AddAzureKeyVault(
                 new Uri(keyVaultUrl),
