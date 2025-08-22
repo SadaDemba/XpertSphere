@@ -65,15 +65,41 @@
     <q-card-section class="card-footer">
       <div class="row items-center justify-between">
         <div class="status-info">
-          <q-chip
-            :color="jobOfferStatusConfig[job.status].color"
-            :text-color="jobOfferStatusConfig[job.status].textColor"
+          <q-select
+            :model-value="job.status"
+            :options="statusOptions"
             dense
-            :aria-label="`Statut: ${jobOfferStatusConfig[job.status].label}`"
+            borderless
+            behavior="menu"
+            class="status-select"
+            :aria-label="`Modifier le statut de l'offre ${job.title}`"
+            @update:model-value="updateStatus"
           >
-            <q-icon :name="jobOfferStatusConfig[job.status].icon" size="14px" class="q-mr-xs" />
-            {{ jobOfferStatusConfig[job.status].label }}
-          </q-chip>
+            <template #selected>
+              <q-chip
+                :color="jobOfferStatusConfig[job.status]?.color || 'grey'"
+                :text-color="jobOfferStatusConfig[job.status]?.textColor || 'black'"
+                dense
+              >
+                <q-icon
+                  :name="jobOfferStatusConfig[job.status]?.icon || 'help'"
+                  size="14px"
+                  class="q-mr-xs"
+                />
+                {{ jobOfferStatusConfig[job.status]?.label || 'Statut inconnu' }}
+              </q-chip>
+            </template>
+            <template #option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section avatar>
+                  <q-icon :name="jobOfferStatusConfig[scope.opt.value as JobOfferStatus]?.icon" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
         </div>
 
         <div class="applications-count">
@@ -100,7 +126,9 @@
 <script setup lang="ts">
 import type { JobOffer } from '../../models/job';
 import { jobOfferStatusConfig, contractTypeLabels } from '../../models/job';
+import { JobOfferStatus } from '../../enums';
 import { formatDate } from '../../helpers';
+import { computed } from 'vue';
 
 interface Props {
   job: JobOffer;
@@ -111,10 +139,21 @@ interface Emits {
   (e: 'delete', job: JobOffer): void;
   (e: 'duplicate', job: JobOffer): void;
   (e: 'viewApplications', job: JobOffer): void;
+  (e: 'updateStatus', job: JobOffer, status: JobOfferStatus): void;
 }
 
-defineProps<Props>();
-defineEmits<Emits>();
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
+
+const statusOptions = computed(() => [
+  { label: 'Brouillon', value: JobOfferStatus.Draft },
+  { label: 'Publiée', value: JobOfferStatus.Published },
+  { label: 'Fermée', value: JobOfferStatus.Closed },
+]);
+
+const updateStatus = (newStatus: JobOfferStatus) => {
+  emit('updateStatus', props.job, newStatus);
+};
 </script>
 
 <style scoped>
@@ -184,5 +223,9 @@ defineEmits<Emits>();
     align-items: flex-start;
     gap: 8px;
   }
+}
+
+.status-select {
+  min-width: 120px;
 }
 </style>

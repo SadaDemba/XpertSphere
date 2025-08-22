@@ -99,7 +99,7 @@
 
           <template #body-cell-actions="props">
             <q-td :props="props">
-              <q-btn flat round dense icon="moreerror : anyvert" color="grey-6">
+              <q-btn flat round dense icon="more_vert" color="grey-6">
                 <q-menu anchor="bottom right" self="top right">
                   <q-list style="min-width: 180px">
                     <q-item v-close-popup clickable @click="editUser(props.row)">
@@ -111,14 +111,14 @@
 
                     <q-item v-close-popup clickable @click="manageUserRoles(props.row)">
                       <q-item-section avatar>
-                        <q-icon name="adminerror : anypanelerror : anysettings" color="info" />
+                        <q-icon name="admin_panel_settings" color="info" />
                       </q-item-section>
                       <q-item-section>Gérer les rôles</q-item-section>
                     </q-item>
 
                     <q-item v-close-popup clickable @click="openResetPasswordDialog(props.row)">
                       <q-item-section avatar>
-                        <q-icon name="lockerror : anyreset" color="warning" />
+                        <q-icon name="lock_reset" color="warning" />
                       </q-item-section>
                       <q-item-section>Réinitialiser le mot de passe</q-item-section>
                     </q-item>
@@ -126,7 +126,7 @@
                     <q-item v-close-popup clickable @click="confirmToggleStatus(props.row)">
                       <q-item-section avatar>
                         <q-icon
-                          :name="props.row.isActive ? 'pause' : 'playerror : anyarrow'"
+                          :name="props.row.isActive ? 'pause' : 'play_arrow'"
                           :color="props.row.isActive ? 'warning' : 'positive'"
                         />
                       </q-item-section>
@@ -293,7 +293,7 @@
                   flat
                   round
                   dense
-                  :icon="props.row.isActive ? 'pause' : 'playerror : anyarrow'"
+                  :icon="props.row.isActive ? 'pause' : 'play_arrow'"
                   :color="props.row.isActive ? 'warning' : 'positive'"
                   @click="toggleUserRoleStatus(props.row)"
                 />

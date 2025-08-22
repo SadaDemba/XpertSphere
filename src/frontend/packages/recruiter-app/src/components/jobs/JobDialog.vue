@@ -50,6 +50,8 @@
                 :options="workModeOptions"
                 :rules="[(val) => val !== undefined || 'Le mode de travail est obligatoire']"
                 aria-label="Mode de travail"
+                emit-value
+                map-options
                 required
               />
             </div>
@@ -61,6 +63,8 @@
                 :options="contractTypeOptions"
                 :rules="[(val) => val !== undefined || 'Le type de contrat est obligatoire']"
                 aria-label="Type de contrat"
+                emit-value
+                map-options
                 required
               />
             </div>
@@ -127,20 +131,6 @@
               />
             </div>
           </div>
-
-          <div class="row q-gutter-md">
-            <div class="col-12 col-md-6">
-              <q-select
-                v-model="formData.status"
-                outlined
-                label="Statut *"
-                :options="statusOptions"
-                :rules="[(val) => val !== undefined || 'Le statut est obligatoire']"
-                aria-label="Statut de publication"
-                required
-              />
-            </div>
-          </div>
         </q-form>
       </q-card-section>
 
@@ -162,9 +152,14 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import type { JobOffer } from '../../models/job';
-import { WorkMode, ContractType, JobOfferStatus } from '../../enums';
+import type { JobOffer, CreateJobOfferDto, UpdateJobOfferDto } from '../../models/job';
+import { WorkMode, ContractType } from '../../enums';
 import { workModeLabels, contractTypeLabels } from '../../models/job';
+import { useJobOfferStore } from '../../stores/jobOfferStore';
+import { useQuasar } from 'quasar';
+
+const $q = useQuasar();
+const jobOfferStore = useJobOfferStore();
 
 interface JobFormData {
   title: string;
@@ -176,7 +171,6 @@ interface JobFormData {
   salaryMin: number | undefined;
   salaryMax: number | undefined;
   salaryCurrency: string;
-  status: JobOfferStatus;
   expiresAt: string;
 }
 
@@ -212,7 +206,6 @@ const formData = ref<JobFormData>({
   salaryMin: undefined,
   salaryMax: undefined,
   salaryCurrency: 'EUR',
-  status: JobOfferStatus.Draft,
   expiresAt: '',
 });
 
@@ -225,12 +218,6 @@ const contractTypeOptions = Object.entries(contractTypeLabels).map(([value, labe
   label,
   value: parseInt(value) as ContractType,
 }));
-
-const statusOptions = [
-  { label: 'Brouillon', value: JobOfferStatus.Draft },
-  { label: 'Publiée', value: JobOfferStatus.Published },
-  { label: 'Fermée', value: JobOfferStatus.Closed },
-];
 
 watch(
   () => props.job,
@@ -246,7 +233,6 @@ watch(
         salaryMin: newJob.salaryMin,
         salaryMax: newJob.salaryMax,
         salaryCurrency: newJob.salaryCurrency || 'EUR',
-        status: newJob.status || JobOfferStatus.Draft,
         expiresAt: newJob.expiresAt || '',
       };
     } else {
@@ -267,7 +253,6 @@ function resetForm() {
     salaryMin: undefined,
     salaryMax: undefined,
     salaryCurrency: 'EUR',
-    status: JobOfferStatus.Draft,
     expiresAt: '',
   };
 }
@@ -280,12 +265,75 @@ function closeDialog() {
 async function saveJob() {
   saving.value = true;
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    let result;
 
-    console.log('Saving job:', formData.value);
+    if (isEditing.value && props.job) {
+      // Mode édition : appeler updateJobOffer (ne met à jour que le contenu, pas le statut)
+      const updateData: UpdateJobOfferDto = {
+        title: formData.value.title,
+        description: formData.value.description,
+        requirements: formData.value.requirements,
+        location: formData.value.location,
+        workMode: formData.value.workMode,
+        contractType: formData.value.contractType,
+        salaryMin: formData.value.salaryMin,
+        salaryMax: formData.value.salaryMax,
+        salaryCurrency: formData.value.salaryCurrency,
+        expiresAt: formData.value.expiresAt || undefined,
+      };
 
-    emit('saved');
-    closeDialog();
+      result = await jobOfferStore.updateJobOffer(props.job.id, updateData);
+
+      if (result) {
+        $q.notify({
+          type: 'positive',
+          message: "Offre d'emploi mise à jour avec succès",
+          position: 'top',
+        });
+      }
+    } else {
+      // Mode création : appeler createJobOffer
+      const createData: CreateJobOfferDto = {
+        title: formData.value.title,
+        description: formData.value.description,
+        requirements: formData.value.requirements,
+        location: formData.value.location,
+        workMode: formData.value.workMode,
+        contractType: formData.value.contractType,
+        salaryMin: formData.value.salaryMin,
+        salaryMax: formData.value.salaryMax,
+        salaryCurrency: formData.value.salaryCurrency,
+        expiresAt: formData.value.expiresAt || undefined,
+      };
+
+      result = await jobOfferStore.createJobOffer(createData);
+
+      if (result) {
+        $q.notify({
+          type: 'positive',
+          message: "Offre d'emploi créée avec succès",
+          position: 'top',
+        });
+      }
+    }
+
+    if (result) {
+      emit('saved');
+      closeDialog();
+    } else {
+      $q.notify({
+        type: 'negative',
+        message: `Erreur lors de ${isEditing.value ? 'la mise à jour' : 'la création'} de l'offre`,
+        position: 'top',
+      });
+    }
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde:', error);
+    $q.notify({
+      type: 'negative',
+      message: `Erreur: ${error instanceof Error ? error.message : 'Une erreur est survenue'}`,
+      position: 'top',
+    });
   } finally {
     saving.value = false;
   }

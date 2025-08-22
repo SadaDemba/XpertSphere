@@ -20,12 +20,10 @@ public class CreateJobOfferDtoValidator : AbstractValidator<CreateJobOfferDto>
 
         RuleFor(x => x.Description)
             .NotEmpty().WithMessage("Job description is required")
-            .MinimumLength(50).WithMessage("Job description must be at least 50 characters")
             .MaximumLength(5000).WithMessage("Job description cannot exceed 5000 characters");
 
         RuleFor(x => x.Requirements)
             .NotEmpty().WithMessage("Job requirements are required")
-            .MinimumLength(20).WithMessage("Job requirements must be at least 20 characters")
             .MaximumLength(3000).WithMessage("Job requirements cannot exceed 3000 characters");
 
         RuleFor(x => x.Location)

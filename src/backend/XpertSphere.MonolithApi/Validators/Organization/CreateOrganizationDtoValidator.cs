@@ -26,28 +26,7 @@ public class CreateOrganizationDtoValidator : AbstractValidator<CreateOrganizati
         RuleFor(x => x.Size)
             .IsInEnum().WithMessage("Organization size must be a valid value.");
 
-        RuleFor(x => x.Address)
-            .NotNull().WithMessage("Address is required.");
-
-        When(x => x.Address != null, () =>
-        {
-            RuleFor(x => x.Address.Street)
-                .NotEmpty().WithMessage("Street address is required.")
-                .MaximumLength(200).WithMessage("Street address cannot exceed 200 characters.");
-
-            RuleFor(x => x.Address.City)
-                .NotEmpty().WithMessage("City is required.")
-                .MaximumLength(100).WithMessage("City cannot exceed 100 characters.");
-
-            RuleFor(x => x.Address.PostalCode)
-                .NotEmpty().WithMessage("Postal code is required.")
-                .MaximumLength(20).WithMessage("Postal code cannot exceed 20 characters.");
-
-            RuleFor(x => x.Address.Country)
-                .NotEmpty().WithMessage("Country is required.")
-                .MaximumLength(100).WithMessage("Country cannot exceed 100 characters.");
-        });
-
+        
         RuleFor(x => x.ContactEmail)
             .EmailAddress().WithMessage("Contact email must be a valid email address.")
             .When(x => !string.IsNullOrEmpty(x.ContactEmail));
