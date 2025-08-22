@@ -72,7 +72,9 @@ jobs:
                 ASPNETCORE_ENVIRONMENT=Staging \
                 KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
                 USE_ENTRA_ID=false \
-                AZURE_CLIENT_ID="${{ secrets.IDENTITY_CLIENT_ID }}"
+                AZURE_CLIENT_ID="${{ secrets.IDENTITY_CLIENT_ID }}" \
+                "Seeding__PlatformSuperAdmin__FirstName=Admin" \
+                "Seeding__PlatformSuperAdmin__LastName=XpertSphere"
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
@@ -91,6 +93,8 @@ jobs:
                 KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
                 USE_ENTRA_ID=false \
                 AZURE_CLIENT_ID="${{ secrets.IDENTITY_CLIENT_ID }}" \
+                "Seeding__PlatformSuperAdmin__FirstName=Admin" \
+                "Seeding__PlatformSuperAdmin__LastName=XpertSphere" \
               --cpu 0.5 \
               --memory 1Gi \
               --min-replicas 0 \
@@ -151,7 +155,9 @@ jobs:
                 ASPNETCORE_ENVIRONMENT=Production \
                 KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
                 USE_ENTRA_ID=false \
-                AZURE_CLIENT_ID="${{ secrets.IDENTITY_CLIENT_ID }}"
+                AZURE_CLIENT_ID="${{ secrets.IDENTITY_CLIENT_ID }}" \
+                "Seeding__PlatformSuperAdmin__FirstName=Admin" \
+                "Seeding__PlatformSuperAdmin__LastName=XpertSphere"
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
@@ -170,6 +176,8 @@ jobs:
                 KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
                 USE_ENTRA_ID=false \
                 AZURE_CLIENT_ID="${{ secrets.IDENTITY_CLIENT_ID }}" \
+                "Seeding__PlatformSuperAdmin__FirstName=Admin" \
+                "Seeding__PlatformSuperAdmin__LastName=XpertSphere" \
               --cpu 1.0 \
               --memory 2Gi \
               --min-replicas 1 \

@@ -23,6 +23,7 @@ public static class AutoMapperExtensions
             cfg.AddProfile<PermissionMappingProfile>();
             cfg.AddProfile<RolePermissionMappingProfile>();
             cfg.AddProfile<UserRoleMappingProfile>();
+            cfg.AddProfile<JobOfferMappingProfile>();
         });
 
 

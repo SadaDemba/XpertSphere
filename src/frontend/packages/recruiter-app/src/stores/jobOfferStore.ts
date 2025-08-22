@@ -88,12 +88,12 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       const data = await jobOfferService.getPaginatedJobOffers(paginationFilter);
 
       jobOffers.value = data.items;
-      totalCount.value = data.totalItems;
-      currentPage.value = data.pageNumber;
-      pageSize.value = data.pageSize;
-      totalPages.value = data.totalPages;
-      hasPrevious.value = data.hasPrevious;
-      hasNext.value = data.hasNext;
+      totalCount.value = data.pagination.totalItems;
+      currentPage.value = data.pagination.currentPage;
+      pageSize.value = data.pagination.pageSize;
+      totalPages.value = data.pagination.totalPages;
+      hasPrevious.value = data.pagination.hasPrevious;
+      hasNext.value = data.pagination.hasNext;
     } catch (err) {
       setError(`Erreur lors du chargement des offres: ${err}`);
     } finally {
