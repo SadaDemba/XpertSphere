@@ -52,13 +52,21 @@ public static class KeyVaultExtensions
             
             // Use specific Managed Identity if AZURE_CLIENT_ID is provided, otherwise use DefaultAzureCredential
             var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
-            var credential = string.IsNullOrEmpty(clientId) 
-                ? new DefaultAzureCredential() 
-                : new ManagedIdentityCredential(clientId);
             
-            builder.Configuration.AddAzureKeyVault(
-                new Uri(keyVaultUrl),
-                credential);
+            if (string.IsNullOrEmpty(clientId))
+            {
+                Console.WriteLine("INFO - Using DefaultAzureCredential (no AZURE_CLIENT_ID specified)");
+                builder.Configuration.AddAzureKeyVault(
+                    new Uri(keyVaultUrl),
+                    new DefaultAzureCredential());
+            }
+            else
+            {
+                Console.WriteLine($"INFO - Using ManagedIdentityCredential with Client ID: {clientId}");
+                builder.Configuration.AddAzureKeyVault(
+                    new Uri(keyVaultUrl),
+                    new ManagedIdentityCredential(clientId));
+            }
                 
             Console.WriteLine("INFO - Key Vault configuration added successfully");
             ValidateSecretsLoading(builder.Configuration, environment);
