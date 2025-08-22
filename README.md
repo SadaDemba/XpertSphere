@@ -182,22 +182,21 @@ XpertSphere/
 
 ## 🏆 Roadmap
 
-### Version 1.0 ✅ (Actuelle - Q1 2025)
+### Version 1.0 ✅ (Actuelle - Q8 2025)
 
 - ✅ MVP complet avec fonctionnalités core
 - ✅ Interfaces recruteur et candidat
-- ✅ Intégrations externes (LinkedIn, HelloWork, WTTJ)
 - ✅ Analyse automatique de CV par IA
 - ✅ Déploiement Azure avec CI/CD
 
-### Version 1.1 🚧 (Q2 2025)
+### Version 1.1 🚧 (Q4 2025)
 
 - 🔄 Signature électronique des contrats
 - 🔄 Assistant conversationnel IA pour candidats
 - 🔄 Analytics avancés avec prédictions
 - 🔄 API publique pour intégrations tierces
 
-### Version 2.0 📋 (Q4 2025)
+### Version 2.0 📋 (Q2 2026)
 
 - 📋 IA avancée pour matching candidat-poste
 - 📋 Intégration vidéo pour entretiens en ligne
