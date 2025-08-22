@@ -62,10 +62,13 @@ public static class KeyVaultExtensions
             }
             else
             {
-                Console.WriteLine($"INFO - Using ManagedIdentityCredential with Client ID: {clientId}");
+                Console.WriteLine($"INFO - Using DefaultAzureCredential with Managed Identity Client ID: {clientId}");
                 builder.Configuration.AddAzureKeyVault(
                     new Uri(keyVaultUrl),
-                    new ManagedIdentityCredential(clientId));
+                    new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                    {
+                        ManagedIdentityClientId = clientId
+                    }));
             }
                 
             Console.WriteLine("INFO - Key Vault configuration added successfully");
