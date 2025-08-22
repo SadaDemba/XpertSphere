@@ -22,7 +22,7 @@ export class BaseClient {
   private readonly REFRESH_TOKEN_KEY = settings.auth.jwt.refreshKey;
 
   protected constructor(url: string) {
-    const baseURL = `${settings.webApi.baseUrl}${url}`;
+    const baseURL = `${settings.webApi.baseUrl}/api${url}`;
 
     this.apiClient = axios.create({
       baseURL,
@@ -181,7 +181,7 @@ export class BaseClient {
       }
 
       const response = await axios.post(
-        `${settings.webApi.baseUrl}/auth/refresh`,
+        `${settings.webApi.baseUrl}/api/auth/refresh`,
         {
           refreshToken: this.jwtTokens.refreshToken,
         },

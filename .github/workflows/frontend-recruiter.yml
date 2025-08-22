@@ -79,6 +79,22 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
+      - name: Generate version
+        id: version
+        run: |
+          # Version format: YYYY.MM.DD-{environment}-{short-sha}
+          DATE=$(date +%Y.%m.%d)
+          SHORT_SHA=${GITHUB_SHA:0:8}
+          
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            VERSION="${DATE}-prod-${SHORT_SHA}"
+          else
+            VERSION="${DATE}-staging-${SHORT_SHA}"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
+
       - name: Build and Push
         run: |
           # Determine environment and add suffix based on branch
@@ -98,10 +114,17 @@ jobs:
             --build-arg VITE_AUTH_MODE=jwt \
             --build-arg VITE_WEB_API_BASE_URL=$WEB_API_URL \
             --build-arg VITE_APIM_SUBSCRIPTION_KEY=${{ secrets.VITE_APIM_SUBSCRIPTION_KEY }} \
-            --build-arg VITE_APP_VERSION=1.0.0 \
+            --build-arg VITE_APP_VERSION=${{ steps.version.outputs.version }} \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }} \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
             -f docker/recruiter-app/Dockerfile .
 
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+          echo "Pushed versions:"
+          echo "- SHA: ${{ github.sha }}"
+          echo "- Semantic: ${{ steps.version.outputs.version }}"
+          echo "- Latest: latest"

@@ -1,7 +1,7 @@
 {
   "name": "@xpertsphere/recruiter-app",
   "version": "0.0.1",
-  "description": "XpertSphere Recruiter Application",
+  "description": "Recrutez les meilleurs talents avec XpertSphere - Solution complète de gestion du recrutement et des candidatures",
   "productName": "XpertSphere Recruiter",
   "author": "Sada Thiam <sthiam@expertime.com>",
   "type": "module",

@@ -12,7 +12,7 @@ public static class MockHelper
     {
         var store = new Mock<IUserStore<User>>();
         var userManager = new Mock<UserManager<User>>(
-            store.Object, null, null, null, null, null, null, null, null);
+            store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
         
         return userManager;
     }
@@ -26,7 +26,7 @@ public static class MockHelper
             userManager.Object,
             contextAccessor.Object,
             claimsFactory.Object,
-            null, null, null, null);
+            null!, null!, null!, null!);
             
         return signInManager;
     }

@@ -71,8 +71,7 @@ jobs:
               --set-env-vars \
                 ASPNETCORE_ENVIRONMENT=Staging \
                 KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
-                USE_ENTRA_ID=false \
-                CORS__PRODUCTION_ORIGINS="${{ secrets.CORS_PRODUCTION_ORIGINS }}"
+                USE_ENTRA_ID=false
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
@@ -90,7 +89,6 @@ jobs:
                 ASPNETCORE_ENVIRONMENT=Staging \
                 KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
                 USE_ENTRA_ID=false \
-                CORS__PRODUCTION_ORIGINS="${{ secrets.CORS_PRODUCTION_ORIGINS }}" \
               --cpu 0.5 \
               --memory 1Gi \
               --min-replicas 0 \
@@ -150,8 +148,7 @@ jobs:
               --set-env-vars \
                 ASPNETCORE_ENVIRONMENT=Production \
                 KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
-                USE_ENTRA_ID=false \
-                CORS__PRODUCTION_ORIGINS="${{ secrets.CORS_PRODUCTION_ORIGINS }}"
+                USE_ENTRA_ID=false
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
@@ -169,7 +166,6 @@ jobs:
                 ASPNETCORE_ENVIRONMENT=Production \
                 KEY_VAULT_URL="${{ secrets.KEY_VAULT_URL }}" \
                 USE_ENTRA_ID=false \
-                CORS__PRODUCTION_ORIGINS="${{ secrets.CORS_PRODUCTION_ORIGINS }}" \
               --cpu 1.0 \
               --memory 2Gi \
               --min-replicas 1 \
