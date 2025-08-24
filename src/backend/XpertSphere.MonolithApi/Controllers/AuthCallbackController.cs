@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using XpertSphere.MonolithApi.Extensions;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Services;
-using XpertSphere.MonolithApi.Utils.Results;
 
 namespace XpertSphere.MonolithApi.Controllers;
 
@@ -33,7 +31,7 @@ public class AuthCallbackController : ControllerBase
     /// <param name="code">Authorization code from Entra ID</param>
     /// <param name="state">State parameter for security and return URL</param>
     /// <param name="error">Error code if authentication failed</param>
-    /// <param name="error_description">Error description if authentication failed</param>
+    /// <param name="errorDescription">Error description if authentication failed</param>
     /// <returns>Redirect to frontend with authentication result</returns>
     [HttpGet("b2b")]
     [ProducesResponseType(302)]
@@ -42,7 +40,7 @@ public class AuthCallbackController : ControllerBase
         [FromQuery] string? code,
         [FromQuery] string? state,
         [FromQuery] string? error,
-        [FromQuery] string? error_description)
+        [FromQuery] string? errorDescription)
     {
         try
         {
@@ -50,14 +48,14 @@ public class AuthCallbackController : ControllerBase
             
             if (!string.IsNullOrEmpty(error))
             {
-                var errorResult = _errorHandler.HandleOAuth2Error(error, error_description, "B2B", state);
+                var errorResult = _errorHandler.HandleOAuth2Error(error, errorDescription, "B2B", state);
                 var errorCode = errorResult.GetMetadata<string>("error_code") ?? error;
-                return RedirectToClientWithError(errorCode, error_description, "b2b");
+                return RedirectToClientWithError(errorCode, errorDescription, "b2b");
             }
 
             if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
             {
-                var errorResult = _errorHandler.HandleOAuth2Error("invalid_request", "Missing required parameters", "B2B", state);
+                _errorHandler.HandleOAuth2Error("invalid_request", "Missing required parameters", "B2B", state);
                 return RedirectToClientWithError("invalid_request", "Missing required parameters", "b2b");
             }
 

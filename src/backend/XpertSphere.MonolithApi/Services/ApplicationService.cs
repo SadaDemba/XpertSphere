@@ -8,6 +8,7 @@ using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Services;
 
@@ -716,8 +717,8 @@ public class ApplicationService : IApplicationService
 
         if (!string.IsNullOrEmpty(filter.JobTitle))
         {
-            query = query.Where(a => a.JobOffer.Title
-                .Contains(filter.JobTitle, StringComparison.CurrentCultureIgnoreCase));
+            query = query.Where(a => a.JobOffer.Title.ToLower()
+                .Contains(filter.JobTitle.ToLower()));
         }
 
         if (!string.IsNullOrEmpty(filter.SearchTerms))

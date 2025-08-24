@@ -1,7 +1,7 @@
 using XpertSphere.MonolithApi.DTOs.Application;
 using XpertSphere.MonolithApi.DTOs.ApplicationStatusHistory;
-using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Interfaces;
 

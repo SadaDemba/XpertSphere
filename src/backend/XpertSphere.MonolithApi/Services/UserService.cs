@@ -8,6 +8,7 @@ using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Services;
 
@@ -174,7 +175,7 @@ public class UserService : IUserService
             user.UserName = dto.Email; // UserManager requires UserName
             user.CalculateProfileCompletion();
             
-            var result = await _userManager.CreateAsync(user);
+            await _userManager.CreateAsync(user);
             
             _logger.LogInformation("Created new user with ID {UserId} and email {Email}", user.Id, user.Email);
             
@@ -754,13 +755,13 @@ public class UserService : IUserService
                 u.FirstName.ToLower().Contains(searchTerms) ||
                 u.LastName.ToLower().Contains(searchTerms) ||
                 u.Email!.ToLower().Contains(searchTerms) ||
-                u.Address.City.ToLower().Contains(searchTerms) ||
-                u.Address.Country.ToLower().Contains(searchTerms) ||
-                u.Address.PostalCode.ToLower().Contains(searchTerms) ||
-                u.Address.Region.ToLower().Contains(searchTerms) ||
-                u.Address.Street.ToLower().Contains(searchTerms) ||
-                u.Address.AddressLine2.ToLower().Contains(searchTerms) ||
-                u.Address.StreetNumber.ToLower().Contains(searchTerms) ||
+                u.Address.City!.ToLower().Contains(searchTerms) ||
+                u.Address.Country!.ToLower().Contains(searchTerms) ||
+                u.Address.PostalCode!.ToLower().Contains(searchTerms) ||
+                u.Address.Region!.ToLower().Contains(searchTerms) ||
+                u.Address.Street!.ToLower().Contains(searchTerms) ||
+                u.Address.AddressLine2!.ToLower().Contains(searchTerms) ||
+                u.Address.StreetNumber!.ToLower().Contains(searchTerms) ||
                 (u.Skills != null && u.Skills.ToLower().Contains(searchTerms)));
         }
 

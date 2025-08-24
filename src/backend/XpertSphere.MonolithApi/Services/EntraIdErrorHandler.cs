@@ -1,7 +1,5 @@
-using System.Net;
 using Microsoft.Extensions.Options;
 using XpertSphere.MonolithApi.Config;
-using XpertSphere.MonolithApi.DTOs.Auth;
 using XpertSphere.MonolithApi.Utils.Results;
 
 namespace XpertSphere.MonolithApi.Services;
@@ -85,9 +83,9 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
         return AuthResult.Failure(
             $"Too many authentication requests. Please wait {Math.Ceiling(retryAfter.TotalSeconds)} seconds before trying again.",
             ["RATE_LIMIT_EXCEEDED"]
-        )
-        .WithStatusCode(429)
-        .WithMetadata("retry_after", retryAfter.TotalSeconds);
+            )
+            .WithStatusCode(429)
+            .WithMetadata("retry_after", retryAfter.TotalSeconds);
     }
 
     public AuthResult HandleServiceUnavailable(string operation, Exception? exception = null)
@@ -160,7 +158,7 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
 
     private static string NormalizeErrorCode(string error)
     {
-        return error?.ToUpperInvariant() switch
+        return error.ToUpperInvariant() switch
         {
             "ACCESS_DENIED" => "ACCESS_DENIED",
             "INVALID_REQUEST" => "INVALID_REQUEST",

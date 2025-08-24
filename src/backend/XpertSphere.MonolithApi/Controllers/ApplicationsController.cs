@@ -4,7 +4,7 @@ using XpertSphere.MonolithApi.DTOs.Application;
 using XpertSphere.MonolithApi.DTOs.ApplicationStatusHistory;
 using XpertSphere.MonolithApi.Extensions;
 using XpertSphere.MonolithApi.Interfaces;
-using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Controllers;
 
