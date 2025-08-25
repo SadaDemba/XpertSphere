@@ -3,12 +3,14 @@ import { ref, computed } from 'vue';
 import { jobOfferService } from '../services/jobOfferService';
 import type { JobOfferDto, JobOfferFilterDto } from '../models/job';
 import { JobOfferStatus } from '../enums';
+import type { Pagination } from 'src/models';
+import { useNotification } from 'src/composables/notification';
 
 export const useJobOfferStore = defineStore('jobOffer', () => {
   // State
   const jobOffers = ref<JobOfferDto[]>([]);
   const currentJobOffer = ref<JobOfferDto | null>(null);
-  const paginationInfo = ref({
+  const paginationInfo = ref<Pagination>({
     currentPage: 1,
     pageSize: 10,
     totalItems: 0,
@@ -19,11 +21,12 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
 
+  const notification = useNotification();
   // Current filter state
   const currentFilter = ref<JobOfferFilterDto>({
     pageNumber: 1,
     pageSize: 10,
-    status: JobOfferStatus.Published, // Only show published jobs for candidates
+    status: 'Published',
   });
 
   // Getters
@@ -54,30 +57,34 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       setLoading(true);
       clearError();
 
-      // Merge with current filter, ensuring we only get published jobs
       const searchFilter: JobOfferFilterDto = {
         ...currentFilter.value,
         ...filter,
-        status: JobOfferStatus.Published,
+        status: 'Published',
         isActive: true,
         isExpired: false,
       };
 
       const response = await jobOfferService.getAllPaginatedJobOffers(searchFilter);
 
-      if (response) {
-        jobOffers.value = response.items;
-        if (response.pagination) {
-          paginationInfo.value = response.pagination;
-        }
+      if (response?.isSuccess) {
+        jobOffers.value = response.data!;
+        paginationInfo.value = response.pagination;
         currentFilter.value = searchFilter;
+        notification.showSuccessNotification("Offres d'emploies récupérées avec succès");
         return true;
       } else {
-        setError("Aucune offre d'emploi trouvée");
+        setError(response?.message || 'Erreur lors de la récupération des offres');
+        notification.showSuccessNotification(
+          response?.message || 'Erreur lors du chargement des offres',
+        );
         return false;
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erreur lors du chargement des offres');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des offres',
+      );
       return false;
     } finally {
       setLoading(false);
@@ -90,15 +97,22 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       clearError();
 
       const jobOffer = await jobOfferService.getJobOfferById(id);
-      if (jobOffer) {
-        currentJobOffer.value = jobOffer;
+      console.log(jobOffer);
+      if (jobOffer?.isSuccess) {
+        currentJobOffer.value = jobOffer.data!;
+        notification.showSuccessNotification('Offre récupérée avec succès');
         return true;
       } else {
-        setError("Offre d'emploi non trouvée");
+        setError(jobOffer?.message || "Erreur lors du chargement de l'offre");
+        notification.showErrorNotification(
+          jobOffer?.message || "Erreur lors du chargement de l'offre",
+        );
         return false;
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Erreur lors du chargement de l'offre");
+      setError(
+        error instanceof Error ? error.message : "Erreur innatendue lors du chargement de l'offre",
+      );
       return false;
     } finally {
       setLoading(false);
@@ -136,7 +150,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     currentFilter.value = {
       pageNumber: 1,
       pageSize: 10,
-      status: JobOfferStatus.Published,
+      status: 'Published',
     };
   };
 

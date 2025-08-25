@@ -52,9 +52,9 @@ export interface JobOfferDto {
 export interface JobOfferFilterDto extends Filter {
   title?: string;
   location?: string | undefined;
-  workMode?: WorkMode | undefined;
-  contractType?: ContractType | undefined;
-  status?: JobOfferStatus;
+  workMode?: string | undefined;
+  contractType?: string | undefined;
+  status?: string;
   salaryMin?: number;
   salaryMax?: number;
   organizationId?: string;
@@ -67,21 +67,6 @@ export interface JobOfferFilterDto extends Filter {
   expiresBefore?: string;
 }
 
-export interface PaginatedJobOffers {
-  items: JobOffer[];
-  pagination: {
-    currentPage: number;
-    pageSize: number;
-    totalItems: number;
-    totalPages: number;
-    hasPrevious: boolean;
-    hasNext: boolean;
-  };
-  isSuccess: boolean;
-  message: string;
-  errors: string[];
-}
-
 export interface JobOfferStatusConfig {
   label: string;
   color: string;
@@ -89,20 +74,20 @@ export interface JobOfferStatusConfig {
   icon: string;
 }
 
-export const jobOfferStatusConfig: Record<JobOfferStatus, JobOfferStatusConfig> = {
-  [JobOfferStatus.Draft]: {
+export const jobOfferStatusConfig: Record<string, JobOfferStatusConfig> = {
+  Draft: {
     label: 'Brouillon',
     color: 'grey-4',
     textColor: 'grey-8',
     icon: 'edit',
   },
-  [JobOfferStatus.Published]: {
+  Published: {
     label: 'Publiée',
     color: 'positive',
     textColor: 'white',
     icon: 'visibility',
   },
-  [JobOfferStatus.Closed]: {
+  Closed: {
     label: 'Fermée',
     color: 'negative',
     textColor: 'white',
@@ -110,17 +95,17 @@ export const jobOfferStatusConfig: Record<JobOfferStatus, JobOfferStatusConfig> 
   },
 };
 
-export const workModeLabels: Record<WorkMode, string> = {
-  [WorkMode.OnSite]: 'Sur site',
-  [WorkMode.Hybrid]: 'Hybride',
-  [WorkMode.FullRemote]: 'Télétravail complet',
+export const workModeLabels: Record<string, string> = {
+  OnSite: 'Sur site',
+  Hybrid: 'Hybride',
+  FullRemote: 'Télétravail complet',
 };
 
-export const contractTypeLabels: Record<ContractType, string> = {
-  [ContractType.FullTime]: 'CDI',
-  [ContractType.PartTime]: 'Temps partiel',
-  [ContractType.Contract]: 'CDD',
-  [ContractType.Freelance]: 'Freelance',
-  [ContractType.Internship]: 'Stage',
-  [ContractType.Temporary]: 'Temporaire',
+export const contractTypeLabels: Record<string, string> = {
+  FullTime: 'CDI',
+  PartTime: 'Temps partiel',
+  Contract: 'CDD',
+  Freelance: 'Freelance',
+  Internship: 'Stage',
+  Temporary: 'Temporaire',
 };

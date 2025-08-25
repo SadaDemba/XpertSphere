@@ -141,18 +141,15 @@
 </template>
 
 <script setup lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useApplicationStore } from '../stores/applicationStore';
-import { useNotification } from '../composables/notification';
 import { ApplicationStatus } from '../enums';
 import ApplicationCard from '../components/ApplicationCard.vue';
 
 // Composables
 const router = useRouter();
-const { showSuccessNotification, showErrorNotification } = useNotification();
 
 // Store
 const applicationStore = useApplicationStore();
@@ -217,26 +214,13 @@ const handleWithdraw = async () => {
 
   withdrawLoading.value = true;
 
-  try {
-    const success = await applicationStore.withdrawApplication(
-      applicationToWithdraw.value,
-      withdrawReason.value || 'Candidature retirée par le candidat',
-    );
+  await applicationStore.withdrawApplication(
+    applicationToWithdraw.value,
+    withdrawReason.value || 'Candidature retirée par le candidat',
+  );
 
-    if (success) {
-      showSuccessNotification('Candidature retirée avec succès');
-
-      showWithdrawDialog.value = false;
-      applicationToWithdraw.value = null;
-    } else {
-      showErrorNotification(applicationStore.error || 'Erreur lors du retrait');
-    }
-  } catch (error: any) {
-    console.log(error.message);
-    showErrorNotification('Une erreur inattendue est survenue');
-  } finally {
-    withdrawLoading.value = false;
-  }
+  showWithdrawDialog.value = false;
+  applicationToWithdraw.value = null;
 };
 
 // Lifecycle

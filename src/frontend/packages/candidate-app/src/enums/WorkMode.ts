@@ -9,3 +9,9 @@ export const workModeLabels = {
   [WorkMode.Hybrid]: 'Hybride',
   [WorkMode.FullRemote]: 'Télétravail complet',
 };
+
+export const workModeStringToEnum: Record<string, WorkMode> = {
+  OnSite: WorkMode.OnSite,
+  Hybrid: WorkMode.Hybrid,
+  FullRemote: WorkMode.FullRemote,
+};
