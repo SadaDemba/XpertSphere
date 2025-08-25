@@ -18,11 +18,11 @@ public static class ControllerExtensions
         if (result.IsSuccess)
             return result.StatusCode switch
             {
-                200 => controller.Ok(result.Data),
-                201 => controller.Created("", result.Data),
-                202 => controller.Accepted(result.Data),
+                200 => controller.Ok(result),
+                201 => controller.Created("", result),
+                202 => controller.Accepted(result),
                 204 => controller.NoContent(),
-                _ => controller.Ok(result.Data)
+                _ => controller.Ok(result)
             };
 
         return result.StatusCode switch

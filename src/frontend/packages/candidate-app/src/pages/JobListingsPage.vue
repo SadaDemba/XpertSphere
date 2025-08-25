@@ -115,9 +115,9 @@
       </div>
 
       <!-- Job Cards -->
-      <div v-else class="row q-gutter-md">
+      <div v-else class="row q-gutter-md q-pb-md justify-center">
         <div v-for="job in jobOffers" :key="job.id" class="col-12 col-md-6 col-lg-4">
-          <job-card :job="job" @click="viewJobDetails(job.id)" />
+          <job-card :job="job" @view="viewJobDetails" @click="viewJobDetails(job.id)" />
         </div>
       </div>
 
@@ -140,7 +140,6 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useJobOfferStore } from '../stores/jobOfferStore';
-import type { WorkMode, ContractType } from '../enums';
 import { workModeLabels, contractTypeLabels } from '../models/job';
 import JobCard from '../components/JobCard.vue';
 
@@ -159,8 +158,8 @@ const currentPage = ref(1);
 
 const filters = ref({
   location: null as string | null,
-  workMode: null as WorkMode | null,
-  contractType: null as ContractType | null,
+  workMode: null as string | null,
+  contractType: null as string | null,
 });
 
 // Computed
@@ -177,14 +176,14 @@ const hasActiveFilters = computed(() => {
 const workModeOptions = computed(() =>
   Object.entries(workModeLabels).map(([value, label]) => ({
     label,
-    value: parseInt(value) as WorkMode,
+    value: value,
   })),
 );
 
 const contractTypeOptions = computed(() =>
   Object.entries(contractTypeLabels).map(([value, label]) => ({
     label,
-    value: parseInt(value) as ContractType,
+    value: value,
   })),
 );
 
@@ -211,7 +210,6 @@ const handleSearch = async () => {
   currentPage.value = 1;
   if (searchTerm.value.trim()) {
     await jobOfferStore.searchJobOffers(searchTerm.value);
-    console.log(jobOffers);
   } else {
     await loadJobOffers();
   }
@@ -225,6 +223,7 @@ const handleFilter = async () => {
     workMode: filters.value.workMode || undefined,
     contractType: filters.value.contractType || undefined,
   };
+  console.log('Handle filters', filters.value);
 
   await jobOfferStore.filterJobOffers(filterData);
 };

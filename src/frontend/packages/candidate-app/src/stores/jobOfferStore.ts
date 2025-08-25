@@ -26,7 +26,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
   const currentFilter = ref<JobOfferFilterDto>({
     pageNumber: 1,
     pageSize: 10,
-    status: JobOfferStatus.Published, // Only show published jobs for candidates
+    status: 'Published',
   });
 
   // Getters
@@ -60,7 +60,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       const searchFilter: JobOfferFilterDto = {
         ...currentFilter.value,
         ...filter,
-        status: JobOfferStatus.Published,
+        status: 'Published',
         isActive: true,
         isExpired: false,
       };
@@ -150,7 +150,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     currentFilter.value = {
       pageNumber: 1,
       pageSize: 10,
-      status: JobOfferStatus.Published,
+      status: 'Published',
     };
   };
 

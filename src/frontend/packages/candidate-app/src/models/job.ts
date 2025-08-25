@@ -52,9 +52,9 @@ export interface JobOfferDto {
 export interface JobOfferFilterDto extends Filter {
   title?: string;
   location?: string | undefined;
-  workMode?: WorkMode | undefined;
-  contractType?: ContractType | undefined;
-  status?: JobOfferStatus;
+  workMode?: string | undefined;
+  contractType?: string | undefined;
+  status?: string;
   salaryMin?: number;
   salaryMax?: number;
   organizationId?: string;
