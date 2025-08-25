@@ -307,7 +307,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { date, copyToClipboard } from 'quasar';
+import { copyToClipboard } from 'quasar';
+import { formatDate, formatFullDate } from 'src/helpers/DateHelper';
 import { storeToRefs } from 'pinia';
 import { useApplicationStore } from '../stores/applicationStore';
 import { useNotification } from '../composables/notification';
@@ -370,41 +371,6 @@ const goBack = () => {
   router.push('/applications');
 };
 
-const formatDate = (dateString: string): string => {
-  const applicationDate = new Date(dateString);
-  const now = new Date();
-  const diffInDays = Math.floor((now.getTime() - applicationDate.getTime()) / (1000 * 3600 * 24));
-
-  if (diffInDays === 0) {
-    return "aujourd'hui";
-  } else if (diffInDays === 1) {
-    return 'hier';
-  } else if (diffInDays < 7) {
-    return `il y a ${diffInDays} jours`;
-  }
-
-  return date.formatDate(applicationDate, 'DD/MM/YYYY');
-};
-
-const formatFullDate = (dateString: string): string => {
-  return date.formatDate(new Date(dateString), 'DD MMMM YYYY à HH:mm', {
-    months: [
-      'janvier',
-      'février',
-      'mars',
-      'avril',
-      'mai',
-      'juin',
-      'juillet',
-      'août',
-      'septembre',
-      'octobre',
-      'novembre',
-      'décembre',
-    ],
-  });
-};
-
 const getTimelineColor = (status: ApplicationStatus): string => {
   return applicationStatusConfig[status]?.color || 'grey';
 };
@@ -423,27 +389,14 @@ const handleWithdraw = async () => {
 
   withdrawLoading.value = true;
 
-  try {
-    const success = await applicationStore.withdrawApplication(
-      currentApplication.value.id,
-      withdrawReason.value || 'Candidature retirée par le candidat',
-    );
+  await applicationStore.withdrawApplication(
+    currentApplication.value.id,
+    withdrawReason.value || 'Aucune raison spécifiée',
+  );
 
-    if (success) {
-      showSuccessNotification('Candidature retirée avec succès');
-
-      showWithdrawDialog.value = false;
-      // Reload to update the status
-      await loadApplication();
-    } else {
-      showErrorNotification(applicationStore.error || 'Erreur lors du retrait');
-    }
-  } catch (error: any) {
-    console.log(error.message);
-    showErrorNotification('Une erreur inattendue est survenue');
-  } finally {
-    withdrawLoading.value = false;
-  }
+  showWithdrawDialog.value = false;
+  // Reload to update the status
+  await loadApplication();
 };
 
 const editApplication = () => {
@@ -458,7 +411,7 @@ const handleApplicationUpdated = async () => {
   showEditDialog.value = false;
   await loadApplication();
 
-  showSuccessNotification('Candidature mise à jour avec succès');
+  //  showSuccessNotification('Candidature mise à jour avec succès');
 };
 
 const copyApplicationId = async () => {

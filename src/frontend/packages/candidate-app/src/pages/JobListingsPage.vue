@@ -211,6 +211,7 @@ const handleSearch = async () => {
   currentPage.value = 1;
   if (searchTerm.value.trim()) {
     await jobOfferStore.searchJobOffers(searchTerm.value);
+    console.log(jobOffers);
   } else {
     await loadJobOffers();
   }

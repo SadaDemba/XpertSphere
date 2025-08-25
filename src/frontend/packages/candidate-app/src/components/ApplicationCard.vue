@@ -131,7 +131,8 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed } from 'vue';
-import { date, copyToClipboard } from 'quasar';
+import { copyToClipboard } from 'quasar';
+import { formatDate } from 'src/helpers/DateHelper';
 import type { ApplicationDto } from '../models/application';
 import { applicationStatusConfig } from '../models/application';
 import { ApplicationStatus } from '../enums';
@@ -194,26 +195,6 @@ const recentHistory = computed(() => {
     .slice(-3) // Last 3 status changes
     .reverse(); // Show most recent first
 });
-
-// Methods
-const formatDate = (dateString: string): string => {
-  const applicationDate = new Date(dateString);
-  const now = new Date();
-  const diffInDays = Math.floor((now.getTime() - applicationDate.getTime()) / (1000 * 3600 * 24));
-
-  if (diffInDays === 0) {
-    return "aujourd'hui";
-  } else if (diffInDays === 1) {
-    return 'hier';
-  } else if (diffInDays < 7) {
-    return `il y a ${diffInDays} jours`;
-  } else if (diffInDays < 30) {
-    const weeks = Math.floor(diffInDays / 7);
-    return `il y a ${weeks} semaine${weeks > 1 ? 's' : ''}`;
-  } else {
-    return date.formatDate(applicationDate, 'DD/MM/YYYY');
-  }
-};
 
 const getProgressLabel = (): string => {
   const statusLabels: Record<ApplicationStatus, string> = {

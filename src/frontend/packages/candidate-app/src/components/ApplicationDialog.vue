@@ -85,7 +85,7 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 // Composables
-const { showSuccessNotification, showErrorNotification } = useNotification();
+const { showErrorNotification } = useNotification();
 const applicationStore = useApplicationStore();
 
 // State
@@ -120,16 +120,10 @@ const submitApplication = async () => {
       additionalNotes: application.additionalNotes ?? '',
     };
 
-    const success = await applicationStore.applyToJob(createApplicationDto);
+    await applicationStore.applyToJob(createApplicationDto);
 
-    if (success) {
-      showSuccessNotification('Candidature envoyée avec succès !');
-
-      emit('submitted');
-      closeDialog();
-    } else {
-      showErrorNotification(applicationStore.error || "Erreur lors de l'envoi de la candidature");
-    }
+    emit('submitted');
+    closeDialog();
   } catch (error: any) {
     console.log(error.message);
     showErrorNotification('Une erreur inattendue est survenue');
