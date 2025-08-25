@@ -114,7 +114,7 @@ public class AuthenticationService : IAuthenticationService
                 if (!string.IsNullOrEmpty(entraIdSignUpUrl))
                 {
                     _logger.LogInformation("Redirecting candidate {Email} to Entra ID B2C registration", registerDto.Email);
-                    return AuthResult.SuccessWithRedirect(entraIdSignUpUrl, "Complete your registration with your preferred identity provider");
+                    return AuthResult.Success("Complete your registration with your preferred identity provider", entraIdSignUpUrl);
                 }
             }
 
@@ -140,13 +140,16 @@ public class AuthenticationService : IAuthenticationService
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 return AuthResult.Failure($"Registration failed: {errors}");
             }
-
+            
+            
             _logger.LogInformation("User {Email} registered successfully", registerDto.Email);
 
             // Generate email confirmation token
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            user.EmailConfirmationToken = emailConfirmationToken;
+            var authDto = _mapper.Map<AuthResponseDto>(user);
 
-            return AuthResult.SuccessWithUser(user, "Registration successful. Please check your email to confirm your account.", emailConfirmationToken);
+            return AuthResult.SuccessWithUser(authDto, "Registration successful. Please check your email to confirm your account.");
         }
         catch (Exception ex)
         {
@@ -291,8 +294,10 @@ public class AuthenticationService : IAuthenticationService
 
                 // Generate email confirmation token
                 var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                user.EmailConfirmationToken = emailConfirmationToken;
+                var authResponseDto = _mapper.Map<AuthResponseDto>(user);
 
-                return AuthResult.SuccessWithUser(user, "Registration successful. Please check your email to confirm your account.", emailConfirmationToken);
+                return AuthResult.SuccessWithUser(authResponseDto, "Registration successful. Please check your email to confirm your account.");
             }
             catch (Exception ex)
             {
@@ -326,7 +331,7 @@ public class AuthenticationService : IAuthenticationService
                     if (!string.IsNullOrEmpty(entraIdLoginUrl))
                     {
                         _logger.LogInformation("Redirecting organizational user {Email} to Entra ID B2B login", loginDto.Email);
-                        return AuthResult.SuccessWithRedirect(entraIdLoginUrl, "Please use your organizational account to login");
+                        return AuthResult.Success("Please use your organizational account to login", entraIdLoginUrl);
                     }
                 }
                 
@@ -386,13 +391,13 @@ public class AuthenticationService : IAuthenticationService
                 user.SetRefreshToken(refreshToken, TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays));
                 await _userManager.UpdateAsync(user);
                 
+                var authResponseDto = _mapper.Map<AuthResponseDto>(user);
+                authResponseDto.AccessToken = accessToken;
+                
                 _logger.LogInformation("User {Email} logged in successfully", loginDto.Email);
 
-                return AuthResult.SuccessWithTokens(
-                    _mapper.Map<UserDto>(user),
-                    accessToken,
-                    refreshToken,
-                    DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
+                return AuthResult.SuccessWithUser(
+                    authResponseDto,
                     "Login successful"
                 );
             }
@@ -457,12 +462,10 @@ public class AuthenticationService : IAuthenticationService
             await _userManager.UpdateAsync(user);
 
             _logger.LogInformation("Tokens refreshed for user: {Email}", refreshTokenDto.Email);
-
-            return AuthResult.SuccessWithTokens(
-                _mapper.Map<UserDto>(user),
-                accessToken,
-                newRefreshToken,
-                DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
+            var authResponseDto = _mapper.Map<AuthResponseDto>(user);
+            authResponseDto.AccessToken = accessToken;
+            return AuthResult.SuccessWithUser(
+                authResponseDto,
                 "Token refreshed successfully"
             );
         }
@@ -555,8 +558,8 @@ public class AuthenticationService : IAuthenticationService
             await _userManager.UpdateAsync(user);
 
             _logger.LogInformation("Password reset token generated for user: {Email}", forgotPasswordDto.Email);
-
-            return AuthResult.SuccessWithUser(user, "Password reset email sent", resetToken);
+            var authResponseDto = _mapper.Map<AuthResponseDto>(user);
+            return AuthResult.SuccessWithUser(authResponseDto, "Password reset email sent");
         }
         catch (Exception ex)
         {
@@ -887,15 +890,12 @@ public class AuthenticationService : IAuthenticationService
                 await _userManager.UpdateAsync(existingUser);
 
                 _logger.LogInformation("Entra ID user {Email} authenticated successfully", userEmail);
-
-                return AuthResult.SuccessWithTokens(
-                    
-                    _mapper.Map<UserDto>(existingUser),
-                    jwtAccessToken,
-                    refreshToken,
-                    DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
-                    "Entra ID authentication successful",
-                    returnUrl
+                var authResponseDto = _mapper.Map<AuthResponseDto>(existingUser);
+                authResponseDto.AccessToken = jwtAccessToken;
+                authResponseDto.RedirectUrl = returnUrl;
+                return AuthResult.SuccessWithUser(
+                    authResponseDto,
+                    "Entra ID authentication successful"
                 );
             }
 

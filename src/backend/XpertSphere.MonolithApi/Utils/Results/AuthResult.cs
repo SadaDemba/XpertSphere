@@ -20,8 +20,6 @@ public class AuthResult : ServiceResult<AuthResponseDto>
     {
         var response = new AuthResponseDto
         {
-            Success = true,
-            Message = message,
             RedirectUrl = returnUrl
         };
 
@@ -34,73 +32,13 @@ public class AuthResult : ServiceResult<AuthResponseDto>
         };
     }
 
-    public static AuthResult SuccessWithRedirect(string redirectUrl, string message = "Redirecting...")
+    public static AuthResult SuccessWithUser(AuthResponseDto user, string message = "Operation successful")
     {
-        var response = new AuthResponseDto
-        {
-            Success = true,
-            Message = message,
-            RedirectUrl = redirectUrl
-        };
 
         return new AuthResult
         {
             IsSuccess = true,
-            Data = response,
-            Message = message,
-            StatusCode = 200
-        };
-    }
-
-    public static AuthResult SuccessWithUser(User user, string message = "Operation successful", string? emailConfirmationToken = null)
-    {
-        var response = new AuthResponseDto
-        {
-            Success = true,
-            Message = message,
-            EmailConfirmationToken = emailConfirmationToken,
-            User = new UserDto
-            {
-                Id = user.Id,
-                Email = user.Email!,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                FullName = user.FullName,
-                OrganizationId = user.OrganizationId,
-                OrganizationName = user.Organization?.Name,
-                IsActive = user.IsActive,
-                EmailConfirmed = user.EmailConfirmed,
-                LastLoginAt = user.LastLoginAt,
-                ProfileCompletionPercentage = user.ProfileCompletionPercentage
-            }
-        };
-
-        return new AuthResult
-        {
-            IsSuccess = true,
-            Data = response,
-            Message = message,
-            StatusCode = 200
-        };
-    }
-
-    public static AuthResult SuccessWithTokens(UserDto? user, string accessToken, string refreshToken, DateTime tokenExpiry, string message = "Login successful", string? returnUrl = null)
-    {
-        var response = new AuthResponseDto
-        {
-            Success = true,
-            Message = message,
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            TokenExpiry = tokenExpiry,
-            RedirectUrl = returnUrl,
-            User = user
-        };
-
-        return new AuthResult
-        {
-            IsSuccess = true,
-            Data = response,
+            Data = user,
             Message = message,
             StatusCode = 200
         };
@@ -158,24 +96,6 @@ public class AuthResult : ServiceResult<AuthResponseDto>
             Data = data as AuthResponseDto,
             Message = message,
             StatusCode = 200
-        };
-    }
-
-    /// <summary>
-    /// Convert to DTO for backward compatibility
-    /// </summary>
-    public AuthResponseDto ToDto()
-    {
-        if (Data != null)
-        {
-            return Data;
-        }
-
-        return new AuthResponseDto
-        {
-            Success = IsSuccess,
-            Message = Message,
-            Errors = Errors
         };
     }
     

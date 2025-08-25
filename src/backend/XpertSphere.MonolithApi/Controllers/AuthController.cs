@@ -71,17 +71,8 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponseDto>> Logout()
     {
         var email = User.FindFirstValue(ClaimTypes.Email);
-        if (string.IsNullOrEmpty(email))
-        {
-            return BadRequest(new AuthResponseDto
-            {
-                Success = false,
-                Message = "Invalid user context",
-                Errors = ["User email not found in token"]
-            });
-        }
 
-        var result = await _authService.LogoutAsync(email);
+        var result = await _authService.LogoutAsync(email!);
         return this.ToActionResult(result);
     }
 
@@ -170,17 +161,8 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponseDto>> LinkAccount([FromBody] LinkAccountDto linkAccountDto)
     {
         var userId = this.GetCurrentUserId();
-        if (!userId.HasValue)
-        {
-            return Unauthorized(new AuthResponseDto
-            {
-                Success = false,
-                Message = "Invalid user context",
-                Errors = ["User not authenticated"]
-            });
-        }
 
-        var result = await _authService.LinkEntraIdAccount(userId.Value.ToString(), linkAccountDto.EntraIdToken);
+        var result = await _authService.LinkEntraIdAccount(userId!.Value.ToString(), linkAccountDto.EntraIdToken);
         return this.ToActionResult(result);
     }
 

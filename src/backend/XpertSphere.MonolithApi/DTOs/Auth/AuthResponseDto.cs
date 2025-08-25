@@ -4,14 +4,12 @@ namespace XpertSphere.MonolithApi.DTOs.Auth;
 
 public record AuthResponseDto
 {
-    public bool Success { get; init; }
-    public string Message { get; init; } = string.Empty;
-    public string? AccessToken { get; init; }
+    public string? AccessToken { get; set; }
     public string? RefreshToken { get; init; }
     public DateTime? TokenExpiry { get; init; }
     public UserDto? User { get; init; }
     public string? EmailConfirmationToken { get; init; }
-    public string? RedirectUrl { get; init; }
+    public string? RedirectUrl { get; set; }
     public List<string> Errors { get; init; } = [];
     
     // Entra ID specific fields

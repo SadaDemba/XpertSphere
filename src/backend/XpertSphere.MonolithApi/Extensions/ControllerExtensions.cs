@@ -27,14 +27,14 @@ public static class ControllerExtensions
 
         return result.StatusCode switch
         {
-            400 => controller.BadRequest(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            401 => controller.Unauthorized(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
+            400 => controller.BadRequest(result),
+            401 => controller.Unauthorized(result),
             403 => controller.Forbid(),
-            404 => controller.NotFound(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            409 => controller.Conflict(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            422 => controller.UnprocessableEntity(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            500 => controller.StatusCode(500, new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            _ => controller.BadRequest(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
+            404 => controller.NotFound(result),
+            409 => controller.Conflict(result),
+            422 => controller.UnprocessableEntity(result),
+            500 => controller.StatusCode(500, result),
+            _ => controller.BadRequest(result),
         };
     }
 

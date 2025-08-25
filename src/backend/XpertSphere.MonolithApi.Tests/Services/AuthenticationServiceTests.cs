@@ -97,7 +97,7 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
-        result.Data!.Message.Should().Contain("Registration successful");
+        result.Message.Should().Contain("Registration successful");
     }
 
     [Fact]
@@ -286,7 +286,7 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
-        result.Data!.Message.Should().Contain("Email confirmed successfully");
+        result.Message.Should().Contain("Email confirmed successfully");
     }
 
     [Fact]
@@ -368,7 +368,7 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
-        result.Data!.Message.Should().Contain("Password reset");
+        result.Message.Should().Contain("Password reset");
     }
 
     [Fact]
@@ -409,7 +409,7 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
-        result.Data!.Message.Should().Contain("Password reset successful");
+        result.Message.Should().Contain("Password reset successful");
     }
 
     private AuthenticationService CreateAuthenticationService(AutoMapper.IMapper mapper)
