@@ -10,7 +10,7 @@ public class Address
     public string? StreetNumber { get; set; }
 
     [MaxLength(200)]
-    public string? Street { get; set; }
+    public string? StreetName { get; set; }
 
     [MaxLength(100)]
     public string? City { get; set; }
@@ -34,13 +34,13 @@ public class Address
         {
             var parts = new List<string>();
 
-            if (!string.IsNullOrWhiteSpace(StreetNumber) && !string.IsNullOrWhiteSpace(Street))
+            if (!string.IsNullOrWhiteSpace(StreetNumber) && !string.IsNullOrWhiteSpace(StreetName))
             {
-                parts.Add($"{StreetNumber} {Street}");
+                parts.Add($"{StreetNumber} {StreetName}");
             }
-            else if (!string.IsNullOrWhiteSpace(Street))
+            else if (!string.IsNullOrWhiteSpace(StreetName))
             {
-                parts.Add(Street);
+                parts.Add(StreetName);
             }
 
             if (!string.IsNullOrWhiteSpace(AddressLine2))
@@ -72,7 +72,7 @@ public class Address
     }
 
     [NotMapped]
-    public bool IsEmpty => string.IsNullOrWhiteSpace(Street) && 
+    public bool IsEmpty => string.IsNullOrWhiteSpace(StreetName) && 
                           string.IsNullOrWhiteSpace(City) && 
                           string.IsNullOrWhiteSpace(PostalCode);
 
@@ -84,13 +84,13 @@ public class Address
             var lines = new List<string>();
 
             // Ligne 1: Numéro et nom de rue
-            if (!string.IsNullOrWhiteSpace(StreetNumber) && !string.IsNullOrWhiteSpace(Street))
+            if (!string.IsNullOrWhiteSpace(StreetNumber) && !string.IsNullOrWhiteSpace(StreetName))
             {
-                lines.Add($"{StreetNumber} {Street}");
+                lines.Add($"{StreetNumber} {StreetName}");
             }
-            else if (!string.IsNullOrWhiteSpace(Street))
+            else if (!string.IsNullOrWhiteSpace(StreetName))
             {
-                lines.Add(Street);
+                lines.Add(StreetName);
             }
 
             // Ligne 2: Complément d'adresse

@@ -31,7 +31,7 @@ public class UpdateOrganizationDtoValidator : AbstractValidator<UpdateOrganizati
 
         When(x => x.Address != null, () =>
         {
-            RuleFor(x => x.Address!.Street)
+            RuleFor(x => x.Address!.StreetName)
                 .NotEmpty().WithMessage("Street address is required.")
                 .MaximumLength(200).WithMessage("Street address cannot exceed 200 characters.");
 

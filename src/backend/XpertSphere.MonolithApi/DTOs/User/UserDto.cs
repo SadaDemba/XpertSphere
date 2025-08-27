@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using XpertSphere.MonolithApi.Enums;
+using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Models.Base;
 
 namespace XpertSphere.MonolithApi.DTOs.User;

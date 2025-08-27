@@ -39,3 +39,22 @@ export const formatFullDate = (dateString: string): string => {
     ],
   });
 };
+
+export const formatDateWithoutTime = (dateString: string): string => {
+  return date.formatDate(new Date(dateString), 'DD MMMM YYYY', {
+    months: [
+      'janvier',
+      'février',
+      'mars',
+      'avril',
+      'mai',
+      'juin',
+      'juillet',
+      'août',
+      'septembre',
+      'octobre',
+      'novembre',
+      'décembre',
+    ],
+  });
+};

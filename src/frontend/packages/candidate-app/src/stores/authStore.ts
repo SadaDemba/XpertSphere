@@ -5,9 +5,10 @@ import type {
   User,
   LoginDto,
   RegisterCandidateDto,
-  AuthResponseDto,
   ResumeAnalysisResponse,
+  AuthResult,
 } from '../models/auth';
+import { settings } from 'src/settings';
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -24,6 +25,11 @@ export const useAuthStore = defineStore('auth', () => {
   const userFullName = computed(() =>
     user.value ? `${user.value.firstName} ${user.value.lastName}` : '',
   );
+  const userInitials = computed(() =>
+    user.value
+      ? `${user.value.firstName.toUpperCase().charAt(0)}${user.value.lastName.toUpperCase().charAt(0)}`
+      : '',
+  );
 
   // Actions
   const clearError = () => {
@@ -39,18 +45,21 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = false;
   };
 
-  const setAuth = (authResponse: AuthResponseDto) => {
-    if (authResponse.success && authResponse.user && authResponse.accessToken) {
-      user.value = authResponse.user;
-      token.value = authResponse.accessToken;
-      refreshToken.value = authResponse.refreshToken || null;
+  const setUser = (newUser: User) => {
+    user.value = newUser;
+  };
 
+  const setAuth = (authResponse: AuthResult) => {
+    if (authResponse.isSuccess && authResponse.data!.user && authResponse.data!.accessToken) {
+      user.value = authResponse.data!.user;
+      token.value = authResponse.data!.accessToken;
+      refreshToken.value = authResponse.data!.refreshToken || null;
       // Set tokens in service
-      if (authResponse.accessToken && authResponse.refreshToken) {
+      if (authResponse.data!.accessToken) {
         authService.setJwtTokens({
-          accessToken: authResponse.accessToken,
-          refreshToken: authResponse.refreshToken ?? '',
-          expiresAt: Math.floor(new Date(authResponse.tokenExpiry!).getTime() / 1000),
+          accessToken: authResponse.data!.accessToken,
+          refreshToken: authResponse.data!.refreshToken || '',
+          expiresAt: Math.floor(new Date(authResponse.data!.tokenExpiry!).getTime() / 1000),
         });
       }
     }
@@ -62,7 +71,7 @@ export const useAuthStore = defineStore('auth', () => {
       clearError();
 
       const response = await authService.login(loginDto);
-      if (response?.success) {
+      if (response?.isSuccess) {
         setAuth(response);
         return true;
       } else {
@@ -84,9 +93,9 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       setLoading(true);
       clearError();
-
       const response = await authService.registerCandidate(registerDto, resume);
-      if (response?.success) {
+
+      if (response?.isSuccess) {
         setAuth(response);
         return true;
       } else {
@@ -123,27 +132,49 @@ export const useAuthStore = defineStore('auth', () => {
     authService.logout();
   };
 
+  /**
+   * Initialize auth state (call on app startup)
+   */
   const initialize = async () => {
     if (isInitialized.value) return;
 
+    // Check if user is already authenticated (token in storage)
+    if (authService.isAuthenticated()) {
+      await loadCurrentUser();
+    }
+    isInitialized.value = true;
+  };
+
+  /**
+   * Load current user from token
+   */
+  const loadCurrentUser = async () => {
     try {
       setLoading(true);
+      clearError();
 
-      if (authService.isAuthenticated()) {
-        const currentUser = await authService.getCurrentUser();
-        if (currentUser) {
-          user.value = currentUser;
-        } else {
-          // If we can't get user info, clear auth
-          logout();
+      // Sync token from localStorage if not already set
+      if (!token.value && authService.isAuthenticated()) {
+        const storedToken = localStorage.getItem(settings.auth.jwt.tokenKey);
+        const storedRefreshToken = localStorage.getItem(settings.auth.jwt.refreshKey);
+        if (storedToken) {
+          const tokenData = JSON.parse(storedToken);
+          token.value = tokenData.accessToken;
+          refreshToken.value = storedRefreshToken;
         }
       }
-    } catch (error) {
-      console.error('Failed to initialize auth:', error);
-      logout();
+
+      const userInfo = await authService.getCurrentUser();
+      if (userInfo) {
+        user.value = userInfo.data!;
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('Failed to load current user:', err);
+      return false;
     } finally {
       setLoading(false);
-      isInitialized.value = true;
     }
   };
 
@@ -160,11 +191,13 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     hasError,
     userFullName,
+    userInitials,
 
     // Actions
     clearError,
     setLoading,
     setError,
+    setUser,
     login,
     registerCandidate,
     analyzeResume,

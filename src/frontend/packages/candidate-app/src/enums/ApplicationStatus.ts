@@ -23,3 +23,40 @@ export const statusOptions = [
   { label: 'Rejetée', value: ApplicationStatus.Rejected },
   { label: 'Retirée', value: ApplicationStatus.Withdrawn },
 ];
+
+export function mapToString(status: ApplicationStatus): string {
+  switch (status) {
+    case ApplicationStatus.Applied:
+      return 'Applied';
+
+    case ApplicationStatus.Reviewed:
+      return 'Reviewed';
+
+    case ApplicationStatus.PhoneScreening:
+      return 'PhoneScreening';
+
+    case ApplicationStatus.TechnicalTest:
+      return 'TechnicalTest';
+
+    case ApplicationStatus.TechnicalInterview:
+      return 'TechnicalInterview';
+
+    case ApplicationStatus.FinalInterview:
+      return 'FinalInterview';
+
+    case ApplicationStatus.OfferMade:
+      return 'OfferMade';
+
+    case ApplicationStatus.Accepted:
+      return 'Accepted';
+
+    case ApplicationStatus.Rejected:
+      return 'Rejected';
+
+    case ApplicationStatus.Withdrawn:
+      return 'Withdrawn';
+
+    default:
+      return 'Unknown';
+  }
+}

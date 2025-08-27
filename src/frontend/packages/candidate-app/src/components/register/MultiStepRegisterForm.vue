@@ -163,11 +163,28 @@
 
           <q-input
             v-model="formData.availability"
-            label="Disponibilité"
+            label="Date de disponibilité"
             filled
+            readonly
             class="q-mt-md"
-            hint="Ex: Immédiate, 1 mois, 2 mois..."
-          />
+            hint="Cliquez sur l'icône pour sélectionner une date"
+          >
+            <template #append>
+              <q-icon name="event" class="cursor-pointer">
+                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                  <q-date
+                    v-model="formData.availability"
+                    mask="YYYY-MM-DD"
+                    :options="(date) => date >= new Date().toISOString().slice(0, 10)"
+                  >
+                    <div class="row items-center justify-end">
+                      <q-btn v-close-popup label="Fermer" color="primary" flat />
+                    </div>
+                  </q-date>
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
 
           <q-input
             v-model="formData.linkedInProfile"

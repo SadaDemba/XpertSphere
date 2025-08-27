@@ -35,6 +35,8 @@ public class AuthenticationServiceTests : IDisposable
     private readonly Mock<IWebHostEnvironment> _mockEnvironment;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<IUserService> _mockUserService;
+    private readonly Mock<IExperienceService> _mockExperienceService;
+    private readonly Mock<ITrainingService> _mockTrainingService;
     private readonly Mock<IResumeService> _mockResumeService;
     private readonly XpertSphereDbContext _context;
 
@@ -53,6 +55,8 @@ public class AuthenticationServiceTests : IDisposable
         _mockAdminResetPasswordValidator = new Mock<IValidator<AdminResetPasswordDto>>();
         _mockEnvironment = new Mock<IWebHostEnvironment>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        _mockExperienceService = new Mock<IExperienceService>();
+        _mockTrainingService = new Mock<ITrainingService>();
         _mockUserService = new Mock<IUserService>();
         _mockResumeService = new Mock<IResumeService>();
 
@@ -452,6 +456,8 @@ public class AuthenticationServiceTests : IDisposable
             _mockHttpContextAccessor.Object,
             _mockUserService.Object,
             _mockResumeService.Object,
+            _mockTrainingService.Object,
+            _mockExperienceService.Object,
             _context
         );
     }

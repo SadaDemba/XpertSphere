@@ -20,239 +20,259 @@
     <div v-else-if="currentApplication" class="application-details-content">
       <!-- Header -->
       <div class="application-header q-pa-lg">
-        <div class="row items-center q-mb-md">
-          <q-btn flat round icon="arrow_back" color="white" class="q-mr-md" @click="goBack" />
-          <div class="col">
-            <h4 class="text-h4 q-my-none text-white">{{ currentApplication.jobOfferTitle }}</h4>
-            <p class="text-h6 q-my-sm text-grey-3">{{ currentApplication.organizationName }}</p>
+        <div class="header-content">
+          <div class="row items-center q-mb-md">
+            <div class="col">
+              <div class="breadcrumb-container q-pa-md">
+                <div class="breadcrumb-content">
+                  <q-breadcrumbs class="text-grey-7" active-color="primary">
+                    <q-breadcrumbs-el label="Accueil" icon="home" to="/" />
+                    <q-breadcrumbs-el label="Mes candidatures" icon="work" to="/applications" />
+                    <q-breadcrumbs-el
+                      :label="currentApplication.jobOfferTitle"
+                      icon="description"
+                    />
+                  </q-breadcrumbs>
+                </div>
+              </div>
+
+              <p class="text-h5 q-my-sm q-mx-md text-grey-2">
+                {{ currentApplication.organizationName }}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div class="application-meta-header row q-gutter-md items-center">
-          <q-chip
-            v-if="statusConfig"
-            :color="statusConfig.color"
-            :text-color="statusConfig.textColor"
-            :icon="statusConfig.icon"
-            size="md"
-          >
-            {{ statusConfig.label }}
-          </q-chip>
+          <div class="application-meta-header row q-gutter-md items-center">
+            <q-chip
+              v-if="statusConfig"
+              :color="statusConfig.color"
+              :text-color="statusConfig.textColor"
+              :icon="statusConfig.icon"
+              size="md"
+            >
+              {{ statusConfig.label }}
+            </q-chip>
 
-          <q-chip color="white" text-color="primary" icon="access_time">
-            Candidaté {{ formatDate(currentApplication.appliedAt) }}
-          </q-chip>
+            <q-chip color="white" text-color="primary" icon="access_time">
+              Candidaté {{ formatDate(currentApplication.appliedAt) }}
+            </q-chip>
 
-          <q-chip v-if="currentApplication.rating" color="white" text-color="amber" icon="star">
-            {{ currentApplication.rating }}/5
-          </q-chip>
+            <q-chip v-if="currentApplication.rating" color="white" text-color="amber" icon="star">
+              {{ currentApplication.rating }}/5
+            </q-chip>
+          </div>
         </div>
       </div>
 
       <!-- Content -->
-      <div class="application-content q-pa-lg">
-        <div class="row q-gutter-lg">
-          <!-- Main Content -->
-          <div class="col-12 col-md-8">
-            <!-- Cover Letter -->
-            <q-card v-if="currentApplication.coverLetter" class="q-mb-lg">
-              <q-card-section>
-                <h6 class="text-h6 q-mt-none q-mb-md">
-                  <q-icon name="email" class="q-mr-sm" />
-                  Ma lettre de motivation
-                </h6>
-                <div class="cover-letter-content">
-                  {{ currentApplication.coverLetter }}
-                </div>
-                <div class="q-mt-md">
-                  <q-btn
-                    flat
-                    color="primary"
-                    icon="edit"
-                    label="Modifier"
-                    :disable="!canEdit"
-                    @click="editCoverLetter"
-                  />
-                </div>
-              </q-card-section>
-            </q-card>
-
-            <!-- Additional Notes -->
-            <q-card v-if="currentApplication.additionalNotes" class="q-mb-lg">
-              <q-card-section>
-                <h6 class="text-h6 q-mt-none q-mb-md">
-                  <q-icon name="notes" class="q-mr-sm" />
-                  Notes additionnelles
-                </h6>
-                <div class="notes-content">
-                  {{ currentApplication.additionalNotes }}
-                </div>
-              </q-card-section>
-            </q-card>
-
-            <!-- Status History -->
-            <q-card class="q-mb-lg">
-              <q-card-section>
-                <h6 class="text-h6 q-mt-none q-mb-md">
-                  <q-icon name="history" class="q-mr-sm" />
-                  Historique de la candidature
-                </h6>
-                <q-timeline color="primary">
-                  <q-timeline-entry
-                    v-for="historyItem in sortedHistory"
-                    :key="historyItem.id"
-                    :color="getTimelineColor(historyItem.status)"
-                    :icon="getTimelineIcon(historyItem.status)"
-                    :title="historyItem.statusDisplayName"
-                    :subtitle="formatDate(historyItem.updatedAt)"
-                  >
-                    <div v-if="historyItem.comment" class="timeline-comment q-mt-sm">
-                      <p class="text-body2 q-mb-none">{{ historyItem.comment }}</p>
-                    </div>
-
-                    <div v-if="historyItem.hasRating" class="timeline-rating q-mt-sm">
-                      <div class="row items-center">
-                        <q-rating
-                          v-model="historyItem.rating!"
-                          readonly
-                          size="18px"
-                          color="amber"
-                        />
-                        <span class="q-ml-sm text-caption">{{
-                          historyItem.ratingDescription
-                        }}</span>
-                      </div>
-                    </div>
-
-                    <div class="timeline-author text-caption text-grey-6 q-mt-sm">
-                      Par {{ historyItem.updatedByUserName }}
-                    </div>
-                  </q-timeline-entry>
-                </q-timeline>
-              </q-card-section>
-            </q-card>
-          </div>
-
-          <!-- Sidebar -->
-          <div class="col-12 col-md-4">
-            <!-- Actions Card -->
-            <q-card class="actions-card q-mb-lg">
-              <q-card-section>
-                <h6 class="text-h6 q-mt-none q-mb-md">Actions</h6>
-
-                <div class="q-gutter-sm">
-                  <q-btn
-                    v-if="canWithdraw"
-                    color="negative"
-                    outline
-                    icon="cancel"
-                    label="Retirer ma candidature"
-                    class="full-width"
-                    @click="confirmWithdraw"
-                  />
-
-                  <q-btn
-                    v-if="canEdit"
-                    color="primary"
-                    outline
-                    icon="edit"
-                    label="Modifier ma candidature"
-                    class="full-width"
-                    @click="editApplication"
-                  />
-
-                  <q-btn
-                    flat
-                    icon="content_copy"
-                    label="Copier l'ID"
-                    class="full-width"
-                    @click="copyApplicationId"
-                  />
-
-                  <q-btn
-                    flat
-                    icon="download"
-                    label="Télécharger"
-                    class="full-width"
-                    @click="downloadApplication"
-                  />
-                </div>
-              </q-card-section>
-            </q-card>
-
-            <!-- Application Info -->
-            <q-card class="q-mb-lg">
-              <q-card-section>
-                <h6 class="text-h6 q-mt-none q-mb-md">Informations</h6>
-
-                <div class="info-item q-mb-md">
-                  <div class="text-weight-medium">ID de candidature</div>
-                  <div class="text-grey-8 text-mono">
-                    {{ currentApplication.id.substring(0, 18) }}...
+      <div class="application-content-container">
+        <div class="application-content">
+          <div class="content-grid q-pa-lg">
+            <!-- Main Content -->
+            <div class="main-content">
+              <!-- Cover Letter -->
+              <q-card v-if="currentApplication.coverLetter" class="q-mb-lg">
+                <q-card-section>
+                  <h6 class="text-h6 q-mt-none q-mb-md">
+                    <q-icon name="email" class="q-mr-sm" />
+                    Ma lettre de motivation
+                  </h6>
+                  <div class="cover-letter-content">
+                    {{ currentApplication.coverLetter }}
                   </div>
-                </div>
-
-                <div class="info-item q-mb-md">
-                  <div class="text-weight-medium">Date de candidature</div>
-                  <div>{{ formatFullDate(currentApplication.appliedAt) }}</div>
-                </div>
-
-                <div v-if="currentApplication.lastUpdatedAt" class="info-item q-mb-md">
-                  <div class="text-weight-medium">Dernière mise à jour</div>
-                  <div>{{ formatFullDate(currentApplication.lastUpdatedAt) }}</div>
-                </div>
-
-                <div class="info-item q-mb-md">
-                  <div class="text-weight-medium">Statut actuel</div>
-                  <q-chip
-                    v-if="statusConfig"
-                    :color="statusConfig.color"
-                    :text-color="statusConfig.textColor"
-                    size="sm"
-                    :icon="statusConfig.icon"
-                  >
-                    {{ statusConfig.label }}
-                  </q-chip>
-                </div>
-
-                <div v-if="currentApplication.rating" class="info-item">
-                  <div class="text-weight-medium">Évaluation</div>
-                  <div class="row items-center">
-                    <q-rating
-                      v-model="currentApplication.rating"
-                      readonly
-                      size="18px"
-                      color="amber"
+                  <div class="q-mt-md">
+                    <q-btn
+                      flat
+                      color="primary"
+                      icon="edit"
+                      label="Modifier"
+                      :disable="!canEdit"
+                      @click="editCoverLetter"
                     />
-                    <span class="q-ml-sm">{{ currentApplication.rating }}/5</span>
                   </div>
-                </div>
-              </q-card-section>
-            </q-card>
+                </q-card-section>
+              </q-card>
 
-            <!-- Contact Info -->
-            <q-card
-              v-if="
-                currentApplication.assignedManagerName ||
-                currentApplication.assignedTechnicalEvaluatorName
-              "
-            >
-              <q-card-section>
-                <h6 class="text-h6 q-mt-none q-mb-md">Contacts</h6>
-
-                <div v-if="currentApplication.assignedManagerName" class="contact-item q-mb-md">
-                  <div class="text-weight-medium">Manager assigné</div>
-                  <div class="text-grey-8">{{ currentApplication.assignedManagerName }}</div>
-                </div>
-
-                <div v-if="currentApplication.assignedTechnicalEvaluatorName" class="contact-item">
-                  <div class="text-weight-medium">Évaluateur technique</div>
-                  <div class="text-grey-8">
-                    {{ currentApplication.assignedTechnicalEvaluatorName }}
+              <!-- Additional Notes -->
+              <q-card v-if="currentApplication.additionalNotes" class="q-mb-lg">
+                <q-card-section>
+                  <h6 class="text-h6 q-mt-none q-mb-md">
+                    <q-icon name="notes" class="q-mr-sm" />
+                    Notes additionnelles
+                  </h6>
+                  <div class="notes-content">
+                    {{ currentApplication.additionalNotes }}
                   </div>
-                </div>
-              </q-card-section>
-            </q-card>
+                </q-card-section>
+              </q-card>
+
+              <!-- Status History -->
+              <q-card class="q-mb-lg">
+                <q-card-section>
+                  <h6 class="text-h6 q-mt-none q-mb-md">
+                    <q-icon name="history" class="q-mr-sm" />
+                    Historique de la candidature
+                  </h6>
+                  <q-timeline color="primary">
+                    <q-timeline-entry
+                      v-for="historyItem in sortedHistory"
+                      :key="historyItem.id"
+                      :color="getTimelineColor(historyItem.status)"
+                      :icon="getTimelineIcon(historyItem.status)"
+                      :title="historyItem.statusDisplayName"
+                      :subtitle="formatDate(historyItem.updatedAt)"
+                    >
+                      <div v-if="historyItem.comment" class="timeline-comment q-mt-sm">
+                        <p class="text-body2 q-mb-none">{{ historyItem.comment }}</p>
+                      </div>
+
+                      <div v-if="historyItem.hasRating" class="timeline-rating q-mt-sm">
+                        <div class="row items-center">
+                          <q-rating
+                            v-model="historyItem.rating!"
+                            readonly
+                            size="18px"
+                            color="amber"
+                          />
+                          <span class="q-ml-sm text-caption">{{
+                            historyItem.ratingDescription
+                          }}</span>
+                        </div>
+                      </div>
+
+                      <div class="timeline-author text-caption text-grey-6 q-mt-sm">
+                        Par {{ historyItem.updatedByUserName }}
+                      </div>
+                    </q-timeline-entry>
+                  </q-timeline>
+                </q-card-section>
+              </q-card>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+              <!-- Actions Card -->
+              <q-card class="actions-card q-mb-lg">
+                <q-card-section>
+                  <h6 class="text-h6 q-mt-none q-mb-md">Actions</h6>
+
+                  <div class="q-gutter-sm">
+                    <q-btn
+                      v-if="canWithdraw"
+                      color="negative"
+                      outline
+                      icon="cancel"
+                      label="Retirer ma candidature"
+                      class="full-width"
+                      @click="confirmWithdraw"
+                    />
+
+                    <q-btn
+                      v-if="canEdit"
+                      color="primary"
+                      outline
+                      icon="edit"
+                      label="Modifier ma candidature"
+                      class="full-width"
+                      @click="editApplication"
+                    />
+
+                    <q-btn
+                      flat
+                      icon="content_copy"
+                      label="Copier l'ID"
+                      class="full-width"
+                      @click="copyApplicationId"
+                    />
+
+                    <q-btn
+                      flat
+                      icon="download"
+                      label="Télécharger"
+                      class="full-width"
+                      @click="downloadApplication"
+                    />
+                  </div>
+                </q-card-section>
+              </q-card>
+
+              <!-- Application Info -->
+              <q-card class="q-mb-lg">
+                <q-card-section>
+                  <h6 class="text-h6 q-mt-none q-mb-md">Informations</h6>
+
+                  <div class="info-item q-mb-md">
+                    <div class="text-weight-medium">ID de candidature</div>
+                    <div class="text-grey-8 text-mono">
+                      {{ currentApplication.id.substring(0, 18) }}...
+                    </div>
+                  </div>
+
+                  <div class="info-item q-mb-md">
+                    <div class="text-weight-medium">Date de candidature</div>
+                    <div>{{ formatFullDate(currentApplication.appliedAt) }}</div>
+                  </div>
+
+                  <div v-if="currentApplication.lastUpdatedAt" class="info-item q-mb-md">
+                    <div class="text-weight-medium">Dernière mise à jour</div>
+                    <div>{{ formatFullDate(currentApplication.lastUpdatedAt) }}</div>
+                  </div>
+
+                  <div class="info-item q-mb-md">
+                    <div class="text-weight-medium">Statut actuel</div>
+                    <q-chip
+                      v-if="statusConfig"
+                      :color="statusConfig.color"
+                      :text-color="statusConfig.textColor"
+                      size="sm"
+                      :icon="statusConfig.icon"
+                    >
+                      {{ statusConfig.label }}
+                    </q-chip>
+                  </div>
+
+                  <div v-if="currentApplication.rating" class="info-item">
+                    <div class="text-weight-medium">Évaluation</div>
+                    <div class="row items-center">
+                      <q-rating
+                        v-model="currentApplication.rating"
+                        readonly
+                        size="18px"
+                        color="amber"
+                      />
+                      <span class="q-ml-sm">{{ currentApplication.rating }}/5</span>
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
+
+              <!-- Contact Info -->
+              <q-card
+                v-if="
+                  currentApplication.assignedManagerName ||
+                  currentApplication.assignedTechnicalEvaluatorName
+                "
+              >
+                <q-card-section>
+                  <h6 class="text-h6 q-mt-none q-mb-md">Contacts</h6>
+
+                  <div v-if="currentApplication.assignedManagerName" class="contact-item q-mb-md">
+                    <div class="text-weight-medium">Manager assigné</div>
+                    <div class="text-grey-8">{{ currentApplication.assignedManagerName }}</div>
+                  </div>
+
+                  <div
+                    v-if="currentApplication.assignedTechnicalEvaluatorName"
+                    class="contact-item"
+                  >
+                    <div class="text-weight-medium">Évaluateur technique</div>
+                    <div class="text-grey-8">
+                      {{ currentApplication.assignedTechnicalEvaluatorName }}
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
+            </div>
           </div>
         </div>
       </div>
@@ -443,13 +463,62 @@ onMounted(async () => {
   background-color: #f8f9fa;
 }
 
+.breadcrumb-container {
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  width: fit-content;
+  border-radius: 22px;
+}
+
+.breadcrumb-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
 .application-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.application-content-container {
+  width: 100%;
+  background-color: rgb(233, 233, 233);
+  padding: 0;
+}
+
 .application-content {
-  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+
+  @media (min-width: 992px) {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.main-content {
+  min-width: 0; // Prevent overflow
+}
+
+.sidebar {
+  min-width: 0; // Prevent overflow
+
+  @media (min-width: 992px) {
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+  }
 }
 
 .cover-letter-content,

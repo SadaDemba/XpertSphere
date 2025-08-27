@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ResponseResult } from './base';
 export interface LoginDto {
   email: string;
   password: string;
@@ -9,13 +10,9 @@ export interface LoginDto {
   skipEntraIdRedirect?: boolean;
 }
 
-export interface AuthResponseDto {
-  success: boolean;
-  message?: string;
-  statusCode?: number;
-  errors?: string[];
+export type AuthResult = ResponseResult<AuthResponseDto>;
 
-  // Success response fields
+export interface AuthResponseDto {
   accessToken?: string;
   refreshToken?: string;
   tokenExpiry?: string;
@@ -23,7 +20,7 @@ export interface AuthResponseDto {
   emailConfirmationToken?: string;
   redirectUrl?: string;
 
-  // Entra ID specific
+  // Entra ID specific fields
   requiresEntraId?: boolean;
   entraIdAuthUrl?: string;
   authType?: 'B2B' | 'B2C' | 'Local';
@@ -37,6 +34,16 @@ export interface RefreshTokenDto {
   refreshToken: string;
 }
 
+export interface Address {
+  streetNumber?: string;
+  streetName?: string;
+  city?: string;
+  postalCode?: string;
+  region?: string;
+  country?: string;
+  addressLine2?: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -48,6 +55,7 @@ export interface User {
   organizationId?: string;
   organizationName?: string;
   profilePictureUrl?: string;
+  address?: Address;
   createdAt: string;
   lastLoginAt?: string;
 
@@ -58,12 +66,13 @@ export interface User {
   linkedInProfile?: string;
   skills?: string;
   yearsOfExperience?: number;
-  trainings?: any[];
-  experiences?: any[];
+  trainings?: Training[];
+  experiences?: Experience[];
   desiredSalary?: number;
   availability?: string;
   fullName?: string;
   profileCompletionPercentage?: number;
+  cvPath?: string;
 
   // Entra ID specific
   externalId?: string;
@@ -168,20 +177,9 @@ export interface ResumeAnalysisResponse {
     profession?: string;
     address?: string;
     languages?: string[];
-    trainings?: Array<{
-      school: string;
-      level: string;
-      period: string;
-      field: string;
-    }>;
+    trainings?: Training[];
     skills?: string[];
-    experiences?: Array<{
-      title: string;
-      description: string;
-      date: string;
-      company: string;
-      location?: string;
-    }>;
+    experiences?: Experience[];
     id?: string;
   };
 }

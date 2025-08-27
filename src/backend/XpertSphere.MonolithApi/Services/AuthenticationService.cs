@@ -40,6 +40,8 @@ public class AuthenticationService : IAuthenticationService
     private readonly IWebHostEnvironment _environment;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserService _userService;
+    private readonly ITrainingService _trainingService;
+    private readonly IExperienceService _experienceService;
     private readonly IResumeService _resumeService;
     private readonly XpertSphereDbContext _context;
     
@@ -66,6 +68,8 @@ public class AuthenticationService : IAuthenticationService
         IHttpContextAccessor httpContextAccessor,
         IUserService userService,
         IResumeService resumeService,
+        ITrainingService trainingService,
+        IExperienceService experienceService,
         XpertSphereDbContext context)
     {
         _userManager = userManager;
@@ -85,6 +89,8 @@ public class AuthenticationService : IAuthenticationService
         _httpContextAccessor = httpContextAccessor;
         _userService = userService;
         _resumeService = resumeService;
+        _trainingService = trainingService;
+        _experienceService = experienceService;
         _context = context;
     }
 
@@ -197,7 +203,7 @@ public class AuthenticationService : IAuthenticationService
                     Address = new Address
                     {
                         StreetNumber = registerDto.StreetNumber,
-                        Street = registerDto.Street,
+                        StreetName = registerDto.Street,
                         City = registerDto.City,
                         PostalCode = registerDto.PostalCode,
                         Region = registerDto.Region,
@@ -230,28 +236,14 @@ public class AuthenticationService : IAuthenticationService
                     var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
                     return AuthResult.Failure($"User creation failed: {errors}");
                 }
-
-                // Upload resume within transaction if provided
-                if (resumeFile != null)
-                {
-                    var resumeUploadResult = await _resumeService.UploadResumeAsync(resumeFile, user.Id);
-                    if (resumeUploadResult.IsSuccess)
-                    {
-                        user.CvPath = resumeUploadResult.Data;
-                        await _userManager.UpdateAsync(user);
-                    }
-                }
-
+                
                 // Add trainings if provided
                 if (registerDto.Trainings?.Count > 0)
                 {
                     foreach (var training in registerDto.Trainings)
                     {
-                        training.Id = Guid.NewGuid();
                         training.UserId = user.Id;
-                        training.CreatedAt = DateTime.UtcNow;
-                        training.UpdatedAt = DateTime.UtcNow;
-                        _context.Trainings.Add(training);
+                        await _trainingService.CreateTrainingAsync(training);
                     }
                 }
 
@@ -260,11 +252,19 @@ public class AuthenticationService : IAuthenticationService
                 {
                     foreach (var experience in registerDto.Experiences)
                     {
-                        experience.Id = Guid.NewGuid();
                         experience.UserId = user.Id;
-                        experience.CreatedAt = DateTime.UtcNow;
-                        experience.UpdatedAt = DateTime.UtcNow;
-                        _context.Experiences.Add(experience);
+                        await _experienceService.CreateExperienceAsync(experience);
+                    }
+                }
+
+                // Upload resume within transaction if provided
+                if (resumeFile != null)
+                {
+                    var resumeUploadResult = await _resumeService.UploadResumeAsync(resumeFile, user.Id);
+                    if (resumeUploadResult.IsSuccess)
+                    {
+                        user.CvPath = resumeUploadResult.Data;
+                        _context.Users.Update(user);
                     }
                 }
 

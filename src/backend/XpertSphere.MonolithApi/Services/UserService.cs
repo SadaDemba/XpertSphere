@@ -7,6 +7,7 @@ using XpertSphere.MonolithApi.DTOs.User;
 using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Models.Base;
 using XpertSphere.MonolithApi.Utils.Results;
 using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
@@ -759,7 +760,7 @@ public class UserService : IUserService
                 u.Address.Country!.ToLower().Contains(searchTerms) ||
                 u.Address.PostalCode!.ToLower().Contains(searchTerms) ||
                 u.Address.Region!.ToLower().Contains(searchTerms) ||
-                u.Address.Street!.ToLower().Contains(searchTerms) ||
+                u.Address.StreetName!.ToLower().Contains(searchTerms) ||
                 u.Address.AddressLine2!.ToLower().Contains(searchTerms) ||
                 u.Address.StreetNumber!.ToLower().Contains(searchTerms) ||
                 (u.Skills != null && u.Skills.ToLower().Contains(searchTerms)));
@@ -811,7 +812,145 @@ public class UserService : IUserService
                 : query.OrderByDescending(u => u.CreatedAt)
             };
     }
-    
 
- 
+    public async Task<ServiceResult<UserDto>> UpdateSkillsAsync(Guid id, UpdateUserSkillsDto dto)
+    {
+        try
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return ServiceResult<UserDto>.NotFound($"User with ID {id} not found");
+            }
+
+            // Replace skills
+            user.Skills = dto.Skills;
+            user.UpdatedAt = DateTime.UtcNow;
+            
+            // Recalculate profile completion
+            user.CalculateProfileCompletion();
+            
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Updated skills for user {UserId}", id);
+
+            // Get updated user with relations
+            var updatedUser = await _context.Users
+                .Include(u => u.Organization)
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            var userDto = _mapper.Map<UserDto>(updatedUser);
+            return ServiceResult<UserDto>.Success(userDto, "Skills updated successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating skills for user {UserId}", id);
+            return ServiceResult<UserDto>.InternalError("An error occurred while updating user skills");
+        }
+    }
+
+    public async Task<ServiceResult<UserDto>> UpdateProfileAsync(Guid id, UpdateUserProfileDto dto)
+    {
+        try
+        {
+            var user = await _context.Users
+                .Include(u => u.Address)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (user == null)
+            {
+                return ServiceResult<UserDto>.NotFound($"User with ID {id} not found");
+            }
+
+            // Update user properties
+            if (!string.IsNullOrEmpty(dto.FirstName))
+                user.FirstName = dto.FirstName;
+            
+            if (!string.IsNullOrEmpty(dto.LastName))
+                user.LastName = dto.LastName;
+                
+            if (!string.IsNullOrEmpty(dto.PhoneNumber))
+                user.PhoneNumber = dto.PhoneNumber;
+                
+            if (dto.YearsOfExperience.HasValue)
+                user.YearsOfExperience = dto.YearsOfExperience;
+                
+            if (dto.DesiredSalary.HasValue)
+                user.DesiredSalary = dto.DesiredSalary;
+                
+            if (dto.Availability.HasValue)
+                user.Availability = dto.Availability;
+                
+            if (!string.IsNullOrEmpty(dto.LinkedInProfile))
+                user.LinkedInProfile = dto.LinkedInProfile;
+
+            // Update address if provided
+            if (user.Address == null && HasAddressData(dto))
+            {
+                user.Address = new Address();
+            }
+            
+            if (user.Address != null)
+            {
+                if (!string.IsNullOrEmpty(dto.StreetNumber))
+                    user.Address.StreetNumber = dto.StreetNumber;
+                    
+                if (!string.IsNullOrEmpty(dto.Street))
+                    user.Address.StreetName = dto.Street;
+                    
+                if (!string.IsNullOrEmpty(dto.City))
+                    user.Address.City = dto.City;
+                    
+                if (!string.IsNullOrEmpty(dto.PostalCode))
+                    user.Address.PostalCode = dto.PostalCode;
+                    
+                if (!string.IsNullOrEmpty(dto.Region))
+                    user.Address.Region = dto.Region;
+                    
+                if (!string.IsNullOrEmpty(dto.Country))
+                    user.Address.Country = dto.Country;
+                    
+                if (!string.IsNullOrEmpty(dto.AddressLine2))
+                    user.Address.AddressLine2 = dto.AddressLine2;
+            }
+
+            user.UpdatedAt = DateTime.UtcNow;
+            
+            // Recalculate profile completion
+            user.CalculateProfileCompletion();
+            
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Updated profile for user {UserId}", id);
+
+            // Get updated user with all relations
+            var updatedUser = await _context.Users
+                .Include(u => u.Organization)
+                .Include(u => u.Address)
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            var userDto = _mapper.Map<UserDto>(updatedUser);
+            return ServiceResult<UserDto>.Success(userDto, "Profile updated successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating profile for user {UserId}", id);
+            return ServiceResult<UserDto>.InternalError("An error occurred while updating user profile");
+        }
+    }
+
+    private static bool HasAddressData(UpdateUserProfileDto dto)
+    {
+        return !string.IsNullOrEmpty(dto.StreetNumber) ||
+               !string.IsNullOrEmpty(dto.Street) ||
+               !string.IsNullOrEmpty(dto.City) ||
+               !string.IsNullOrEmpty(dto.PostalCode) ||
+               !string.IsNullOrEmpty(dto.Region) ||
+               !string.IsNullOrEmpty(dto.Country) ||
+               !string.IsNullOrEmpty(dto.AddressLine2);
+    }
 }

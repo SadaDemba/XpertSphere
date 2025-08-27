@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using XpertSphere.MonolithApi.Models.Base;
 
-namespace XpertSphere.MonolithApi.Models.Base;
+namespace XpertSphere.MonolithApi.Models;
 
 public class Experience: AuditableEntity
 {
@@ -12,20 +13,16 @@ public class Experience: AuditableEntity
     [MaxLength(100)]
     public string Title { get; set; } = string.Empty;
     
-    [MaxLength(200)]
     public string Description { get; set; } = string.Empty;
     
     [MaxLength(100)]
-    public string City { get; set; } = string.Empty;
+    public string Location { get; set; } = string.Empty;
     
     [MaxLength(100)]
-    public string CompanyName { get; set; } = string.Empty;
+    public string Company { get; set; } = string.Empty;
     
-    [MaxLength(20)]
-    public string BeginPeriod { get; set; } = string.Empty;
-    
-    [MaxLength(20)]
-    public string EndPeriod { get; set; } = string.Empty;
+    [MaxLength(40)]
+    public string Date { get; set; } = string.Empty;
 
     public bool IsCurrent { get; set; }
     

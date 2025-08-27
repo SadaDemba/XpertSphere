@@ -42,7 +42,7 @@ public class OrganizationServiceTests : IDisposable
             Description = "A test organization",
             Industry = "Technology",
             Size = OrganizationSize.Medium,
-            Address = new Address { Street = "123 Test St", City = "Test City" },
+            Address = new Address { StreetName = "123 Test St", City = "Test City" },
             ContactEmail = "contact@testorg.com",
             ContactPhone = "+1234567890",
             Website = "https://testorg.com"

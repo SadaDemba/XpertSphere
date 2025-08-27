@@ -206,7 +206,7 @@ public class User : IdentityUser<Guid>, IAuditableEntity
         if (!string.IsNullOrEmpty(LastName)) completedFields++;
         if (!string.IsNullOrEmpty(Email)) completedFields++;
         if (!string.IsNullOrEmpty(PhoneNumber)) completedFields++;
-        if (Address != null && !string.IsNullOrEmpty(Address.Street)) completedFields++;
+        if (Address != null && !string.IsNullOrEmpty(Address.StreetName)) completedFields++;
         if (!string.IsNullOrEmpty(Skills)) completedFields++;
         if (YearsOfExperience.HasValue) completedFields++;
         if (!string.IsNullOrEmpty(CvPath)) completedFields++;

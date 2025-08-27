@@ -1,4 +1,3 @@
-using System.Linq;
 using AutoMapper;
 using XpertSphere.MonolithApi.DTOs.User;
 using XpertSphere.MonolithApi.Models;

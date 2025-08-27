@@ -266,7 +266,7 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .job-listings-page {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: rgb(233, 233, 233);
 }
 
 .page-header {

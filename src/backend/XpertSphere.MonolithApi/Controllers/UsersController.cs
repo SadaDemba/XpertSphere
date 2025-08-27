@@ -319,4 +319,42 @@ public class UsersController : ControllerBase
     }
 
     #endregion
+
+    #region Profile Updates
+
+    /// <summary>
+    /// Update user skills (replace all existing skills)
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <param name="updateSkillsDto">New skills data</param>
+    /// <returns>Updated user</returns>
+    [HttpPut("{id:guid}/skills")]
+    [Authorize(Policy = "CandidateOwnDataAccess")]
+    [ProducesResponseType(typeof(UserDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult<UserDto>> UpdateUserSkills(Guid id, [FromBody] UpdateUserSkillsDto updateSkillsDto)
+    {
+        var result = await _userService.UpdateSkillsAsync(id, updateSkillsDto);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Update user profile general information
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <param name="updateProfileDto">Profile update data</param>
+    /// <returns>Updated user</returns>
+    [HttpPut("{id:guid}/profile")]
+    [Authorize(Policy = "CandidateOwnDataAccess")]
+    [ProducesResponseType(typeof(UserDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult<UserDto>> UpdateUserProfile(Guid id, [FromBody] UpdateUserProfileDto updateProfileDto)
+    {
+        var result = await _userService.UpdateProfileAsync(id, updateProfileDto);
+        return this.ToActionResult(result);
+    }
+
+    #endregion
 }

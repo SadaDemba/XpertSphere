@@ -11,6 +11,8 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IOrganizationService, OrganizationService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IExperienceService, ExperienceService>();
+        services.AddScoped<ITrainingService, TrainingService>();
         
         // Job Management Services
         services.AddScoped<IJobOfferService, JobOfferService>();

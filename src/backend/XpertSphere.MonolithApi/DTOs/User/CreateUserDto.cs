@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using XpertSphere.MonolithApi.Enums;
-using XpertSphere.MonolithApi.Models.Base;
+using XpertSphere.MonolithApi.Models;
 
 namespace XpertSphere.MonolithApi.DTOs.User;
 

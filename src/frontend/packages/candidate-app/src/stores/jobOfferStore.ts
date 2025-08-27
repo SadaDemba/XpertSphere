@@ -97,7 +97,6 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       clearError();
 
       const jobOffer = await jobOfferService.getJobOfferById(id);
-      console.log(jobOffer);
       if (jobOffer?.isSuccess) {
         currentJobOffer.value = jobOffer.data!;
         notification.showSuccessNotification('Offre récupérée avec succès');
