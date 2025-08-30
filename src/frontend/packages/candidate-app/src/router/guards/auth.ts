@@ -19,5 +19,13 @@ export const authGuard: NavigationGuard = async (to, from, next) => {
     return;
   }
 
+  // Redirect authenticated users away from login/register pages
+  if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
+    // Redirect to home or the intended destination
+    const redirect = to.query.redirect as string;
+    next(redirect || '/');
+    return;
+  }
+
   next();
 };

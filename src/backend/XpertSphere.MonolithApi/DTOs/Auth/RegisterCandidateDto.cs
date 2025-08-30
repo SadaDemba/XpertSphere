@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using XpertSphere.MonolithApi.Models.Base;
+using XpertSphere.MonolithApi.DTOs.ExperienceDtos;
+using XpertSphere.MonolithApi.DTOs.TrainingDtos;
 
 namespace XpertSphere.MonolithApi.DTOs.Auth;
 
@@ -45,8 +46,8 @@ public record RegisterCandidateDto
     public string? LinkedInProfile { get; init; }
 
     // Training and Experience
-    public List<Training>? Trainings { get; init; }
-    public List<Experience>? Experiences { get; init; }
+    public List<CreateTrainingDto>? Trainings { get; init; }
+    public List<CreateExperienceDto>? Experiences { get; init; }
 
     // Communication Preferences
     public bool EmailNotificationsEnabled { get; init; } = true;

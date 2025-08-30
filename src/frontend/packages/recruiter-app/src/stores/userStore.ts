@@ -8,9 +8,12 @@ import type {
   UserFilterDto,
 } from '../models/user';
 import { UserService } from '../services/userService';
+import { useNotification } from 'src/composables/notification';
+import { convertUserDtoToUserSearchResultDto } from 'src/helpers/mapper';
 
 export const useUserStore = defineStore('user', () => {
   const service = new UserService();
+  const notification = useNotification();
 
   const users = ref<UserSearchResultDto[]>([]);
   const currentUser = ref<UserDto | null>(null);
@@ -48,15 +51,27 @@ export const useUserStore = defineStore('user', () => {
       setLoading(true);
       clearError();
 
-      const data = await service.getPaginatedUsers(filter);
-
-      users.value = data.items;
-      totalCount.value = data.totalItems;
-      currentPage.value = data.pageNumber;
-      pageSize.value = data.pageSize;
-      totalPages.value = data.totalPages;
-    } catch (err) {
-      setError(`Erreur lors du chargement des utilisateurs: ${err}`);
+      const response = await service.getPaginatedUsers(filter);
+      if (response?.isSuccess) {
+        users.value = response!.data;
+        totalCount.value = response!.pagination.totalItems;
+        currentPage.value = response!.pagination.currentPage;
+        pageSize.value = response!.pagination.pageSize;
+        totalPages.value = response!.pagination.totalPages;
+        notification.showSuccessNotification('Utilisateurs chargés avce succès');
+      } else {
+        setError(response?.message || 'Erreur lors de la chargement des utilisateurs');
+        notification.showSuccessNotification(
+          response?.message || 'Erreur lors du chargement des utilisateurs',
+        );
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des utilisateurs',
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des utilisateurs',
+      );
     } finally {
       setLoading(false);
     }
@@ -66,11 +81,25 @@ export const useUserStore = defineStore('user', () => {
     try {
       setLoading(true);
       clearError();
-      const data = await service.getUserById(id);
-      currentUser.value = data;
-      return data;
-    } catch (err) {
-      setError(`Erreur lors du chargement de l'utilisateur: ${err}`);
+      const response = await service.getUserById(id);
+      if (response?.isSuccess && response.data) {
+        currentUser.value = response!.data;
+        notification.showSuccessNotification('Utilisateurs chargés avce succès');
+      } else {
+        setError(response?.message || "Erreur lors de la chargement de l'utilisateur");
+        notification.showSuccessNotification(
+          response?.message || "Erreur lors du chargement de l'utilisateur",
+        );
+      }
+
+      return response?.data;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors du chargement de l'utilisateur",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors du chargement de l'utilisateur",
+      );
       return null;
     } finally {
       setLoading(false);
@@ -81,11 +110,24 @@ export const useUserStore = defineStore('user', () => {
     try {
       setLoading(true);
       clearError();
-      const data = await service.getUserProfile(id);
-      currentUser.value = data;
-      return data;
-    } catch (err) {
-      setError(`Erreur lors du chargement du profil utilisateur: ${err}`);
+      const response = await service.getUserProfile(id);
+      if (response?.isSuccess && response.data) {
+        currentUser.value = response!.data;
+        notification.showSuccessNotification('Utilisateurs chargés avce succès');
+      } else {
+        setError(response?.message || "Erreur lors de la chargement de l'utilisateur");
+        notification.showSuccessNotification(
+          response?.message || "Erreur lors du chargement de l'utilisateur",
+        );
+      }
+      return response?.data;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors du chargement de l'utilisateur",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors du chargement de l'utilisateur",
+      );
       return null;
     } finally {
       setLoading(false);
@@ -96,14 +138,25 @@ export const useUserStore = defineStore('user', () => {
     try {
       setLoading(true);
       clearError();
-      const newUser = await service.createUser(userData);
-      if (newUser) {
-        // Note: We'll need to convert UserDto to UserSearchResultDto for the list
+      const response = await service.createUser(userData);
+      if (response?.isSuccess && response.data) {
+        users.value.unshift(convertUserDtoToUserSearchResultDto(response.data));
         totalCount.value++;
+        notification.showSuccessNotification('Utilisateurs créé avec succès');
+      } else {
+        setError(response?.message || "Erreur lors de la création de l'utilisateur");
+        notification.showSuccessNotification(
+          response?.message || "Erreur lors de la création de l'utilisateur",
+        );
       }
-      return newUser;
-    } catch (err) {
-      setError(`Erreur lors de la création de l'utilisateur: ${err}`);
+      return response?.data;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de la création de l'utilisateur",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la création de l'utilisateur",
+      );
       return null;
     } finally {
       setLoading(false);
@@ -114,33 +167,44 @@ export const useUserStore = defineStore('user', () => {
     try {
       setLoading(true);
       clearError();
-      const updatedUser = await service.updateUser(id, userData);
+      const response = await service.updateUser(id, userData);
 
-      if (updatedUser) {
+      if (response?.isSuccess && response?.data) {
         // Update in the list if present
         const index = users.value.findIndex((user) => user.id === id);
         if (index !== -1 && users.value[index]) {
           // Update the search result with the updated user data
           Object.assign(users.value[index], {
-            firstName: updatedUser.firstName,
-            lastName: updatedUser.lastName,
-            email: updatedUser.email,
-            phoneNumber: updatedUser.phoneNumber,
-            isActive: updatedUser.isActive,
-            department: updatedUser.department,
-            organizationName: updatedUser.organizationName,
-            fullName: updatedUser.fullName,
+            firstName: response.data.firstName,
+            lastName: response.data.lastName,
+            email: response.data.email,
+            phoneNumber: response.data.phoneNumber,
+            isActive: response.data.isActive,
+            department: response.data.department,
+            organizationName: response.data.organizationName,
+            fullName: response.data.fullName,
           });
         }
 
         if (currentUser.value?.id === id) {
-          currentUser.value = updatedUser;
+          currentUser.value = response!.data;
         }
+        notification.showSuccessNotification('Succès de la mise à jour');
+      } else {
+        setError(response?.message || "Erreur lors de la mise à jour de l'utilisateur");
+        notification.showSuccessNotification(
+          response?.message || "Erreur lors de la mise à jour de l'utilisateur",
+        );
       }
 
-      return updatedUser;
-    } catch (err) {
-      setError(`Erreur lors de la mise à jour de l'utilisateur: ${err}`);
+      return response;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de la mise à jour de l'utilisateur",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la mise à jour de l'utilisateur",
+      );
       return null;
     } finally {
       setLoading(false);
@@ -151,9 +215,9 @@ export const useUserStore = defineStore('user', () => {
     try {
       setLoading(true);
       clearError();
-      const success = await service.deleteUser(id);
+      const response = await service.deleteUser(id);
 
-      if (success) {
+      if (response?.isSuccess) {
         const index = users.value.findIndex((user) => user.id === id);
         if (index !== -1) {
           users.value.splice(index, 1);
@@ -163,11 +227,21 @@ export const useUserStore = defineStore('user', () => {
         if (currentUser.value?.id === id) {
           currentUser.value = null;
         }
+        notification.showSuccessNotification("Succès de l'opération");
+      } else {
+        setError(response?.message || 'Erreur lors de la suppression');
+        notification.showSuccessNotification(
+          response?.message || "Erreur lors de la suppression de l'utilisateur",
+        );
       }
-
-      return success;
-    } catch (err) {
-      setError(`Erreur lors de la suppression de l'utilisateur: ${err}`);
+      return response?.isSuccess;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de la suppression de l'utilisateur",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la suppression de l'utilisateur",
+      );
       return false;
     } finally {
       setLoading(false);
@@ -178,9 +252,9 @@ export const useUserStore = defineStore('user', () => {
     try {
       setLoading(true);
       clearError();
-      const success = await service.hardDeleteUser(id);
+      const response = await service.hardDeleteUser(id);
 
-      if (success) {
+      if (response?.isSuccess) {
         const index = users.value.findIndex((user) => user.id === id);
         if (index !== -1) {
           users.value.splice(index, 1);
@@ -190,11 +264,19 @@ export const useUserStore = defineStore('user', () => {
         if (currentUser.value?.id === id) {
           currentUser.value = null;
         }
+      } else {
+        setError(response?.message || 'Erreur lors de la suppression définitive');
+        notification.showSuccessNotification(
+          response?.message || "Erreur lors de la suppression définitive de l'utilisateur",
+        );
       }
 
-      return success;
-    } catch (err) {
-      setError(`Erreur lors de la suppression définitive de l'utilisateur: ${err}`);
+      return response?.isSuccess;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Erreur lors de la suppression définitive');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Erreur lors de la suppression définitive',
+      );
       return false;
     } finally {
       setLoading(false);
@@ -205,9 +287,9 @@ export const useUserStore = defineStore('user', () => {
     try {
       setLoading(true);
       clearError();
-      const success = await service.activateUser(id);
+      const response = await service.activateUser(id);
 
-      if (success) {
+      if (response?.isSuccess) {
         // Update user status in the list
         const user = users.value.find((u) => u.id === id);
         if (user) {
@@ -218,11 +300,23 @@ export const useUserStore = defineStore('user', () => {
         if (currentUser.value?.id === id) {
           currentUser.value.isActive = true;
         }
+
+        notification.showSuccessNotification("Succès de l'opération");
+      } else {
+        setError(response?.message || "Erreur lors de l'activation");
+        notification.showSuccessNotification(
+          response?.message || "Erreur lors de l'activation de l'utilisateur",
+        );
       }
 
-      return success;
-    } catch (err) {
-      setError(`Erreur lors de l'activation de l'utilisateur: ${err}`);
+      return response?.isSuccess;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de l'activation de l'utilisateur",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de l'activation de l'utilisateur",
+      );
       return false;
     } finally {
       setLoading(false);
@@ -233,9 +327,9 @@ export const useUserStore = defineStore('user', () => {
     try {
       setLoading(true);
       clearError();
-      const success = await service.deactivateUser(id);
+      const response = await service.deactivateUser(id);
 
-      if (success) {
+      if (response?.isSuccess) {
         // Update user status in the list
         const user = users.value.find((u) => u.id === id);
         if (user) {
@@ -246,11 +340,22 @@ export const useUserStore = defineStore('user', () => {
         if (currentUser.value?.id === id) {
           currentUser.value.isActive = false;
         }
+        notification.showSuccessNotification("Succès de l'opération");
+      } else {
+        setError(response?.message || 'Erreur lors de la désactivation');
+        notification.showSuccessNotification(
+          response?.message || "Erreur lors de la désactivation de l'utilisateur",
+        );
       }
 
-      return success;
-    } catch (err) {
-      setError(`Erreur lors de la désactivation de l'utilisateur: ${err}`);
+      return response?.isSuccess;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de la désactivation de l'utilisateur",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la désactivation de l'utilisateur",
+      );
       return false;
     } finally {
       setLoading(false);
@@ -259,9 +364,21 @@ export const useUserStore = defineStore('user', () => {
 
   const checkEmailAvailable = async (email: string, excludeUserId?: string): Promise<boolean> => {
     try {
-      return await service.checkEmailAvailable(email, excludeUserId);
-    } catch (err) {
-      setError(`Erreur lors de la vérification de l'email: ${err}`);
+      const response = await service.checkEmailAvailable(email, excludeUserId);
+      if (!response?.isSuccess) {
+        notification.showSuccessNotification(
+          response?.message || "Erreur lors de la vérification de l'email",
+        );
+        return false;
+      }
+      return response?.isSuccess;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de la vérification de l'email",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la vérification de l'email",
+      );
       return false;
     }
   };

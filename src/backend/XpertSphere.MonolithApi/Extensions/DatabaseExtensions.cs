@@ -124,7 +124,7 @@ public static class DatabaseExtensions
                 CreatedAt = DateTime.UtcNow,
                 Address = new Address
                 {
-                    Street = orgConfig["Address:Street"],
+                    StreetName = orgConfig["Address:Street"],
                     City = orgConfig["Address:City"],
                     PostalCode = orgConfig["Address:PostalCode"],
                     Country = orgConfig["Address:Country"],

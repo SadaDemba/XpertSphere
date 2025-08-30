@@ -1,8 +1,8 @@
 using XpertSphere.MonolithApi.DTOs.JobOffer;
 using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Interfaces;
-
 public interface IJobOfferService
 {
     Task<ServiceResult<IEnumerable<JobOfferDto>>> GetAllJobOffersAsync();

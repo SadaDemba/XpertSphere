@@ -1,75 +1,54 @@
 import { BaseClient } from './BaseClient';
 import type { RoleDto, CreateRoleDto, UpdateRoleDto, RoleFilterDto } from '../models/role';
-import type { PaginatedResult } from '../models/base';
+import type { PaginatedResult, ResponseResult, VoidResponseResult } from '../models/base';
 
 export class RoleService extends BaseClient {
   constructor() {
     super('/Roles');
   }
 
-  async getAllRoles(): Promise<RoleDto[]> {
-    const response = await this.get<RoleDto[]>('');
-    return response || [];
+  async getAllRoles(): Promise<ResponseResult<RoleDto[]> | null> {
+    return this.get<ResponseResult<RoleDto[]>>('');
   }
 
-  async getPaginatedRoles(filter: RoleFilterDto = {}): Promise<PaginatedResult<RoleDto>> {
-    const response = await this.get<PaginatedResult<RoleDto>>('/paginated', { params: filter });
-    return (
-      response || {
-        items: [],
-        pageNumber: 1,
-        pageSize: 10,
-        totalItems: 0,
-        totalPages: 0,
-        hasPrevious: false,
-        hasNext: false,
-      }
-    );
+  async getPaginatedRoles(filter: RoleFilterDto = {}): Promise<PaginatedResult<RoleDto> | null> {
+    return this.get<PaginatedResult<RoleDto>>('/paginated', { params: filter });
   }
 
-  async getRoleById(id: string): Promise<RoleDto | null> {
-    const response = await this.get<RoleDto>(`/${id}`);
-    return response;
+  async getRoleById(id: string): Promise<ResponseResult<RoleDto> | null> {
+    return this.get<ResponseResult<RoleDto>>(`/${id}`);
   }
 
-  async getRoleByName(name: string): Promise<RoleDto | null> {
-    const response = await this.get<RoleDto>(`/by-name/${encodeURIComponent(name)}`);
-    return response;
+  async getRoleByName(name: string): Promise<ResponseResult<RoleDto> | null> {
+    return this.get<ResponseResult<RoleDto>>(`/by-name/${encodeURIComponent(name)}`);
   }
 
-  async createRole(role: CreateRoleDto): Promise<RoleDto | null> {
-    const response = await this.post<RoleDto>('', role);
-    return response;
+  async createRole(role: CreateRoleDto): Promise<ResponseResult<RoleDto> | null> {
+    return this.post<ResponseResult<RoleDto>>('', role);
   }
 
-  async updateRole(id: string, role: UpdateRoleDto): Promise<RoleDto | null> {
-    const response = await this.put<RoleDto>(`/${id}`, role);
-    return response;
+  async updateRole(id: string, role: UpdateRoleDto): Promise<ResponseResult<RoleDto> | null> {
+    return this.put<ResponseResult<RoleDto>>(`/${id}`, role);
   }
 
-  async deleteRole(id: string): Promise<boolean> {
-    const response = await this.delete(`/${id}`);
-    return response !== null;
+  async deleteRole(id: string): Promise<VoidResponseResult | null> {
+    return this.delete<VoidResponseResult>(`/${id}`);
   }
 
-  async activateRole(id: string): Promise<boolean> {
-    const response = await this.patch(`/${id}/activate`);
-    return response !== null;
+  async activateRole(id: string): Promise<VoidResponseResult | null> {
+    return this.patch<VoidResponseResult>(`/${id}/activate`);
   }
 
-  async deactivateRole(id: string): Promise<boolean> {
-    const response = await this.patch(`/${id}/deactivate`);
-    return response !== null;
+  async deactivateRole(id: string): Promise<VoidResponseResult | null> {
+    return this.patch<VoidResponseResult>(`/${id}/deactivate`);
   }
 
-  async checkRoleExists(name: string): Promise<boolean> {
-    const response = await this.get<boolean>(`/exists/${encodeURIComponent(name)}`);
-    return response || false;
+  async checkRoleExists(name: string): Promise<ResponseResult<boolean> | null> {
+    return this.get<ResponseResult<boolean>>(`/exists/${encodeURIComponent(name)}`);
   }
 
-  async canDeleteRole(id: string): Promise<boolean> {
-    const response = await this.get<boolean>(`/${id}/can-delete`);
-    return response || false;
+  async canDeleteRole(id: string): Promise<ResponseResult<boolean> | null> {
+    return this.get<ResponseResult<boolean>>(`/${id}/can-delete`);
   }
 }
 

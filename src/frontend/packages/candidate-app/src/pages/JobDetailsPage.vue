@@ -21,9 +21,15 @@
       <!-- Header -->
       <div class="job-header q-pa-lg">
         <div class="row items-center q-mb-md">
-          <q-btn flat round icon="arrow_back" color="white" class="q-mr-md" @click="goBack" />
           <div class="col">
-            <h4 class="text-h4 q-my-none text-white">{{ currentJobOffer.title }}</h4>
+            <div class="breadcrumb-container q-pa-md">
+              <div class="breadcrumb-content">
+                <q-breadcrumbs class="text-grey-7" active-color="primary">
+                  <q-breadcrumbs-el label="Accueil" icon="home" to="/" />
+                  <q-breadcrumbs-el :label="currentJobOffer.title" icon="description" />
+                </q-breadcrumbs>
+              </div>
+            </div>
             <p class="text-h6 q-my-sm text-grey-3">{{ currentJobOffer.organizationName }}</p>
           </div>
         </div>
@@ -296,7 +302,7 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .job-details-page {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: rgb(233, 233, 233);
 }
 
 .job-header {
@@ -310,6 +316,18 @@ onMounted(async () => {
 
 .job-content {
   flex: 1;
+}
+
+.breadcrumb-container {
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  width: fit-content;
+  border-radius: 22px;
+}
+
+.breadcrumb-content {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .application-card {

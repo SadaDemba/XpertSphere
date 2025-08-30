@@ -10,13 +10,14 @@
             {{ job.organizationName }}
           </p>
         </div>
+
         <q-chip
-          :color="statusConfig.color"
-          :text-color="statusConfig.textColor"
+          :color="jobOfferStatusConfig[job.status]?.color"
+          :text-color="jobOfferStatusConfig[job.status]?.textColor"
           size="sm"
-          :icon="statusConfig.icon"
+          :icon="jobOfferStatusConfig[job.status]?.icon"
         >
-          {{ statusConfig.label }}
+          {{ jobOfferStatusConfig[job.status]?.label }}
         </q-chip>
       </div>
 
@@ -99,9 +100,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { date } from 'quasar';
 import type { JobOfferDto } from '../models/job';
 import { jobOfferStatusConfig, workModeLabels, contractTypeLabels } from '../models/job';
+import { formatDate } from 'src/helpers/DateHelper';
 
 interface Props {
   job: JobOfferDto;
@@ -120,9 +121,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 defineEmits<Emits>();
 
-// Computed
-const statusConfig = computed(() => jobOfferStatusConfig[props.job.status]);
-
 const truncatedDescription = computed(() => {
   if (props.job.description.length <= 150) {
     return props.job.description;
@@ -133,25 +131,6 @@ const truncatedDescription = computed(() => {
 // Methods
 const formatSalary = (amount: number): string => {
   return new Intl.NumberFormat('fr-FR').format(amount);
-};
-
-const formatDate = (dateString: string): string => {
-  const jobDate = new Date(dateString);
-  const now = new Date();
-  const diffInDays = Math.floor((now.getTime() - jobDate.getTime()) / (1000 * 3600 * 24));
-
-  if (diffInDays === 0) {
-    return "aujourd'hui";
-  } else if (diffInDays === 1) {
-    return 'hier';
-  } else if (diffInDays < 7) {
-    return `il y a ${diffInDays} jours`;
-  } else if (diffInDays < 30) {
-    const weeks = Math.floor(diffInDays / 7);
-    return `il y a ${weeks} semaine${weeks > 1 ? 's' : ''}`;
-  } else {
-    return date.formatDate(jobDate, 'DD/MM/YYYY');
-  }
 };
 </script>
 

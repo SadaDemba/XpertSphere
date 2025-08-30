@@ -9,132 +9,115 @@ import type {
   UpdateApplicationStatusDto,
   AssignUserDto,
 } from '../models/application';
+import type { ResponseResult, VoidResponseResult } from '../models/base';
 
 export class ApplicationService extends BaseClient {
   constructor() {
     super('/Applications');
   }
 
-  async getAllApplications(): Promise<ApplicationDto[]> {
-    const response = await this.get<ApplicationDto[]>('');
-    return response || [];
+  async getAllApplications(): Promise<ResponseResult<ApplicationDto[]> | null> {
+    return this.get<ResponseResult<ApplicationDto[]>>('');
   }
 
   async getPaginatedApplications(
     filter: ApplicationFilterDto = { organizationId: '' },
-  ): Promise<PaginatedApplications> {
-    const response = await this.get<PaginatedApplications>('/paginated', { params: filter });
-    return (
-      response || {
-        items: [],
-        pagination: {
-          currentPage: 1,
-          pageSize: 10,
-          totalItems: 0,
-          totalPages: 0,
-          hasPrevious: false,
-          hasNext: false,
-        },
-        isSuccess: false,
-        message: 'No data',
-        errors: [],
-      }
-    );
+  ): Promise<PaginatedApplications | null> {
+    return this.get<PaginatedApplications>('/paginated', { params: filter });
   }
 
-  async getApplicationById(id: string): Promise<ApplicationDto | null> {
-    const response = await this.get<ApplicationDto>(`/${id}`);
-    return response;
+  async getApplicationById(id: string): Promise<ResponseResult<ApplicationDto> | null> {
+    return this.get<ResponseResult<ApplicationDto>>(`/${id}`);
   }
 
-  async createApplication(application: CreateApplicationDto): Promise<ApplicationDto | null> {
-    const response = await this.post<ApplicationDto>('', application);
-    return response;
+  async createApplication(
+    application: CreateApplicationDto,
+  ): Promise<ResponseResult<ApplicationDto> | null> {
+    return this.post<ResponseResult<ApplicationDto>>('', application);
   }
 
   async updateApplication(
     id: string,
     application: UpdateApplicationDto,
-  ): Promise<ApplicationDto | null> {
-    const response = await this.put<ApplicationDto>(`/${id}`, application);
-    return response;
+  ): Promise<ResponseResult<ApplicationDto> | null> {
+    return this.put<ResponseResult<ApplicationDto>>(`/${id}`, application);
   }
 
-  async deleteApplication(id: string): Promise<boolean> {
-    const response = await this.delete(`/${id}`);
-    return response !== null;
+  async deleteApplication(id: string): Promise<VoidResponseResult | null> {
+    return this.delete<VoidResponseResult>(`/${id}`);
   }
 
   async updateApplicationStatus(
     id: string,
     statusUpdate: UpdateApplicationStatusDto,
-  ): Promise<ApplicationDto | null> {
-    const response = await this.put<ApplicationDto>(`/${id}/status`, statusUpdate);
-    return response;
+  ): Promise<ResponseResult<ApplicationDto> | null> {
+    return this.put<ResponseResult<ApplicationDto>>(`/${id}/status`, statusUpdate);
   }
 
-  async withdrawApplication(id: string, reason: string): Promise<boolean> {
-    const response = await this.post(`/${id}/withdraw`, { reason });
-    return response !== null;
+  async withdrawApplication(id: string, reason: string): Promise<VoidResponseResult | null> {
+    return this.post<VoidResponseResult>(`/${id}/withdraw`, { reason });
   }
 
-  async getApplicationsByJobOffer(jobOfferId: string): Promise<ApplicationDto[]> {
-    const response = await this.get<ApplicationDto[]>(`/job-offer/${jobOfferId}`);
-    return response || [];
+  async getApplicationsByJobOffer(
+    jobOfferId: string,
+  ): Promise<ResponseResult<ApplicationDto[]> | null> {
+    return this.get<ResponseResult<ApplicationDto[]>>(`/job-offer/${jobOfferId}`);
   }
 
-  async getMyCandidateApplications(): Promise<ApplicationDto[]> {
-    const response = await this.get<ApplicationDto[]>('/my');
-    return response || [];
+  async getMyCandidateApplications(): Promise<ResponseResult<ApplicationDto[]> | null> {
+    return this.get<ResponseResult<ApplicationDto[]>>('/my');
   }
 
-  async getApplicationsByCandidate(candidateId: string): Promise<ApplicationDto[]> {
-    const response = await this.get<ApplicationDto[]>(`/candidate/${candidateId}`);
-    return response || [];
+  async getApplicationsByCandidate(
+    candidateId: string,
+  ): Promise<ResponseResult<ApplicationDto[]> | null> {
+    return this.get<ResponseResult<ApplicationDto[]>>(`/candidate/${candidateId}`);
   }
 
-  async getApplicationsByOrganization(organizationId?: string): Promise<ApplicationDto[]> {
+  async getApplicationsByOrganization(
+    organizationId?: string,
+  ): Promise<ResponseResult<ApplicationDto[]> | null> {
     const endpoint = organizationId ? `/organization/${organizationId}` : '/organization';
-    const response = await this.get<ApplicationDto[]>(endpoint);
-    return response || [];
+    return this.get<ResponseResult<ApplicationDto[]>>(endpoint);
   }
 
-  async getApplicationStatusHistory(id: string): Promise<ApplicationStatusHistoryDto[]> {
-    const response = await this.get<ApplicationStatusHistoryDto[]>(`/${id}/history`);
-    return response || [];
+  async getApplicationStatusHistory(
+    id: string,
+  ): Promise<ResponseResult<ApplicationStatusHistoryDto[]> | null> {
+    return this.get<ResponseResult<ApplicationStatusHistoryDto[]>>(`/${id}/history`);
   }
 
-  async canManageApplication(id: string): Promise<boolean> {
-    const response = await this.get<boolean>(`/${id}/can-manage`);
-    return response || false;
+  async canManageApplication(id: string): Promise<ResponseResult<boolean> | null> {
+    return this.get<ResponseResult<boolean>>(`/${id}/can-manage`);
   }
 
-  async hasAppliedToJob(jobOfferId: string): Promise<boolean> {
-    const response = await this.get<boolean>(`/check-applied/job-offer/${jobOfferId}`);
-    return response || false;
+  async hasAppliedToJob(jobOfferId: string): Promise<ResponseResult<boolean> | null> {
+    return this.get<ResponseResult<boolean>>(`/check-applied/job-offer/${jobOfferId}`);
   }
 
-  async hasCandidateAppliedToJob(jobOfferId: string, candidateId: string): Promise<boolean> {
-    const response = await this.get<boolean>(
+  async hasCandidateAppliedToJob(
+    jobOfferId: string,
+    candidateId: string,
+  ): Promise<ResponseResult<boolean> | null> {
+    return this.get<ResponseResult<boolean>>(
       `/check-applied/job-offer/${jobOfferId}/candidate/${candidateId}`,
     );
-    return response || false;
   }
 
-  async assignUser(assignUserDto: AssignUserDto): Promise<ApplicationDto | null> {
-    const response = await this.post<ApplicationDto>(
+  async assignUser(assignUserDto: AssignUserDto): Promise<ResponseResult<ApplicationDto> | null> {
+    return this.post<ResponseResult<ApplicationDto>>(
       `/${assignUserDto.applicationId}/assign-user`,
       assignUserDto,
     );
-    return response;
   }
 
-  async unassignUser(unassignUserDto: AssignUserDto): Promise<ApplicationDto | null> {
-    const response = await this.post<ApplicationDto>(
+  async unassignUser(
+    unassignUserDto: AssignUserDto,
+  ): Promise<ResponseResult<ApplicationDto> | null> {
+    return this.post<ResponseResult<ApplicationDto>>(
       `/${unassignUserDto.applicationId}/unassign-user`,
       unassignUserDto,
     );
-    return response;
   }
 }
 

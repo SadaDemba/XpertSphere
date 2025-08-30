@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using XpertSphere.MonolithApi.Utils;
 using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Extensions;
 
@@ -17,23 +18,23 @@ public static class ControllerExtensions
         if (result.IsSuccess)
             return result.StatusCode switch
             {
-                200 => controller.Ok(result.Data),
-                201 => controller.Created("", result.Data),
-                202 => controller.Accepted(result.Data),
+                200 => controller.Ok(result),
+                201 => controller.Created("", result),
+                202 => controller.Accepted(result),
                 204 => controller.NoContent(),
-                _ => controller.Ok(result.Data)
+                _ => controller.Ok(result)
             };
 
         return result.StatusCode switch
         {
-            400 => controller.BadRequest(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            401 => controller.Unauthorized(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
+            400 => controller.BadRequest(result),
+            401 => controller.Unauthorized(result),
             403 => controller.Forbid(),
-            404 => controller.NotFound(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            409 => controller.Conflict(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            422 => controller.UnprocessableEntity(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            500 => controller.StatusCode(500, new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            _ => controller.BadRequest(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
+            404 => controller.NotFound(result),
+            409 => controller.Conflict(result),
+            422 => controller.UnprocessableEntity(result),
+            500 => controller.StatusCode(500, result),
+            _ => controller.BadRequest(result),
         };
     }
 

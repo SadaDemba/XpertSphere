@@ -7,7 +7,7 @@ import type {
   UpdateUserDto,
   UserFilterDto,
 } from '../models/user';
-import type { PaginatedResult } from '../models/base';
+import type { PaginatedResult, ResponseResult, VoidResponseResult } from '../models/base';
 
 export class UserService extends BaseClient {
   constructor() {
@@ -16,125 +16,93 @@ export class UserService extends BaseClient {
 
   async getPaginatedUsers(
     filter: UserFilterDto = {},
-  ): Promise<PaginatedResult<UserSearchResultDto>> {
-    const response = await this.get<any>('', { params: filter });
-
-    if (!response) {
-      return {
-        items: [],
-        pageNumber: 1,
-        pageSize: 10,
-        totalItems: 0,
-        totalPages: 0,
-        hasPrevious: false,
-        hasNext: false,
-      };
-    }
-
-    // Map the API response structure to our expected format
-    return {
-      items: response.items || [],
-      pageNumber: response.pagination?.currentPage || 1,
-      pageSize: response.pagination?.pageSize || 10,
-      totalItems: response.pagination?.totalItems || 0,
-      totalPages: response.pagination?.totalPages || 0,
-      hasPrevious: response.pagination?.hasPrevious || false,
-      hasNext: response.pagination?.hasNext || false,
-    };
+  ): Promise<PaginatedResult<UserSearchResultDto> | null> {
+    return this.get<PaginatedResult<UserSearchResultDto>>('', { params: filter });
   }
 
-  async getUserById(id: string): Promise<UserDto | null> {
-    const response = await this.get<UserDto>(`/${id}`);
+  async getUserById(id: string): Promise<ResponseResult<UserDto> | null> {
+    const response = await this.get<ResponseResult<UserDto>>(`/${id}`);
     return response;
   }
 
-  async getUserProfile(id: string): Promise<UserDto | null> {
-    const response = await this.get<UserDto>(`/${id}/profile`);
+  async getUserProfile(id: string): Promise<ResponseResult<UserDto> | null> {
+    const response = await this.get<ResponseResult<UserDto>>(`/${id}/profile`);
     return response;
   }
 
-  async createUser(user: CreateUserDto): Promise<UserDto | null> {
-    const response = await this.post<UserDto>('', user);
-    return response;
+  async createUser(user: CreateUserDto): Promise<ResponseResult<UserDto> | null> {
+    return this.post<ResponseResult<UserDto>>('', user);
   }
 
-  async updateUser(id: string, user: UpdateUserDto): Promise<UserDto | null> {
-    const response = await this.put<UserDto>(`/${id}`, user);
-    return response;
+  async updateUser(id: string, user: UpdateUserDto): Promise<ResponseResult<UserDto> | null> {
+    return this.put<ResponseResult<UserDto>>(`/${id}`, user);
   }
 
-  async deleteUser(id: string): Promise<boolean> {
-    const response = await this.delete(`/${id}`);
-    return response !== null;
+  async deleteUser(id: string): Promise<VoidResponseResult | null> {
+    return this.delete<VoidResponseResult>(`/${id}`);
   }
 
-  async hardDeleteUser(id: string): Promise<boolean> {
-    const response = await this.delete(`/${id}/permanent`);
-    return response !== null;
+  async hardDeleteUser(id: string): Promise<VoidResponseResult | null> {
+    return this.delete<VoidResponseResult>(`/${id}/permanent`);
   }
 
-  async activateUser(id: string): Promise<boolean> {
-    const response = await this.patch(`/${id}/activate`);
-    return response !== null;
+  async activateUser(id: string): Promise<VoidResponseResult | null> {
+    return this.patch<VoidResponseResult>(`/${id}/activate`);
   }
 
-  async deactivateUser(id: string): Promise<boolean> {
-    const response = await this.patch(`/${id}/deactivate`);
-    return response !== null;
+  async deactivateUser(id: string): Promise<VoidResponseResult | null> {
+    return this.patch<VoidResponseResult>(`/${id}/deactivate`);
   }
 
-  async updateLastLogin(id: string): Promise<boolean> {
-    const response = await this.patch(`/${id}/last-login`);
-    return response !== null;
+  async updateLastLogin(id: string): Promise<VoidResponseResult | null> {
+    return this.patch<VoidResponseResult>(`/${id}/last-login`);
   }
 
-  async updateProfileCompletion(id: string): Promise<number | null> {
-    const response = await this.patch<number>(`/${id}/profile-completion`);
-    return response;
+  async updateProfileCompletion(id: string): Promise<ResponseResult<number> | null> {
+    return this.patch<ResponseResult<number>>(`/${id}/profile-completion`);
   }
 
-  async checkUserExists(id: string): Promise<boolean> {
-    try {
-      const response = await this.get<UserDto>(`/${id}`);
-      return response !== null;
-    } catch {
-      return false;
-    }
+  async checkUserExists(id: string): Promise<ResponseResult<boolean> | null> {
+    return this.get<ResponseResult<boolean>>(`/${id}`);
   }
 
-  async checkEmailAvailable(email: string, excludeUserId?: string): Promise<boolean> {
+  async checkEmailAvailable(
+    email: string,
+    excludeUserId?: string,
+  ): Promise<ResponseResult<boolean> | null> {
     const params: any = { email };
     if (excludeUserId) {
       params.excludeUserId = excludeUserId;
     }
-    const response = await this.get<boolean>('/email-available', { params });
-    return response || false;
+    return this.get<ResponseResult<boolean>>('/email-available', { params });
   }
 
-  async getUsersByOrganization(organizationId: string): Promise<UserSearchResultDto[]> {
-    const response = await this.get<UserSearchResultDto[]>(`/organization/${organizationId}`);
-    return response || [];
+  async getUsersByOrganization(
+    organizationId: string,
+  ): Promise<ResponseResult<UserSearchResultDto[]> | null> {
+    return this.get<ResponseResult<UserSearchResultDto[]>>(`/organization/${organizationId}`);
   }
 
-  async getUsersWithIncompleteProfiles(threshold: number = 80): Promise<UserSearchResultDto[]> {
-    const response = await this.get<UserSearchResultDto[]>('/incomplete-profiles', {
+  async getUsersWithIncompleteProfiles(
+    threshold: number = 80,
+  ): Promise<ResponseResult<UserSearchResultDto[]> | null> {
+    return this.get<ResponseResult<UserSearchResultDto[]>>('/incomplete-profiles', {
       params: { threshold },
     });
-    return response || [];
   }
 
-  async getRecentlyRegisteredUsers(days: number = 7): Promise<UserSearchResultDto[]> {
-    const response = await this.get<UserSearchResultDto[]>('/recently-registered', {
+  async getRecentlyRegisteredUsers(
+    days: number = 7,
+  ): Promise<ResponseResult<UserSearchResultDto[]> | null> {
+    return await this.get<ResponseResult<UserSearchResultDto[]>>('/recently-registered', {
       params: { days },
     });
-    return response || [];
   }
 
-  async getInactiveUsers(days: number = 30): Promise<UserSearchResultDto[]> {
-    const response = await this.get<UserSearchResultDto[]>('/inactive', {
+  async getInactiveUsers(days: number = 30): Promise<ResponseResult<UserSearchResultDto[]> | null> {
+    return this.get<ResponseResult<UserSearchResultDto[]>>('/inactive', {
       params: { days },
     });
-    return response || [];
   }
 }
 

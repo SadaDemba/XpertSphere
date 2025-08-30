@@ -916,7 +916,7 @@ const resetUserPassword = async () => {
 
     const result = await authService.adminResetPassword(resetData);
 
-    if (result?.success) {
+    if (result?.isSuccess) {
       notification.showSuccessNotification(
         result.message || 'Mot de passe réinitialisé avec succès',
       );

@@ -9,14 +9,16 @@ import type {
   AssignUserDto,
   ApplicationStatusHistoryDto,
 } from '../models/application';
-import { ApplicationService } from '../services/applicationService';
+import { applicationService } from '../services/applicationService';
 import { applicationStatusHistoryService } from '../services/applicationStatusHistoryService';
 import { ApplicationStatus } from '../enums';
 import { useAuthStore } from './authStore';
+import { useNotification } from 'src/composables/notification';
 
 export const useApplicationStore = defineStore('application', () => {
-  const service = new ApplicationService();
+  const notification = useNotification();
 
+  // State
   const applications = ref<ApplicationDto[]>([]);
   const currentApplication = ref<ApplicationDto | null>(null);
   const applicationHistory = ref<ApplicationStatusHistoryDto[]>([]);
@@ -24,11 +26,15 @@ export const useApplicationStore = defineStore('application', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
 
+  // Pagination
   const totalCount = ref(0);
   const currentPage = ref(1);
   const pageSize = ref(10);
   const totalPages = ref(0);
+  const hasPrevious = ref(false);
+  const hasNext = ref(false);
 
+  // Getters (computed)
   const appliedApplications = computed(() =>
     applications.value.filter((app) => app.currentStatus === ApplicationStatus.Applied),
   );
@@ -57,6 +63,7 @@ export const useApplicationStore = defineStore('application', () => {
   const hasError = computed(() => error.value !== null);
   const errorMessage = computed(() => error.value);
 
+  // Actions
   const clearError = () => {
     error.value = null;
   };
@@ -70,19 +77,33 @@ export const useApplicationStore = defineStore('application', () => {
     loading.value = false;
   };
 
+  /**
+   * Retrieve all applications
+   */
   const fetchAllApplications = async () => {
     try {
       setLoading(true);
       clearError();
-      const data = await service.getAllApplications();
-      applications.value = data;
-    } catch (err) {
-      setError(`Erreur lors du chargement des candidatures: ${err}`);
+      const response = await applicationService.getAllApplications();
+      if (response?.isSuccess) {
+        applications.value = response.data!;
+      } else {
+        setError('Error loading applications');
+        notification.showErrorNotification('Error loading applications');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error loading applications');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error loading applications',
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Retrieve paginated applications with filter
+   */
   const fetchPaginatedApplications = async (
     filter: ApplicationFilterDto = { organizationId: '' },
   ) => {
@@ -100,86 +121,132 @@ export const useApplicationStore = defineStore('application', () => {
         pageSize: filter.pageSize || pageSize.value,
       };
 
-      const data = await service.getPaginatedApplications(paginationFilter);
+      const response = await applicationService.getPaginatedApplications(paginationFilter);
 
-      applications.value = data.items;
-      totalCount.value = data.pagination.totalItems;
-      currentPage.value = data.pagination.currentPage;
-      pageSize.value = data.pagination.pageSize;
-      totalPages.value = data.pagination.totalPages;
-    } catch (err) {
-      setError(`Erreur lors du chargement des candidatures: ${err}`);
+      if (response?.isSuccess) {
+        applications.value = response.items;
+        totalCount.value = response.pagination.totalItems;
+        currentPage.value = response.pagination.currentPage;
+        pageSize.value = response.pagination.pageSize;
+        totalPages.value = response.pagination.totalPages;
+        hasPrevious.value = response.pagination.hasPrevious;
+        hasNext.value = response.pagination.hasNext;
+
+        notification.showSuccessNotification('Applications loaded successfully');
+      } else {
+        setError('Error loading applications');
+        notification.showErrorNotification('Error loading applications');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error loading applications');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error loading applications',
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Get application by ID
+   */
   const fetchApplicationById = async (id: string) => {
     try {
       setLoading(true);
       clearError();
-      const data = await service.getApplicationById(id);
-      currentApplication.value = data;
-      return data;
-    } catch (err) {
-      setError(`Erreur lors du chargement de la candidature: ${err}`);
+      const response = await applicationService.getApplicationById(id);
+      if (response?.isSuccess) {
+        currentApplication.value = response.data!;
+      } else {
+        setError(response?.message || 'Error loading application');
+        notification.showErrorNotification(response?.message || 'Error loading application');
+      }
+      return response?.data;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error loading application');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error loading application',
+      );
       return null;
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Create a new application
+   */
   const createApplication = async (applicationData: CreateApplicationDto) => {
     try {
       setLoading(true);
       clearError();
-      const newApplication = await service.createApplication(applicationData);
-      if (newApplication) {
-        applications.value.unshift(newApplication);
+      const response = await applicationService.createApplication(applicationData);
+      if (response?.isSuccess) {
+        applications.value.unshift(response.data!);
         totalCount.value++;
+        notification.showSuccessNotification('Application created successfully');
+      } else {
+        setError(response?.message || 'Error creating application');
+        notification.showErrorNotification(response?.message || 'Error creating application');
       }
-      return newApplication;
-    } catch (err) {
-      setError(`Erreur lors de la création de la candidature: ${err}`);
+      return response?.data;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error creating application');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error creating application',
+      );
       return null;
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Update an application
+   */
   const updateApplication = async (id: string, applicationData: UpdateApplicationDto) => {
     try {
       setLoading(true);
       clearError();
-      const updatedApplication = await service.updateApplication(id, applicationData);
+      const response = await applicationService.updateApplication(id, applicationData);
 
-      if (updatedApplication) {
+      if (response?.isSuccess) {
         const index = applications.value.findIndex((app) => app.id === id);
         if (index !== -1) {
-          applications.value[index] = updatedApplication;
+          applications.value[index] = response.data!;
         }
 
         if (currentApplication.value?.id === id) {
-          currentApplication.value = updatedApplication;
+          currentApplication.value = response.data!;
         }
+        notification.showSuccessNotification('Application updated successfully');
+      } else {
+        setError(response?.message || 'Error updating application');
+        notification.showErrorNotification(response?.message || 'Error updating application');
       }
 
-      return updatedApplication;
-    } catch (err) {
-      setError(`Erreur lors de la mise à jour de la candidature: ${err}`);
+      return response?.data;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error updating application');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error updating application',
+      );
       return null;
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Delete an application
+   */
   const deleteApplication = async (id: string) => {
     try {
       setLoading(true);
       clearError();
-      const success = await service.deleteApplication(id);
+      const response = await applicationService.deleteApplication(id);
 
-      if (success) {
+      if (response?.isSuccess) {
         const index = applications.value.findIndex((app) => app.id === id);
         if (index !== -1) {
           applications.value.splice(index, 1);
@@ -189,50 +256,70 @@ export const useApplicationStore = defineStore('application', () => {
         if (currentApplication.value?.id === id) {
           currentApplication.value = null;
         }
+        notification.showSuccessNotification('Application deleted successfully');
+      } else {
+        setError(response?.message || 'Error deleting application');
+        notification.showErrorNotification(response?.message || 'Error deleting application');
       }
 
-      return success;
-    } catch (err) {
-      setError(`Erreur lors de la suppression de la candidature: ${err}`);
+      return response?.isSuccess;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error deleting application');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error deleting application',
+      );
       return false;
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Update application status
+   */
   const updateApplicationStatus = async (id: string, statusUpdate: UpdateApplicationStatusDto) => {
     try {
       setLoading(true);
       clearError();
-      const updatedApplication = await service.updateApplicationStatus(id, statusUpdate);
+      const response = await applicationService.updateApplicationStatus(id, statusUpdate);
 
-      if (updatedApplication) {
+      if (response?.isSuccess) {
         const index = applications.value.findIndex((app) => app.id === id);
         if (index !== -1) {
-          applications.value[index] = updatedApplication;
+          applications.value[index] = response.data!;
         }
 
         if (currentApplication.value?.id === id) {
-          currentApplication.value = updatedApplication;
+          currentApplication.value = response.data!;
         }
+        notification.showSuccessNotification('Status updated successfully');
+      } else {
+        setError(response?.message || 'Error updating status');
+        notification.showErrorNotification(response?.message || 'Error updating status');
       }
 
-      return updatedApplication;
-    } catch (err) {
-      setError(`Erreur lors de la mise à jour du statut: ${err}`);
+      return response?.data;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error updating status');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error updating status',
+      );
       return null;
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Withdraw an application
+   */
   const withdrawApplication = async (id: string, reason: string) => {
     try {
       setLoading(true);
       clearError();
-      const success = await service.withdrawApplication(id, reason);
+      const response = await applicationService.withdrawApplication(id, reason);
 
-      if (success) {
+      if (response?.isSuccess) {
         const application = applications.value.find((app) => app.id === id);
         if (application) {
           application.currentStatus = ApplicationStatus.Withdrawn;
@@ -241,180 +328,297 @@ export const useApplicationStore = defineStore('application', () => {
         if (currentApplication.value?.id === id) {
           currentApplication.value.currentStatus = ApplicationStatus.Withdrawn;
         }
+        notification.showSuccessNotification('Application withdrawn successfully');
+      } else {
+        setError(response?.message || 'Error withdrawing application');
+        notification.showErrorNotification(response?.message || 'Error withdrawing application');
       }
 
-      return success;
-    } catch (err) {
-      setError(`Erreur lors du retrait de la candidature: ${err}`);
+      return response?.isSuccess;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error withdrawing application');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error withdrawing application',
+      );
       return false;
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Fetch applications by job offer
+   */
   const fetchApplicationsByJobOffer = async (jobOfferId: string) => {
     try {
       setLoading(true);
       clearError();
-      const data = await service.getApplicationsByJobOffer(jobOfferId);
-      applications.value = data;
-    } catch (err) {
-      setError(`Erreur lors du chargement des candidatures: ${err}`);
+      const response = await applicationService.getApplicationsByJobOffer(jobOfferId);
+      if (response?.isSuccess) {
+        applications.value = response.data!;
+      } else {
+        setError('Error loading applications');
+        notification.showErrorNotification('Error loading applications');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error loading applications');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error loading applications',
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Fetch current candidate's applications
+   */
   const fetchMyCandidateApplications = async () => {
     try {
       setLoading(true);
       clearError();
-      const data = await service.getMyCandidateApplications();
-      applications.value = data;
-    } catch (err) {
-      setError(`Erreur lors du chargement de vos candidatures: ${err}`);
+      const response = await applicationService.getMyCandidateApplications();
+      if (response?.isSuccess) {
+        applications.value = response.data!;
+      } else {
+        setError('Error loading your applications');
+        notification.showErrorNotification('Error loading your applications');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error loading your applications');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error loading your applications',
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Fetch applications by candidate
+   */
   const fetchApplicationsByCandidate = async (candidateId: string) => {
     try {
       setLoading(true);
       clearError();
-      const data = await service.getApplicationsByCandidate(candidateId);
-      applications.value = data;
-    } catch (err) {
-      setError(`Erreur lors du chargement des candidatures: ${err}`);
+      const response = await applicationService.getApplicationsByCandidate(candidateId);
+      if (response?.isSuccess) {
+        applications.value = response.data!;
+      } else {
+        setError('Error loading applications');
+        notification.showErrorNotification('Error loading applications');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error loading applications');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error loading applications',
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Fetch applications by organization
+   */
   const fetchApplicationsByOrganization = async (organizationId?: string) => {
     try {
       setLoading(true);
       clearError();
-      const data = await service.getApplicationsByOrganization(organizationId);
-      applications.value = data;
-    } catch (err) {
-      setError(`Erreur lors du chargement des candidatures: ${err}`);
+      const response = await applicationService.getApplicationsByOrganization(organizationId);
+      if (response?.isSuccess) {
+        applications.value = response.data!;
+      } else {
+        setError('Error loading applications');
+        notification.showErrorNotification('Error loading applications');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error loading applications');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error loading applications',
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Fetch application status history
+   */
   const fetchApplicationStatusHistory = async (id: string) => {
     try {
       setLoading(true);
       clearError();
-      const data = await service.getApplicationStatusHistory(id);
-      applicationHistory.value = data;
-      return data;
-    } catch (err) {
-      setError(`Erreur lors du chargement de l'historique: ${err}`);
+      const response = await applicationService.getApplicationStatusHistory(id);
+      if (response?.isSuccess) {
+        applicationHistory.value = response.data!;
+      } else {
+        setError('Error loading history');
+        notification.showErrorNotification('Error loading history');
+      }
+      return response?.data || [];
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error loading history');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error loading history',
+      );
       return [];
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Fetch status history from history service
+   */
   const fetchStatusHistory = async (applicationId: string) => {
     try {
       setLoading(true);
       clearError();
-      const data = await applicationStatusHistoryService.getByApplicationId(applicationId);
-      statusHistory.value = data;
-      return data;
-    } catch (err) {
-      setError(`Erreur lors du chargement de l'historique: ${err}`);
+      const response = await applicationStatusHistoryService.getByApplicationId(applicationId);
+      if (response?.isSuccess) {
+        statusHistory.value = response.data!;
+      } else {
+        setError('Error loading history');
+        notification.showErrorNotification('Error loading history');
+      }
+      return response?.data || [];
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error loading history');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error loading history',
+      );
       return [];
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Check if user can manage application
+   */
   const checkCanManageApplication = async (id: string) => {
     try {
-      return await service.canManageApplication(id);
+      const response = await applicationService.canManageApplication(id);
+      if (!response?.isSuccess) {
+        setError(response?.message || 'Error checking permissions');
+      }
+      return response?.data;
     } catch (err) {
-      setError(`Erreur lors de la vérification des permissions: ${err}`);
+      setError(`Error checking permissions: ${err}`);
       return false;
     }
   };
 
+  /**
+   * Check if user has applied to job
+   */
   const checkHasAppliedToJob = async (jobOfferId: string) => {
     try {
-      return await service.hasAppliedToJob(jobOfferId);
+      const response = await applicationService.hasAppliedToJob(jobOfferId);
+      if (!response?.isSuccess) {
+        setError(response?.message || 'Error checking application');
+      }
+      return response?.data;
     } catch (err) {
-      setError(`Erreur lors de la vérification: ${err}`);
+      setError(`Error checking application: ${err}`);
       return false;
     }
   };
 
+  /**
+   * Check if candidate has applied to job
+   */
   const checkHasCandidateAppliedToJob = async (jobOfferId: string, candidateId: string) => {
     try {
-      return await service.hasCandidateAppliedToJob(jobOfferId, candidateId);
+      const response = await applicationService.hasCandidateAppliedToJob(jobOfferId, candidateId);
+      if (!response?.isSuccess) {
+        setError(response?.message || 'Error checking application');
+      }
+      return response?.data;
     } catch (err) {
-      setError(`Erreur lors de la vérification: ${err}`);
+      setError(`Error checking application: ${err}`);
       return false;
     }
   };
 
+  /**
+   * Assign user to application
+   */
   const assignUser = async (assignUserDto: AssignUserDto) => {
     try {
       setLoading(true);
       clearError();
-      const updatedApplication = await service.assignUser(assignUserDto);
+      const response = await applicationService.assignUser(assignUserDto);
 
-      if (updatedApplication) {
+      if (response?.isSuccess) {
         const index = applications.value.findIndex((app) => app.id === assignUserDto.applicationId);
         if (index !== -1) {
-          applications.value[index] = updatedApplication;
+          applications.value[index] = response.data!;
         }
 
         if (currentApplication.value?.id === assignUserDto.applicationId) {
-          currentApplication.value = updatedApplication;
+          currentApplication.value = response.data!;
         }
+        notification.showSuccessNotification('User assigned successfully');
+      } else {
+        setError(response?.message || 'Error assigning user');
+        notification.showErrorNotification(response?.message || 'Error assigning user');
       }
 
-      return updatedApplication;
-    } catch (err) {
-      setError(`Erreur lors de l'assignation: ${err}`);
+      return response?.data;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error assigning user');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error assigning user',
+      );
       return null;
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Unassign user from application
+   */
   const unassignUser = async (unassignUserDto: AssignUserDto) => {
     try {
       setLoading(true);
       clearError();
-      const updatedApplication = await service.unassignUser(unassignUserDto);
+      const response = await applicationService.unassignUser(unassignUserDto);
 
-      if (updatedApplication) {
+      if (response?.isSuccess) {
         const index = applications.value.findIndex(
           (app) => app.id === unassignUserDto.applicationId,
         );
         if (index !== -1) {
-          applications.value[index] = updatedApplication;
+          applications.value[index] = response.data!;
         }
 
         if (currentApplication.value?.id === unassignUserDto.applicationId) {
-          currentApplication.value = updatedApplication;
+          currentApplication.value = response.data!;
         }
+        notification.showSuccessNotification('User unassigned successfully');
+      } else {
+        setError(response?.message || 'Error unassigning user');
+        notification.showErrorNotification(response?.message || 'Error unassigning user');
       }
 
-      return updatedApplication;
-    } catch (err) {
-      setError(`Erreur lors de la désassignation: ${err}`);
+      return response?.data;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error unassigning user');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Error unassigning user',
+      );
       return null;
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Reset the store
+   */
   const resetStore = () => {
     applications.value = [];
     currentApplication.value = null;
@@ -426,9 +630,12 @@ export const useApplicationStore = defineStore('application', () => {
     currentPage.value = 1;
     pageSize.value = 10;
     totalPages.value = 0;
+    hasPrevious.value = false;
+    hasNext.value = false;
   };
 
   return {
+    // State
     applications,
     currentApplication,
     applicationHistory,
@@ -439,7 +646,10 @@ export const useApplicationStore = defineStore('application', () => {
     currentPage,
     pageSize,
     totalPages,
+    hasPrevious,
+    hasNext,
 
+    // Getters
     appliedApplications,
     reviewedApplications,
     technicalTestApplications,
@@ -450,6 +660,7 @@ export const useApplicationStore = defineStore('application', () => {
     hasError,
     errorMessage,
 
+    // Actions
     clearError,
     fetchAllApplications,
     fetchPaginatedApplications,

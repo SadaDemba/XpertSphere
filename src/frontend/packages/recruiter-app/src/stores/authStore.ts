@@ -1,12 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { authService } from '../services/authService';
 import type { User, UserRole } from '../models/auth';
 import { InternalRoles, ManagementRoles, RecruitmentRoles, EvaluationRoles } from '../models/auth';
 import { settings } from 'src/settings';
+import { useNotification } from 'src/composables/notification';
 
 export const useAuthStore = defineStore('auth', () => {
+  const notification = useNotification();
   // State
   const user = ref<User | null>(null);
   const token = ref<string | null>(null);
@@ -59,20 +60,28 @@ export const useAuthStore = defineStore('auth', () => {
 
       const response = await authService.login(credentials);
 
-      if (response?.success && response.user) {
-        user.value = response.user;
-        token.value = response.accessToken || null;
-        refreshToken.value = response.refreshToken || null;
+      if (response?.isSuccess && response.data) {
+        user.value = response.data.user!;
+        token.value = response.data.accessToken || null;
+        refreshToken.value = response.data.refreshToken || null;
+        authService.setJwtTokens({
+          accessToken: response.data.accessToken!,
+          refreshToken: response.data.refreshToken || '',
+          expiresAt: Math.floor(new Date(response.data.tokenExpiry!).getTime() / 1000),
+        });
+        notification.showSuccessNotification('Login successful');
         return true;
       } else {
-        const errorMessage =
-          response?.errors?.join(', ') || response?.message || 'La connexion a échoué';
+        const errorMessage = response?.errors?.join(', ') || response?.message || 'Login failed';
         setError(errorMessage);
+        notification.showErrorNotification(errorMessage);
         return false;
       }
-    } catch (err: any) {
-      const errorMessage = err?.message || 'Une erreur réseau est survenu !';
-      setError(errorMessage);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Network error occurred!');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Network error occurred!',
+      );
       return false;
     } finally {
       setLoading(false);
@@ -98,14 +107,21 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      const userInfo = await authService.getCurrentUser();
-      if (userInfo) {
-        user.value = userInfo;
+      const response = await authService.getCurrentUser();
+      if (response?.isSuccess) {
+        user.value = response.data!;
         return true;
+      } else {
+        setError(response?.message || 'Failed to load user information');
+        notification.showErrorNotification(response?.message || 'Failed to load user information');
       }
       return false;
-    } catch (err) {
-      console.error('Failed to load current user:', err);
+    } catch (error) {
+      console.error('Failed to load current user:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load user information');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Failed to load user information',
+      );
       return false;
     } finally {
       setLoading(false);
@@ -118,8 +134,13 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = async () => {
     try {
       await authService.logoutUser();
-    } catch (err) {
-      console.warn('Logout API call failed:', err);
+      notification.showSuccessNotification('Logged out successfully');
+    } catch (error) {
+      console.warn('Logout API call failed:', error);
+      setError(error instanceof Error ? error.message : 'Logout failed');
+      notification.showWarningNotification(
+        'Logout request failed, but you have been logged out locally',
+      );
     } finally {
       // Clear state regardless of API call success
       user.value = null;

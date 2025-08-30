@@ -78,7 +78,7 @@ public class CreateUserDtoValidator : AbstractValidator<CreateUserDto>
 
         // Salary validation
         RuleFor(x => x.DesiredSalary)
-            .GreaterThan(0).WithMessage(Constants.DESIRED_SALARY_MUST_BE_POSITIVE)
+            .GreaterThanOrEqualTo(0).WithMessage(Constants.DESIRED_SALARY_MUST_BE_POSITIVE)
             .LessThan(1000000).WithMessage(Constants.DESIRED_SALARY_UNREALISTIC)
             .When(x => x.DesiredSalary.HasValue);
 

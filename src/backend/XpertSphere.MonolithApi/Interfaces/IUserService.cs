@@ -1,5 +1,6 @@
 using XpertSphere.MonolithApi.DTOs.User;
 using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Interfaces;
 
@@ -56,7 +57,7 @@ public interface IUserService
     /// <summary>
     /// Get users by organization
     /// </summary>
-    Task<ServiceResult<List<UserSearchResultDto>>> GetByOrganizationAsync(Guid organizationId);
+    Task<ServiceResult<IEnumerable<UserSearchResultDto>>> GetByOrganizationAsync(Guid organizationId);
 
     /// <summary>
     /// Activate a user account
@@ -107,4 +108,14 @@ public interface IUserService
     /// Bulk update users (for admin operations)
     /// </summary>
     Task<ServiceResult<int>> BulkUpdateAsync(List<Guid> userIds, UpdateUserDto updates);
+
+    /// <summary>
+    /// Update user skills (replace all existing skills)
+    /// </summary>
+    Task<ServiceResult<UserDto>> UpdateSkillsAsync(Guid id, UpdateUserSkillsDto dto);
+
+    /// <summary>
+    /// Update user profile general information
+    /// </summary>
+    Task<ServiceResult<UserDto>> UpdateProfileAsync(Guid id, UpdateUserProfileDto dto);
 }

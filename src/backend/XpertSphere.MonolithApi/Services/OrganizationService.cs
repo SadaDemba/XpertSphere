@@ -1,15 +1,14 @@
-using System.Security.Claims;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using XpertSphere.MonolithApi.Data;
-using XpertSphere.MonolithApi.Data.Configurations;
 using XpertSphere.MonolithApi.DTOs.Organization;
 using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Utils;
 using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Services
 {
@@ -161,8 +160,8 @@ namespace XpertSphere.MonolithApi.Services
                     var userOrgId = GetUserOrganizationId();
                     if (userOrgId.HasValue)
                     {
-                        result.Items = result.Items.Where(o => o.Id == userOrgId.Value).ToList();
-                        result.Pagination.TotalItems = result.Items?.Count ?? 0;
+                        result.Data = result.Data.Where(o => o.Id == userOrgId.Value).ToList();
+                        result.Pagination.TotalItems = result.Data.Count;
                     }
                 }
                 

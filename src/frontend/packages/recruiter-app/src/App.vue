@@ -13,3 +13,5 @@ onMounted(async () => {
   await authStore.initialize();
 });
 </script>
+
+<style scoped></style>

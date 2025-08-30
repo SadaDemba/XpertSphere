@@ -83,7 +83,7 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 // Composables
-const { showSuccessNotification, showErrorNotification } = useNotification();
+const { showErrorNotification } = useNotification();
 const applicationStore = useApplicationStore();
 
 // State
@@ -119,20 +119,14 @@ const submitUpdate = async () => {
   isSubmitting.value = true;
 
   try {
-    const success = await applicationStore.updateApplication(
+    await applicationStore.updateApplication(
       props.application.id,
       updatedApplication.coverLetter,
       updatedApplication.additionalNotes || undefined,
     );
 
-    if (success) {
-      showSuccessNotification('Candidature mise à jour avec succès !');
-
-      emit('updated');
-      closeDialog();
-    } else {
-      showErrorNotification(applicationStore.error || 'Erreur lors de la mise à jour');
-    }
+    emit('updated');
+    closeDialog();
   } catch (error: any) {
     console.log(error.message);
     showErrorNotification('Une erreur inattendue est survenue');

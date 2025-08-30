@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using XpertSphere.MonolithApi.DTOs.User;
 using XpertSphere.MonolithApi.Extensions;
 using XpertSphere.MonolithApi.Interfaces;
-using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Controllers;
 
@@ -252,9 +252,9 @@ public class UsersController : ControllerBase
     /// <param name="organizationId">Organization ID</param>
     /// <returns>List of users in the organization</returns>
     [HttpGet("organization/{organizationId:guid}")]
-    [ProducesResponseType(typeof(List<UserSearchResultDto>), 200)]
+    [ProducesResponseType(typeof(IEnumerable<UserSearchResultDto>), 200)]
     [ProducesResponseType(404)]
-    public async Task<ActionResult<List<UserSearchResultDto>>> GetUsersByOrganization(Guid organizationId)
+    public async Task<ActionResult<IEnumerable<UserSearchResultDto>>> GetUsersByOrganization(Guid organizationId)
     {
         var result = await _userService.GetByOrganizationAsync(organizationId);
         return this.ToActionResult(result);
@@ -315,6 +315,44 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<int>> BulkUpdateUsers([FromBody] BulkUpdateUsersDto bulkUpdateDto)
     {
         var result = await _userService.BulkUpdateAsync(bulkUpdateDto.UserIds, bulkUpdateDto.Updates);
+        return this.ToActionResult(result);
+    }
+
+    #endregion
+
+    #region Profile Updates
+
+    /// <summary>
+    /// Update user skills (replace all existing skills)
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <param name="updateSkillsDto">New skills data</param>
+    /// <returns>Updated user</returns>
+    [HttpPut("{id:guid}/skills")]
+    [Authorize(Policy = "CandidateOwnDataAccess")]
+    [ProducesResponseType(typeof(UserDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult<UserDto>> UpdateUserSkills(Guid id, [FromBody] UpdateUserSkillsDto updateSkillsDto)
+    {
+        var result = await _userService.UpdateSkillsAsync(id, updateSkillsDto);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Update user profile general information
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <param name="updateProfileDto">Profile update data</param>
+    /// <returns>Updated user</returns>
+    [HttpPut("{id:guid}/profile")]
+    [Authorize(Policy = "CandidateOwnDataAccess")]
+    [ProducesResponseType(typeof(UserDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult<UserDto>> UpdateUserProfile(Guid id, [FromBody] UpdateUserProfileDto updateProfileDto)
+    {
+        var result = await _userService.UpdateProfileAsync(id, updateProfileDto);
         return this.ToActionResult(result);
     }
 

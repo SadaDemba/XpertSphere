@@ -24,62 +24,62 @@ export interface ApplicationStatusConfig {
   label: string;
 }
 
-export const applicationStatusConfig: Record<ApplicationStatus, ApplicationStatusConfig> = {
-  [ApplicationStatus.Applied]: {
+export const applicationStatusConfig: Record<string, ApplicationStatusConfig> = {
+  Applied: {
     color: 'grey',
     textColor: 'white',
     icon: 'send',
     label: 'Candidature déposée',
   },
-  [ApplicationStatus.Reviewed]: {
+  Reviewed: {
     color: 'blue',
     textColor: 'white',
     icon: 'rate_review',
     label: 'Examinée',
   },
-  [ApplicationStatus.PhoneScreening]: {
+  PhoneScreening: {
     color: 'cyan',
     textColor: 'white',
     icon: 'phone',
     label: 'Entretien téléphonique',
   },
-  [ApplicationStatus.TechnicalTest]: {
+  TechnicalTest: {
     color: 'indigo',
     textColor: 'white',
     icon: 'code',
     label: 'Test technique',
   },
-  [ApplicationStatus.TechnicalInterview]: {
+  TechnicalInterview: {
     color: 'purple',
     textColor: 'white',
     icon: 'developer_mode',
     label: 'Entretien technique',
   },
-  [ApplicationStatus.FinalInterview]: {
+  FinalInterview: {
     color: 'deep-purple',
     textColor: 'white',
     icon: 'groups',
     label: 'Entretien final',
   },
-  [ApplicationStatus.OfferMade]: {
+  OfferMade: {
     color: 'teal',
     textColor: 'white',
     icon: 'local_offer',
     label: 'Offre faite',
   },
-  [ApplicationStatus.Accepted]: {
+  Accepted: {
     color: 'positive',
     textColor: 'white',
     icon: 'check_circle',
     label: 'Acceptée',
   },
-  [ApplicationStatus.Rejected]: {
+  Rejected: {
     color: 'negative',
     textColor: 'white',
     icon: 'cancel',
-    label: 'Rejetée',
+    label: 'Non retenue',
   },
-  [ApplicationStatus.Withdrawn]: {
+  Withdrawn: {
     color: 'warning',
     textColor: 'white',
     icon: 'remove_circle',

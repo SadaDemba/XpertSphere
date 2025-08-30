@@ -1,5 +1,5 @@
 <template>
-  <q-card class="application-card">
+  <q-card class="application-card" @click="handleCardClick">
     <q-card-section>
       <div class="row items-start justify-between q-mb-md">
         <div class="col">
@@ -8,12 +8,12 @@
         </div>
         <div class="col-auto">
           <q-chip
-            :color="statusConfig.color"
-            :text-color="statusConfig.textColor"
-            :icon="statusConfig.icon"
+            :color="statusConfig!.color"
+            :text-color="statusConfig!.textColor"
+            :icon="statusConfig!.icon"
             size="sm"
           >
-            {{ statusConfig.label }}
+            {{ statusConfig!.label }}
           </q-chip>
         </div>
       </div>
@@ -22,12 +22,9 @@
         <div class="row items-center q-gutter-md text-grey-7">
           <div class="flex items-center">
             <q-icon name="access_time" size="16px" class="q-mr-xs" />
-            <span class="text-caption">Candidaté {{ formatDate(application.appliedAt) }}</span>
-          </div>
-
-          <div v-if="application.lastUpdatedAt" class="flex items-center">
-            <q-icon name="update" size="16px" class="q-mr-xs" />
-            <span class="text-caption">Mis à jour {{ formatDate(application.lastUpdatedAt) }}</span>
+            <span class="text-caption"
+              >Candidature déposée <b>{{ formatDate(application.appliedAt) }}</b></span
+            >
           </div>
 
           <div v-if="application.rating" class="flex items-center">
@@ -53,7 +50,7 @@
 
       <!-- Status History Preview -->
       <div
-        v-if="application.statusHistory && application.statusHistory.length > 1"
+        v-if="application.statusHistory && application.statusHistory.length > 0"
         class="history-preview q-mb-md"
       >
         <div class="text-caption text-grey-7 q-mb-xs">Historique récent :</div>
@@ -73,8 +70,9 @@
 
       <div class="application-actions">
         <div class="row justify-between items-center">
-          <div class="application-id text-caption text-grey-6">
-            ID: {{ application.id.substring(0, 8) }}...
+          <div v-if="application.lastUpdatedAt" class="flex items-center">
+            <q-icon name="update" size="16px" class="q-mr-xs" />
+            <span class="text-caption">Mis à jour {{ formatDate(application.lastUpdatedAt) }}</span>
           </div>
 
           <div class="action-buttons row q-gutter-xs">
@@ -84,9 +82,9 @@
               size="sm"
               icon="visibility"
               color="primary"
-              @click="$emit('view', application.id)"
+              @click.stop="$emit('view', application.id)"
             >
-              <q-tooltip>Voir les détails</q-tooltip>
+              <q-tooltip>Consulter les détails</q-tooltip>
             </q-btn>
 
             <q-btn
@@ -96,12 +94,12 @@
               size="sm"
               icon="cancel"
               color="negative"
-              @click="$emit('withdraw', application.id)"
+              @click.stop="$emit('withdraw', application.id)"
             >
               <q-tooltip>Retirer la candidature</q-tooltip>
             </q-btn>
 
-            <q-btn flat round size="sm" icon="more_vert" color="grey-7">
+            <q-btn flat round size="sm" icon="more_vert" color="grey-7" @click.stop>
               <q-tooltip>Plus d'options</q-tooltip>
               <q-menu>
                 <q-list style="min-width: 150px">
@@ -131,7 +129,8 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { computed } from 'vue';
-import { date, copyToClipboard } from 'quasar';
+import { copyToClipboard } from 'quasar';
+import { formatDate } from 'src/helpers/DateHelper';
 import type { ApplicationDto } from '../models/application';
 import { applicationStatusConfig } from '../models/application';
 import { ApplicationStatus } from '../enums';
@@ -147,7 +146,7 @@ interface Emits {
 }
 
 const props = defineProps<Props>();
-defineEmits<Emits>();
+const emit = defineEmits<Emits>();
 
 // Composables
 const { showSuccessNotification, showErrorNotification, showInfoNotification } = useNotification();
@@ -195,26 +194,6 @@ const recentHistory = computed(() => {
     .reverse(); // Show most recent first
 });
 
-// Methods
-const formatDate = (dateString: string): string => {
-  const applicationDate = new Date(dateString);
-  const now = new Date();
-  const diffInDays = Math.floor((now.getTime() - applicationDate.getTime()) / (1000 * 3600 * 24));
-
-  if (diffInDays === 0) {
-    return "aujourd'hui";
-  } else if (diffInDays === 1) {
-    return 'hier';
-  } else if (diffInDays < 7) {
-    return `il y a ${diffInDays} jours`;
-  } else if (diffInDays < 30) {
-    const weeks = Math.floor(diffInDays / 7);
-    return `il y a ${weeks} semaine${weeks > 1 ? 's' : ''}`;
-  } else {
-    return date.formatDate(applicationDate, 'DD/MM/YYYY');
-  }
-};
-
 const getProgressLabel = (): string => {
   const statusLabels: Record<ApplicationStatus, string> = {
     [ApplicationStatus.Applied]: 'Candidature reçue',
@@ -254,6 +233,10 @@ const downloadApplication = () => {
   // TODO: Implement download functionality
   showInfoNotification('Fonctionnalité de téléchargement bientôt disponible');
 };
+
+const handleCardClick = () => {
+  emit('view', props.application.id);
+};
 </script>
 
 <style lang="scss" scoped>
@@ -261,10 +244,12 @@ const downloadApplication = () => {
   border: 1px solid #e0e0e0;
   border-radius: 12px;
   transition: all 0.2s ease;
+  cursor: pointer;
 
   &:hover {
     border-color: var(--q-primary);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
   }
 }
 

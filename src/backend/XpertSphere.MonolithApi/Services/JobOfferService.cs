@@ -7,6 +7,7 @@ using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Services;
 
@@ -393,12 +394,12 @@ public class JobOfferService : IJobOfferService
 
         if (!string.IsNullOrEmpty(filter.Title))
         {
-            query = query.Where(jo => jo.Title.Contains(filter.Title, StringComparison.CurrentCultureIgnoreCase));
+            query = query.Where(jo => jo.Title.ToLower().Contains(filter.Title.ToLower()));
         }
 
         if (!string.IsNullOrEmpty(filter.Location))
         {
-            query = query.Where(jo => jo.Location != null && jo.Location.Contains(filter.Location, StringComparison.CurrentCultureIgnoreCase));
+            query = query.Where(jo => jo.Location != null && jo.Location.ToLower().Contains(filter.Location.ToLower()));
         }
 
         if (filter.WorkMode.HasValue)

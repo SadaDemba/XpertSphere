@@ -80,7 +80,7 @@ public class User : IdentityUser<Guid>, IAuditableEntity
 
     public DateTime? DataRetentionUntil { get; set; }
 
-    public bool IsAnonymized { get; set; } = false;
+    public bool IsAnonymized { get; set; }
 
     // Profile completeness tracking
     public int ProfileCompletionPercentage { get; set; }
@@ -90,7 +90,7 @@ public class User : IdentityUser<Guid>, IAuditableEntity
     // Communication preferences
     public bool EmailNotificationsEnabled { get; set; } = true;
 
-    public bool SmsNotificationsEnabled { get; set; } = false;
+    public bool SmsNotificationsEnabled { get; set; }
 
     [MaxLength(20)]
     public string? PreferredLanguage { get; set; } = "fr";
@@ -206,13 +206,13 @@ public class User : IdentityUser<Guid>, IAuditableEntity
         if (!string.IsNullOrEmpty(LastName)) completedFields++;
         if (!string.IsNullOrEmpty(Email)) completedFields++;
         if (!string.IsNullOrEmpty(PhoneNumber)) completedFields++;
-        if (Address != null && !string.IsNullOrEmpty(Address.Street)) completedFields++;
+        if (!string.IsNullOrEmpty(Address.StreetName)) completedFields++;
         if (!string.IsNullOrEmpty(Skills)) completedFields++;
         if (YearsOfExperience.HasValue) completedFields++;
         if (!string.IsNullOrEmpty(CvPath)) completedFields++;
         if (!string.IsNullOrEmpty(LinkedInProfile)) completedFields++;
         if (Experiences is { Count: > 0 }) completedFields++;
-        if (Trainings?.Count > 0) completedFields++;
+        if (Trainings.Count > 0) completedFields++;
         if (Availability.HasValue) completedFields++;
 
         ProfileCompletionPercentage = (completedFields * 100) / totalFields;

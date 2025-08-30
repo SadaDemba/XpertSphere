@@ -1,5 +1,6 @@
 using XpertSphere.MonolithApi.DTOs.Permission;
 using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Interfaces;
 

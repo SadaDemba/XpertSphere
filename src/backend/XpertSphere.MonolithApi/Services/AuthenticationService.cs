@@ -40,6 +40,8 @@ public class AuthenticationService : IAuthenticationService
     private readonly IWebHostEnvironment _environment;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserService _userService;
+    private readonly ITrainingService _trainingService;
+    private readonly IExperienceService _experienceService;
     private readonly IResumeService _resumeService;
     private readonly XpertSphereDbContext _context;
     
@@ -66,6 +68,8 @@ public class AuthenticationService : IAuthenticationService
         IHttpContextAccessor httpContextAccessor,
         IUserService userService,
         IResumeService resumeService,
+        ITrainingService trainingService,
+        IExperienceService experienceService,
         XpertSphereDbContext context)
     {
         _userManager = userManager;
@@ -85,6 +89,8 @@ public class AuthenticationService : IAuthenticationService
         _httpContextAccessor = httpContextAccessor;
         _userService = userService;
         _resumeService = resumeService;
+        _trainingService = trainingService;
+        _experienceService = experienceService;
         _context = context;
     }
 
@@ -114,7 +120,7 @@ public class AuthenticationService : IAuthenticationService
                 if (!string.IsNullOrEmpty(entraIdSignUpUrl))
                 {
                     _logger.LogInformation("Redirecting candidate {Email} to Entra ID B2C registration", registerDto.Email);
-                    return AuthResult.SuccessWithRedirect(entraIdSignUpUrl, "Complete your registration with your preferred identity provider");
+                    return AuthResult.Success("Complete your registration with your preferred identity provider", entraIdSignUpUrl);
                 }
             }
 
@@ -140,13 +146,16 @@ public class AuthenticationService : IAuthenticationService
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 return AuthResult.Failure($"Registration failed: {errors}");
             }
-
+            
+            
             _logger.LogInformation("User {Email} registered successfully", registerDto.Email);
 
             // Generate email confirmation token
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            user.EmailConfirmationToken = emailConfirmationToken;
+            var authDto = _mapper.Map<AuthResponseDto>(user);
 
-            return AuthResult.SuccessWithUser(user, "Registration successful. Please check your email to confirm your account.", emailConfirmationToken);
+            return AuthResult.SuccessWithUser(authDto, "Registration successful. Please check your email to confirm your account.");
         }
         catch (Exception ex)
         {
@@ -194,7 +203,7 @@ public class AuthenticationService : IAuthenticationService
                     Address = new Address
                     {
                         StreetNumber = registerDto.StreetNumber,
-                        Street = registerDto.Street,
+                        StreetName = registerDto.Street,
                         City = registerDto.City,
                         PostalCode = registerDto.PostalCode,
                         Region = registerDto.Region,
@@ -227,28 +236,14 @@ public class AuthenticationService : IAuthenticationService
                     var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
                     return AuthResult.Failure($"User creation failed: {errors}");
                 }
-
-                // Upload resume within transaction if provided
-                if (resumeFile != null)
-                {
-                    var resumeUploadResult = await _resumeService.UploadResumeAsync(resumeFile, user.Id);
-                    if (resumeUploadResult.IsSuccess)
-                    {
-                        user.CvPath = resumeUploadResult.Data;
-                        await _userManager.UpdateAsync(user);
-                    }
-                }
-
+                
                 // Add trainings if provided
                 if (registerDto.Trainings?.Count > 0)
                 {
                     foreach (var training in registerDto.Trainings)
                     {
-                        training.Id = Guid.NewGuid();
                         training.UserId = user.Id;
-                        training.CreatedAt = DateTime.UtcNow;
-                        training.UpdatedAt = DateTime.UtcNow;
-                        _context.Trainings.Add(training);
+                        await _trainingService.CreateTrainingAsync(training);
                     }
                 }
 
@@ -257,11 +252,19 @@ public class AuthenticationService : IAuthenticationService
                 {
                     foreach (var experience in registerDto.Experiences)
                     {
-                        experience.Id = Guid.NewGuid();
                         experience.UserId = user.Id;
-                        experience.CreatedAt = DateTime.UtcNow;
-                        experience.UpdatedAt = DateTime.UtcNow;
-                        _context.Experiences.Add(experience);
+                        await _experienceService.CreateExperienceAsync(experience);
+                    }
+                }
+
+                // Upload resume within transaction if provided
+                if (resumeFile != null)
+                {
+                    var resumeUploadResult = await _resumeService.UploadResumeAsync(resumeFile, user.Id);
+                    if (resumeUploadResult.IsSuccess)
+                    {
+                        user.CvPath = resumeUploadResult.Data;
+                        _context.Users.Update(user);
                     }
                 }
 
@@ -291,8 +294,10 @@ public class AuthenticationService : IAuthenticationService
 
                 // Generate email confirmation token
                 var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                user.EmailConfirmationToken = emailConfirmationToken;
+                var authResponseDto = _mapper.Map<AuthResponseDto>(user);
 
-                return AuthResult.SuccessWithUser(user, "Registration successful. Please check your email to confirm your account.", emailConfirmationToken);
+                return AuthResult.SuccessWithUser(authResponseDto, "Registration successful. Please check your email to confirm your account.");
             }
             catch (Exception ex)
             {
@@ -326,7 +331,7 @@ public class AuthenticationService : IAuthenticationService
                     if (!string.IsNullOrEmpty(entraIdLoginUrl))
                     {
                         _logger.LogInformation("Redirecting organizational user {Email} to Entra ID B2B login", loginDto.Email);
-                        return AuthResult.SuccessWithRedirect(entraIdLoginUrl, "Please use your organizational account to login");
+                        return AuthResult.Success("Please use your organizational account to login", entraIdLoginUrl);
                     }
                 }
                 
@@ -386,13 +391,13 @@ public class AuthenticationService : IAuthenticationService
                 user.SetRefreshToken(refreshToken, TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays));
                 await _userManager.UpdateAsync(user);
                 
+                var authResponseDto = _mapper.Map<AuthResponseDto>(user);
+                authResponseDto.AccessToken = accessToken;
+                
                 _logger.LogInformation("User {Email} logged in successfully", loginDto.Email);
 
-                return AuthResult.SuccessWithTokens(
-                    _mapper.Map<UserDto>(user),
-                    accessToken,
-                    refreshToken,
-                    DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
+                return AuthResult.SuccessWithUser(
+                    authResponseDto,
                     "Login successful"
                 );
             }
@@ -457,12 +462,10 @@ public class AuthenticationService : IAuthenticationService
             await _userManager.UpdateAsync(user);
 
             _logger.LogInformation("Tokens refreshed for user: {Email}", refreshTokenDto.Email);
-
-            return AuthResult.SuccessWithTokens(
-                _mapper.Map<UserDto>(user),
-                accessToken,
-                newRefreshToken,
-                DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
+            var authResponseDto = _mapper.Map<AuthResponseDto>(user);
+            authResponseDto.AccessToken = accessToken;
+            return AuthResult.SuccessWithUser(
+                authResponseDto,
                 "Token refreshed successfully"
             );
         }
@@ -555,8 +558,8 @@ public class AuthenticationService : IAuthenticationService
             await _userManager.UpdateAsync(user);
 
             _logger.LogInformation("Password reset token generated for user: {Email}", forgotPasswordDto.Email);
-
-            return AuthResult.SuccessWithUser(user, "Password reset email sent", resetToken);
+            var authResponseDto = _mapper.Map<AuthResponseDto>(user);
+            return AuthResult.SuccessWithUser(authResponseDto, "Password reset email sent");
         }
         catch (Exception ex)
         {
@@ -887,15 +890,12 @@ public class AuthenticationService : IAuthenticationService
                 await _userManager.UpdateAsync(existingUser);
 
                 _logger.LogInformation("Entra ID user {Email} authenticated successfully", userEmail);
-
-                return AuthResult.SuccessWithTokens(
-                    
-                    _mapper.Map<UserDto>(existingUser),
-                    jwtAccessToken,
-                    refreshToken,
-                    DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
-                    "Entra ID authentication successful",
-                    returnUrl
+                var authResponseDto = _mapper.Map<AuthResponseDto>(existingUser);
+                authResponseDto.AccessToken = jwtAccessToken;
+                authResponseDto.RedirectUrl = returnUrl;
+                return AuthResult.SuccessWithUser(
+                    authResponseDto,
+                    "Entra ID authentication successful"
                 );
             }
 

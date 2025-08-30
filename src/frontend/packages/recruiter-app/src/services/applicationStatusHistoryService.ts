@@ -4,40 +4,38 @@ import type {
   CreateApplicationStatusHistoryDto,
   UpdateApplicationStatusHistoryDto,
 } from '../models/application';
+import type { ResponseResult, VoidResponseResult } from '../models/base';
 
 export class ApplicationStatusHistoryService extends BaseClient {
   constructor() {
     super('/ApplicationStatusHistory');
   }
 
-  async getByApplicationId(applicationId: string): Promise<ApplicationStatusHistoryDto[]> {
-    const response = await this.get<ApplicationStatusHistoryDto[]>(`/application/${applicationId}`);
-    return response || [];
+  async getByApplicationId(
+    applicationId: string,
+  ): Promise<ResponseResult<ApplicationStatusHistoryDto[]> | null> {
+    return this.get<ResponseResult<ApplicationStatusHistoryDto[]>>(`/application/${applicationId}`);
   }
 
-  async getById(id: string): Promise<ApplicationStatusHistoryDto | null> {
-    const response = await this.get<ApplicationStatusHistoryDto>(`/${id}`);
-    return response;
+  async getById(id: string): Promise<ResponseResult<ApplicationStatusHistoryDto> | null> {
+    return this.get<ResponseResult<ApplicationStatusHistoryDto>>(`/${id}`);
   }
 
   async createAppComment(
     dto: CreateApplicationStatusHistoryDto,
-  ): Promise<ApplicationStatusHistoryDto | null> {
-    const response = await this.post<ApplicationStatusHistoryDto>('', dto);
-    return response;
+  ): Promise<ResponseResult<ApplicationStatusHistoryDto> | null> {
+    return this.post<ResponseResult<ApplicationStatusHistoryDto>>('', dto);
   }
 
   async updateAppComment(
     id: string,
     dto: UpdateApplicationStatusHistoryDto,
-  ): Promise<ApplicationStatusHistoryDto | null> {
-    const response = await this.put<ApplicationStatusHistoryDto>(`/${id}`, dto);
-    return response;
+  ): Promise<ResponseResult<ApplicationStatusHistoryDto> | null> {
+    return this.put<ResponseResult<ApplicationStatusHistoryDto>>(`/${id}`, dto);
   }
 
-  async deleteAppComment(id: string): Promise<boolean> {
-    const response = await this.delete(`/${id}`);
-    return response !== null;
+  async deleteAppComment(id: string): Promise<VoidResponseResult | null> {
+    return this.delete<VoidResponseResult>(`/${id}`);
   }
 }
 

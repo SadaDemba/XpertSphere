@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { BaseClient } from './BaseClient';
 import type {
   JobOffer,
@@ -6,68 +5,9 @@ import type {
   UpdateJobOfferDto,
   JobOfferFilterDto,
 } from '../models/job';
-import type { JobPaginatedResult } from '../models/base';
-import { JobOfferStatus, WorkMode, ContractType } from '../enums';
-
-// Fonctions de conversion des strings backend vers enums frontend
-function convertWorkMode(workMode: string): WorkMode {
-  switch (workMode) {
-    case 'OnSite':
-      return WorkMode.OnSite;
-    case 'Hybrid':
-      return WorkMode.Hybrid;
-    case 'FullRemote':
-      return WorkMode.FullRemote;
-    default:
-      return WorkMode.OnSite;
-  }
-}
-
-function convertContractType(contractType: string): ContractType {
-  switch (contractType) {
-    case 'FullTime':
-      return ContractType.FullTime;
-    case 'PartTime':
-      return ContractType.PartTime;
-    case 'Contract':
-      return ContractType.Contract;
-    case 'Freelance':
-      return ContractType.Freelance;
-    case 'Internship':
-      return ContractType.Internship;
-    case 'Temporary':
-      return ContractType.Temporary;
-    default:
-      return ContractType.FullTime;
-  }
-}
-
-function convertJobOfferStatus(status: string): JobOfferStatus {
-  switch (status) {
-    case 'Draft':
-      return JobOfferStatus.Draft;
-    case 'Published':
-      return JobOfferStatus.Published;
-    case 'Closed':
-      return JobOfferStatus.Closed;
-    default:
-      return JobOfferStatus.Draft;
-  }
-}
-
-// Fonction pour convertir un job offer du backend
-function convertJobOffer(job: any): JobOffer {
-  return {
-    ...job,
-    workMode: convertWorkMode(job.workMode),
-    contractType: convertContractType(job.contractType),
-    status: convertJobOfferStatus(job.status),
-  };
-}
+import type { PaginatedResult, ResponseResult, VoidResponseResult } from '../models/base';
 
 export class JobOfferService extends BaseClient {
-  private readonly ENDPOINT = '/JobOffers';
-
   constructor() {
     super('/JobOffers');
   }
@@ -75,11 +15,8 @@ export class JobOfferService extends BaseClient {
   /**
    * Get all job offers
    */
-  async getAllJobOffers(): Promise<JobOffer[]> {
-    console.log('Here');
-    const response = await this.get<any[]>('');
-    console.log(response);
-    return response ? response.map(convertJobOffer) : [];
+  async getAllJobOffers(): Promise<ResponseResult<JobOffer[]> | null> {
+    return this.get<ResponseResult<JobOffer[]>>('');
   }
 
   /**
@@ -87,105 +24,78 @@ export class JobOfferService extends BaseClient {
    */
   async getPaginatedJobOffers(
     filter: JobOfferFilterDto = {},
-  ): Promise<JobPaginatedResult<JobOffer>> {
-    console.log(filter);
-    const response = await this.get<JobPaginatedResult<JobOffer>>('/paginated', { params: filter });
-    console.log(response);
-    if (response) {
-      return {
-        ...response,
-        items: response.items.map(convertJobOffer),
-      };
-    }
-    return {
-      items: [],
-      pagination: {
-        currentPage: 1,
-        pageSize: 10,
-        totalItems: 0,
-        totalPages: 0,
-        hasPrevious: false,
-        hasNext: false,
-      },
-      isSuccess: false,
-      message: '',
-      errors: [],
-    };
+  ): Promise<PaginatedResult<JobOffer> | null> {
+    return this.get<PaginatedResult<JobOffer>>('/paginated', { params: filter });
   }
 
   /**
    * Get job offer by ID
    */
-  async getJobOfferById(id: string): Promise<JobOffer | null> {
-    const response = await this.get<any>(`/${id}`);
-    return response ? convertJobOffer(response) : null;
+  async getJobOfferById(id: string): Promise<ResponseResult<JobOffer> | null> {
+    return await this.get<ResponseResult<JobOffer>>(`/${id}`);
   }
 
   /**
    * Create a new job offer
    */
-  async createJobOffer(jobOffer: CreateJobOfferDto): Promise<JobOffer | null> {
-    const response = await this.post<any>('', jobOffer);
-    return response ? convertJobOffer(response) : null;
+  async createJobOffer(jobOffer: CreateJobOfferDto): Promise<ResponseResult<JobOffer> | null> {
+    return this.post<ResponseResult<JobOffer>>('', jobOffer);
   }
 
   /**
    * Update an existing job offer
    */
-  async updateJobOffer(id: string, jobOffer: UpdateJobOfferDto): Promise<JobOffer | null> {
-    const response = await this.put<any>(`/${id}`, jobOffer);
-    return response ? convertJobOffer(response) : null;
+  async updateJobOffer(
+    id: string,
+    jobOffer: UpdateJobOfferDto,
+  ): Promise<ResponseResult<JobOffer> | null> {
+    return this.put<ResponseResult<JobOffer>>(`/${id}`, jobOffer);
   }
 
   /**
    * Delete a job offer
    */
-  async deleteJobOffer(id: string): Promise<boolean> {
-    const response = await this.delete(`/${id}`);
-    return response !== null;
+  async deleteJobOffer(id: string): Promise<VoidResponseResult | null> {
+    return this.delete<VoidResponseResult>(`/${id}`);
   }
 
   /**
    * Publish a job offer
    */
-  async publishJobOffer(id: string): Promise<boolean> {
-    const response = await this.post(`/${id}/publish`);
-    return response !== null;
+  async publishJobOffer(id: string): Promise<VoidResponseResult | null> {
+    return this.post<VoidResponseResult>(`/${id}/publish`);
   }
 
   /**
    * Close a job offer
    */
-  async closeJobOffer(id: string): Promise<boolean> {
-    const response = await this.post(`/${id}/close`);
-    return response !== null;
+  async closeJobOffer(id: string): Promise<VoidResponseResult | null> {
+    return this.post<VoidResponseResult>(`/${id}/close`);
   }
 
   /**
    * Get job offers by organization
    */
-  async getJobOffersByOrganization(organizationId: string): Promise<JobOffer[]> {
-    const response = await this.get<any[]>(`/organization/${organizationId}`);
-    return response ? response.map(convertJobOffer) : [];
+  async getJobOffersByOrganization(
+    organizationId: string,
+  ): Promise<ResponseResult<JobOffer[]> | null> {
+    return this.get<ResponseResult<JobOffer[]>>(`/organization/${organizationId}`);
   }
 
   /**
    * Get current user's job offers
    */
-  async getMyJobOffers(): Promise<JobOffer[]> {
-    const response = await this.get<any[]>('/my');
-    return response ? response.map(convertJobOffer) : [];
+  async getMyJobOffers(): Promise<ResponseResult<JobOffer[]> | null> {
+    return this.get<ResponseResult<JobOffer[]>>('/my');
   }
 
   /**
    * Check if current user can manage a specific job offer
    */
-  async canManageJobOffer(id: string): Promise<boolean> {
-    const response = await this.get<boolean>(`/${id}/can-manage`);
-    return response || false;
+  async canManageJobOffer(id: string): Promise<ResponseResult<boolean> | null> {
+    return this.get<ResponseResult<boolean>>(`/${id}/can-manage`);
   }
 }
-
 // Export singleton instance
 export const jobOfferService = new JobOfferService();
 export default jobOfferService;

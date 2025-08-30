@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Address } from './address';
-
 export interface LoginDto {
   email: string;
   password: string;
@@ -12,11 +11,6 @@ export interface LoginDto {
 }
 
 export interface AuthResponseDto {
-  success: boolean;
-  message?: string;
-  statusCode?: number;
-  errors?: string[];
-
   // Success response fields
   accessToken?: string;
   refreshToken?: string;

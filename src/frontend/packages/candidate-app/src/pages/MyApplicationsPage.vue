@@ -38,65 +38,63 @@
       <!-- Applications -->
       <div v-else>
         <!-- Stats Cards -->
-        <div class="row q-gutter-md q-mb-lg">
-          <div class="col-12 col-sm-6 col-md-3">
+        <div class="stats-container q-mb-lg">
+          <div class="stats-wrapper">
             <q-card class="stats-card">
-              <q-card-section class="text-center">
+              <q-card-section class="text-center q-pa-md">
                 <div class="stats-number text-primary">{{ applications.length }}</div>
                 <div class="stats-label">Total</div>
               </q-card-section>
             </q-card>
-          </div>
 
-          <div class="col-12 col-sm-6 col-md-3">
             <q-card class="stats-card">
-              <q-card-section class="text-center">
+              <q-card-section class="text-center q-pa-md">
                 <div class="stats-number text-orange">{{ activeApplications.length }}</div>
                 <div class="stats-label">En cours</div>
               </q-card-section>
             </q-card>
-          </div>
 
-          <div class="col-12 col-sm-6 col-md-3">
             <q-card class="stats-card">
-              <q-card-section class="text-center">
+              <q-card-section class="text-center q-pa-md">
                 <div class="stats-number text-positive">{{ acceptedCount }}</div>
-                <div class="stats-label">Acceptées</div>
+                <div class="stats-label">Acceptée(s)</div>
               </q-card-section>
             </q-card>
-          </div>
 
-          <div class="col-12 col-sm-6 col-md-3">
             <q-card class="stats-card">
-              <q-card-section class="text-center">
-                <div class="stats-number text-negative">{{ rejectedCount }}</div>
-                <div class="stats-label">Rejetées</div>
+              <q-card-section class="text-center q-pa-md">
+                <div class="stats-number text-negative">{{ closedCount }}</div>
+                <div class="stats-label">Terminée(s)</div>
               </q-card-section>
             </q-card>
           </div>
         </div>
 
         <!-- Filter Tabs -->
-        <q-tabs
-          v-model="currentTab"
-          class="text-grey-7 q-mb-lg"
-          active-color="primary"
-          indicator-color="primary"
-          align="left"
-        >
-          <q-tab name="all" label="Toutes" />
-          <q-tab name="active" label="En cours" />
-          <q-tab name="completed" label="Terminées" />
-        </q-tabs>
+        <div class="tabs-container q-mb-lg">
+          <q-tabs
+            v-model="currentTab"
+            class="text-grey-7 filter-tabs"
+            active-color="primary"
+            indicator-color="primary"
+            align="center"
+          >
+            <q-tab name="all" label="Toutes" class="tab-item" />
+            <q-tab name="active" label="En cours" class="tab-item" />
+            <q-tab name="completed" label="Terminées" class="tab-item" />
+          </q-tabs>
+        </div>
 
         <!-- Applications List -->
-        <div class="applications-list">
-          <div v-for="application in filteredApplications" :key="application.id" class="q-mb-md">
-            <application-card
-              :application="application"
-              @view="viewApplication"
-              @withdraw="confirmWithdraw"
-            />
+        <div class="applications-list-container">
+          <div class="applications-list">
+            <div v-for="application in filteredApplications" :key="application.id" class="q-mb-md">
+              <application-card
+                :application="application"
+                @view="viewApplication"
+                @withdraw="confirmWithdraw"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -141,18 +139,16 @@
 </template>
 
 <script setup lang="ts">
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useApplicationStore } from '../stores/applicationStore';
-import { useNotification } from '../composables/notification';
 import { ApplicationStatus } from '../enums';
 import ApplicationCard from '../components/ApplicationCard.vue';
+import { mapToString } from 'src/enums/ApplicationStatus';
 
 // Composables
 const router = useRouter();
-const { showSuccessNotification, showErrorNotification } = useNotification();
 
 // Store
 const applicationStore = useApplicationStore();
@@ -186,11 +182,19 @@ const filteredApplications = computed(() => {
 });
 
 const acceptedCount = computed(
-  () => applications.value.filter((app) => app.currentStatus === ApplicationStatus.Accepted).length,
+  () =>
+    applications.value.filter(
+      (app) => app.currentStatus.toString() === mapToString(ApplicationStatus.Accepted),
+    ).length,
 );
 
-const rejectedCount = computed(
-  () => applications.value.filter((app) => app.currentStatus === ApplicationStatus.Rejected).length,
+const closedCount = computed(
+  () =>
+    applications.value.filter(
+      (app) =>
+        app.currentStatus.toString() === mapToString(ApplicationStatus.Rejected) ||
+        app.currentStatus.toString() === mapToString(ApplicationStatus.Withdrawn),
+    ).length,
 );
 
 // Methods
@@ -217,26 +221,13 @@ const handleWithdraw = async () => {
 
   withdrawLoading.value = true;
 
-  try {
-    const success = await applicationStore.withdrawApplication(
-      applicationToWithdraw.value,
-      withdrawReason.value || 'Candidature retirée par le candidat',
-    );
+  await applicationStore.withdrawApplication(
+    applicationToWithdraw.value,
+    withdrawReason.value || 'Candidature retirée par le candidat',
+  );
 
-    if (success) {
-      showSuccessNotification('Candidature retirée avec succès');
-
-      showWithdrawDialog.value = false;
-      applicationToWithdraw.value = null;
-    } else {
-      showErrorNotification(applicationStore.error || 'Erreur lors du retrait');
-    }
-  } catch (error: any) {
-    console.log(error.message);
-    showErrorNotification('Une erreur inattendue est survenue');
-  } finally {
-    withdrawLoading.value = false;
-  }
+  showWithdrawDialog.value = false;
+  applicationToWithdraw.value = null;
 };
 
 // Lifecycle
@@ -248,31 +239,103 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .applications-page {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: rgb(233, 233, 233);
 }
 
 .page-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+.stats-container {
+  display: flex;
+  justify-content: center;
+}
+
+.stats-wrapper {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 800px;
+  width: 100%;
+}
+
 .stats-card {
   border-radius: 12px;
   border: 1px solid #e0e0e0;
+  flex: 0 0 auto;
+  min-width: 150px;
+  max-width: 180px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
 }
 
 .stats-number {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: bold;
-  line-height: 1;
+  line-height: 1.2;
+  margin-bottom: 4px;
 }
 
 .stats-label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #6c757d;
-  margin-top: 4px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .stats-wrapper {
+    gap: 12px;
+  }
+
+  .stats-card {
+    min-width: calc(50% - 6px);
+    max-width: calc(50% - 6px);
+  }
+
+  .stats-number {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .stats-card {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}
+
+.tabs-container {
+  display: flex;
+  justify-content: center;
+}
+
+.filter-tabs {
+  max-width: 600px;
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 4px;
+}
+
+.tab-item {
+  min-width: 120px;
+  font-weight: 500;
+}
+
+.applications-list-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .applications-list {
   max-width: 800px;
+  width: 100%;
 }
 </style>

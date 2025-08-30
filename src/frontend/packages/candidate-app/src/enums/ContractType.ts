@@ -15,3 +15,12 @@ export const contractTypeLabels = {
   [ContractType.Internship]: 'Stage',
   [ContractType.Temporary]: 'Intérim',
 };
+
+export const contractTypeStringToEnum: Record<string, ContractType> = {
+  FullTime: ContractType.FullTime,
+  PartTime: ContractType.PartTime,
+  Contract: ContractType.Contract,
+  Freelance: ContractType.Freelance,
+  Internship: ContractType.Internship,
+  Temporary: ContractType.Temporary,
+};

@@ -1,6 +1,6 @@
 ﻿using XpertSphere.MonolithApi.DTOs.Organization;
-using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Interfaces
 {

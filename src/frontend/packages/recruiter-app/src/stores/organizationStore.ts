@@ -6,21 +6,27 @@ import type {
   UpdateOrganizationDto,
   OrganizationFilterDto,
 } from '../models/organization';
-import { OrganizationService } from '../services/organizationService';
+import { organizationService } from '../services/organizationService';
+import { useNotification } from 'src/composables/notification';
 
 export const useOrganizationStore = defineStore('organization', () => {
-  const service = new OrganizationService();
+  const notification = useNotification();
 
+  // State
   const organizations = ref<OrganizationDto[]>([]);
   const currentOrganization = ref<OrganizationDto | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
+  // Pagination
   const totalCount = ref(0);
   const currentPage = ref(1);
   const pageSize = ref(10);
   const totalPages = ref(0);
+  const hasPrevious = ref(false);
+  const hasNext = ref(false);
 
+  // Getters (computed)
   const activeOrganizations = computed(() => organizations.value.filter((org) => org.isActive));
 
   const inactiveOrganizations = computed(() => organizations.value.filter((org) => !org.isActive));
@@ -29,6 +35,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   const hasError = computed(() => error.value !== null);
   const errorMessage = computed(() => error.value);
 
+  // Actions
   const clearError = () => {
     error.value = null;
   };
@@ -42,91 +49,186 @@ export const useOrganizationStore = defineStore('organization', () => {
     loading.value = false;
   };
 
+  /**
+   * Retrieve all organizations
+   */
+  const fetchAllOrganizations = async () => {
+    try {
+      setLoading(true);
+      clearError();
+      const response = await organizationService.getAllOrganizations();
+      if (response?.isSuccess) {
+        organizations.value = response.data!;
+      } else {
+        setError('Erreur lors du chargement des organisations');
+        notification.showErrorNotification('Erreur lors du chargement des organisations');
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des organisations',
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des organisations',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Retrieve all organizations with pagination and filter
+   */
   const fetchPaginatedOrganizations = async (filter: OrganizationFilterDto = {}) => {
     try {
       setLoading(true);
       clearError();
 
-      const data = await service.getPaginatedOrganizations(filter);
+      const paginationFilter: OrganizationFilterDto = {
+        ...filter,
+        pageNumber: filter.pageNumber || currentPage.value,
+        pageSize: filter.pageSize || pageSize.value,
+      };
 
-      organizations.value = data.items;
-      totalCount.value = data.totalItems;
-      currentPage.value = data.pageNumber;
-      pageSize.value = data.pageSize;
-      totalPages.value = data.totalPages;
-    } catch (err) {
-      setError(`Erreur lors du chargement des organisations: ${err}`);
+      const response = await organizationService.getPaginatedOrganizations(paginationFilter);
+
+      if (response?.isSuccess) {
+        organizations.value = response.data;
+        totalCount.value = response.pagination.totalItems;
+        currentPage.value = response.pagination.currentPage;
+        pageSize.value = response.pagination.pageSize;
+        totalPages.value = response.pagination.totalPages;
+        hasPrevious.value = response.pagination.hasPrevious;
+        hasNext.value = response.pagination.hasNext;
+
+        notification.showSuccessNotification('Organisations chargées avec succès');
+      } else {
+        setError('Erreur lors du chargement des organisations');
+        notification.showErrorNotification('Erreur lors du chargement des organisations');
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des organisations',
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des organisations',
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Get organization by ID
+   */
   const fetchOrganizationById = async (id: string) => {
     try {
       setLoading(true);
       clearError();
-      const data = await service.getOrganizationById(id);
-      currentOrganization.value = data;
-      return data;
-    } catch (err) {
-      setError(`Erreur lors du chargement de l'organisation: ${err}`);
+      const response = await organizationService.getOrganizationById(id);
+      if (response?.isSuccess) {
+        currentOrganization.value = response.data!;
+      } else {
+        setError(response?.message || "Erreur lors du chargement de l'organisation");
+        notification.showErrorNotification(
+          response?.message || "Erreur lors du chargement de l'organisation",
+        );
+      }
+      return response?.data;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors du chargement de l'organisation",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors du chargement de l'organisation",
+      );
       return null;
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Create a new organization
+   */
   const createOrganization = async (organizationData: CreateOrganizationDto) => {
     try {
       setLoading(true);
       clearError();
-      const newOrganization = await service.createOrganization(organizationData);
-      if (newOrganization) {
-        organizations.value.unshift(newOrganization);
+      const response = await organizationService.createOrganization(organizationData);
+      if (response?.isSuccess) {
+        organizations.value.unshift(response.data!);
         totalCount.value++;
+        notification.showSuccessNotification('Organisation créée avec succès');
+      } else {
+        setError(response?.message || "Erreur lors de la création de l'organisation");
+        notification.showErrorNotification(
+          response?.message || "Erreur lors de la création de l'organisation",
+        );
       }
-      return newOrganization;
-    } catch (err) {
-      setError(`Erreur lors de la création de l'organisation: ${err}`);
+      return response?.data;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de la création de l'organisation",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la création de l'organisation",
+      );
       return null;
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Update an organization
+   */
   const updateOrganization = async (id: string, organizationData: UpdateOrganizationDto) => {
     try {
       setLoading(true);
       clearError();
-      const updatedOrganization = await service.updateOrganization(id, organizationData);
+      const response = await organizationService.updateOrganization(id, organizationData);
 
-      if (updatedOrganization) {
+      if (response?.isSuccess) {
         const index = organizations.value.findIndex((org) => org.id === id);
         if (index !== -1) {
-          organizations.value[index] = updatedOrganization;
+          organizations.value[index] = response.data!;
         }
 
         if (currentOrganization.value?.id === id) {
-          currentOrganization.value = updatedOrganization;
+          currentOrganization.value = response.data!;
         }
+        notification.showSuccessNotification('Organisation mise à jour avec succès');
+      } else {
+        setError(response?.message || "Erreur lors de la mise à jour de l'organisation");
+        notification.showErrorNotification(
+          response?.message || "Erreur lors de la mise à jour de l'organisation",
+        );
       }
 
-      return updatedOrganization;
-    } catch (err) {
-      setError(`Erreur lors de la mise à jour de l'organisation: ${err}`);
+      return response?.data;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de la mise à jour de l'organisation",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la mise à jour de l'organisation",
+      );
       return null;
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Delete an organization
+   */
   const deleteOrganization = async (id: string) => {
     try {
       setLoading(true);
       clearError();
-      const success = await service.deleteOrganization(id);
+      const response = await organizationService.deleteOrganization(id);
 
-      if (success) {
+      if (response?.isSuccess) {
         const index = organizations.value.findIndex((org) => org.id === id);
         if (index !== -1) {
           organizations.value.splice(index, 1);
@@ -136,30 +238,30 @@ export const useOrganizationStore = defineStore('organization', () => {
         if (currentOrganization.value?.id === id) {
           currentOrganization.value = null;
         }
+        notification.showSuccessNotification('Organisation supprimée avec succès');
+      } else {
+        setError(response?.message || "Erreur lors de la suppression de l'organisation");
+        notification.showErrorNotification(
+          response?.message || "Erreur lors de la suppression de l'organisation",
+        );
       }
-
-      return success;
-    } catch (err) {
-      setError(`Erreur lors de la suppression de l'organisation: ${err}`);
+      return response?.isSuccess;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de la suppression de l'organisation",
+      );
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la suppression de l'organisation",
+      );
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchAllOrganizations = async () => {
-    try {
-      setLoading(true);
-      clearError();
-      const data = await service.getAllOrganizations();
-      organizations.value = data;
-    } catch (err) {
-      setError(`Erreur lors du chargement des organisations: ${err}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  /**
+   * Reset the store
+   */
   const resetStore = () => {
     organizations.value = [];
     currentOrganization.value = null;
@@ -169,9 +271,12 @@ export const useOrganizationStore = defineStore('organization', () => {
     currentPage.value = 1;
     pageSize.value = 10;
     totalPages.value = 0;
+    hasPrevious.value = false;
+    hasNext.value = false;
   };
 
   return {
+    // State
     organizations,
     currentOrganization,
     loading,
@@ -180,13 +285,17 @@ export const useOrganizationStore = defineStore('organization', () => {
     currentPage,
     pageSize,
     totalPages,
+    hasPrevious,
+    hasNext,
 
+    // Getters
     activeOrganizations,
     inactiveOrganizations,
     isLoading,
     hasError,
     errorMessage,
 
+    // Actions
     clearError,
     fetchAllOrganizations,
     fetchPaginatedOrganizations,

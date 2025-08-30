@@ -1,5 +1,6 @@
 import type { RouteLocationNormalized, NavigationGuardNext } from 'vue-router';
 import { useAuthStore } from '../../stores/authStore';
+import { PlatformRoles } from '../../models/auth';
 
 /**
  * Authentication guard to protect routes
@@ -15,9 +16,11 @@ export async function authGuard(
   const isPublicPage = publicPages.includes(to.path);
 
   if (isPublicPage) {
-    // If already authenticated and trying to access login page, redirect to dashboard
+    // If already authenticated and trying to access login page, redirect based on role
     if (authStore.isAuthenticated && to.path === '/auth/login') {
-      next('/jobs');
+      // Redirect PlatformRoles to admin/users, others to jobs
+      const redirectPath = authStore.hasAnyRole(PlatformRoles) ? '/admin/users' : '/jobs';
+      next(redirectPath);
       return;
     }
     next();
@@ -53,8 +56,9 @@ export async function authGuard(
 
   // Check admin-only routes (management roles required)
   if (to.meta.requiresAdmin && !authStore.canManageUsers) {
-    // Redirect to dashboard if not authorized for admin functions
-    next('/jobs');
+    // Redirect to appropriate dashboard based on role
+    const redirectPath = authStore.hasAnyRole(PlatformRoles) ? '/admin/users' : '/jobs';
+    next(redirectPath);
     return;
   }
 
