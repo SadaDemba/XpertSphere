@@ -27,7 +27,7 @@ public record UserDto
     // Candidate info (for external users)
     public string? LinkedInProfile { get; set; }
     public string? Skills { get; set; }
-    public int? YearsOfExperience { get; set; }
+    public int? Experience { get; set; }
     public List<Training>? Trainings { get; set; } = [];
     public List<Experience>? Experiences { get; set; } = [];
     public decimal? DesiredSalary { get; set; }

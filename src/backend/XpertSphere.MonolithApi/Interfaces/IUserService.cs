@@ -57,7 +57,7 @@ public interface IUserService
     /// <summary>
     /// Get users by organization
     /// </summary>
-    Task<ServiceResult<List<UserSearchResultDto>>> GetByOrganizationAsync(Guid organizationId);
+    Task<ServiceResult<IEnumerable<UserSearchResultDto>>> GetByOrganizationAsync(Guid organizationId);
 
     /// <summary>
     /// Activate a user account

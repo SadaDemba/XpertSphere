@@ -3,8 +3,12 @@
  * @param dateString - La date en format ISO string ou Date
  * @returns La date formatée en français (dd/mm/yyyy)
  */
-export function formatDate(dateString: string | Date): string {
+export function formatDate(dateString: string | Date | null | undefined): string {
+  if (!dateString) return '-';
+
   const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+
+  if (isNaN(date.getTime())) return '-';
 
   return date.toLocaleDateString('fr-FR', {
     day: '2-digit',
@@ -18,8 +22,12 @@ export function formatDate(dateString: string | Date): string {
  * @param dateString - La date en format ISO string ou Date
  * @returns La date et l'heure formatées en français (dd/mm/yyyy à hh:mm)
  */
-export function formatDateTime(dateString: string | Date): string {
+export function formatDateTime(dateString: string | Date | null | undefined): string {
+  if (!dateString) return '-';
+
   const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+
+  if (isNaN(date.getTime())) return '-';
 
   return date.toLocaleDateString('fr-FR', {
     day: '2-digit',
@@ -35,8 +43,13 @@ export function formatDateTime(dateString: string | Date): string {
  * @param dateString - La date en format ISO string ou Date
  * @returns La date formatée de manière relative
  */
-export function formatRelativeDate(dateString: string | Date): string {
+export function formatRelativeDate(dateString: string | Date | null | undefined): string {
+  if (!dateString) return '-';
+
   const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+
+  if (isNaN(date.getTime())) return '-';
+
   const now = new Date();
   const diffInMs = now.getTime() - date.getTime();
   const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));

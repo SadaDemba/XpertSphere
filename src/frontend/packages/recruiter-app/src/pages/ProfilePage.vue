@@ -309,7 +309,7 @@ const changePassword = async () => {
     console.log(changeData);
     const result = await authService.changePassword(changeData);
     console.log(result);
-    if (result?.success) {
+    if (result?.isSuccess) {
       $q.notify({
         type: 'positive',
         message: 'Mot de passe changé avec succès',

@@ -379,14 +379,14 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<ServiceResult<List<UserSearchResultDto>>> GetByOrganizationAsync(Guid organizationId)
+    public async Task<ServiceResult<IEnumerable<UserSearchResultDto>>> GetByOrganizationAsync(Guid organizationId)
     {
         try
         {
             var orgExists = await _context.Organizations.AnyAsync(o => o.Id == organizationId);
             if (!orgExists)
             {
-                return ServiceResult<List<UserSearchResultDto>>.NotFound($"Organization with ID {organizationId} not found");
+                return ServiceResult<IEnumerable<UserSearchResultDto>>.NotFound($"Organization with ID {organizationId} not found");
             }
 
             var users = await _context.Users
@@ -399,12 +399,12 @@ public class UserService : IUserService
             var userDtos = users.Select(user => _mapper.Map<UserSearchResultDto>(user)).ToList();
             
             _logger.LogInformation("Retrieved {Count} users for organization {OrganizationId}", userDtos.Count, organizationId);
-            return ServiceResult<List<UserSearchResultDto>>.Success(userDtos);
+            return ServiceResult<IEnumerable<UserSearchResultDto>>.Success(userDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving users for organization {OrganizationId}", organizationId);
-            return ServiceResult<List<UserSearchResultDto>>.InternalError("An error occurred while retrieving users for the organization");
+            return ServiceResult<IEnumerable<UserSearchResultDto>>.InternalError("An error occurred while retrieving users for the organization");
         }
     }
 
@@ -887,12 +887,7 @@ public class UserService : IUserService
                 user.LinkedInProfile = dto.LinkedInProfile;
 
             // Update address if provided
-            if (user.Address == null && HasAddressData(dto))
-            {
-                user.Address = new Address();
-            }
-            
-            if (user.Address != null)
+            if (HasAddressData(dto))
             {
                 if (!string.IsNullOrEmpty(dto.StreetNumber))
                     user.Address.StreetNumber = dto.StreetNumber;

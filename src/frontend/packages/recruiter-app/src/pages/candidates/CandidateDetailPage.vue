@@ -94,9 +94,9 @@
             </div>
 
             <div class="q-gutter-md">
-              <div v-if="candidate.yearsOfExperience">
+              <div v-if="candidate.experience">
                 <div class="text-weight-medium">Années d'expérience</div>
-                <div class="text-grey-7">{{ candidate.yearsOfExperience }} ans</div>
+                <div class="text-grey-7">{{ candidate.experience }} ans</div>
               </div>
 
               <div v-if="candidate.skills">
@@ -409,7 +409,7 @@ onMounted(async () => {
   const candidateId = route.params.id as string;
   if (candidateId) {
     const userData = await userStore.fetchUserById(candidateId);
-    candidate.value = userData;
+    candidate.value = userData!;
   }
 });
 

@@ -71,10 +71,10 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
         jobOffers.value = response.data!;
         paginationInfo.value = response.pagination;
         currentFilter.value = searchFilter;
-        notification.showSuccessNotification("Offres d'emploies récupérées avec succès");
+        notification.showSuccessNotification("Offres d'emploies chargées avec succès");
         return true;
       } else {
-        setError(response?.message || 'Erreur lors de la récupération des offres');
+        setError(response?.message || 'Erreur lors de la chargement des offres');
         notification.showSuccessNotification(
           response?.message || 'Erreur lors du chargement des offres',
         );

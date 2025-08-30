@@ -1,15 +1,19 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type {
-  JobOffer,
-  CreateJobOfferDto,
-  UpdateJobOfferDto,
-  JobOfferFilterDto,
+import {
+  type JobOffer,
+  type CreateJobOfferDto,
+  type UpdateJobOfferDto,
+  type JobOfferFilterDto,
+  convertJobOffer,
 } from '../models/job';
 import { jobOfferService } from '../services/jobOfferService';
 import { JobOfferStatus } from '../enums';
+import { useNotification } from 'src/composables/notification';
 
 export const useJobOfferStore = defineStore('jobOffer', () => {
+  const notification = useNotification();
+
   // État
   const jobOffers = ref<JobOffer[]>([]);
   const currentJobOffer = ref<JobOffer | null>(null);
@@ -55,24 +59,36 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     loading.value = false;
   };
 
+  function convertEnums(jobOffers: JobOffer[]): JobOffer[] {
+    return jobOffers.map((element) => convertJobOffer(element));
+  }
+
   /**
-   * Récupère toutes les offres d'emploi
+   * Retrieve all job offers
    */
   const fetchAllJobOffers = async () => {
     try {
       setLoading(true);
       clearError();
-      const data = await jobOfferService.getAllJobOffers();
-      jobOffers.value = data;
-    } catch (err) {
-      setError(`Erreur lors du chargement des offres: ${err}`);
+      const response = await jobOfferService.getAllJobOffers();
+      if (response?.isSuccess) {
+        jobOffers.value = convertEnums(response.data!);
+      } else {
+        setError('Erreur lors du chargement des offres');
+        notification.showErrorNotification('Erreur lors du chargement des offres');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Erreur lors du chargement des offres');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des offres',
+      );
     } finally {
       setLoading(false);
     }
   };
 
   /**
-   * Récupère les offres d'emploi avec pagination et filtres
+   * Retrieve all job offers with pagination and filter
    */
   const fetchPaginatedJobOffers = async (filter: JobOfferFilterDto = {}) => {
     try {
@@ -85,17 +101,27 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
         pageSize: filter.pageSize || pageSize.value,
       };
 
-      const data = await jobOfferService.getPaginatedJobOffers(paginationFilter);
+      const response = await jobOfferService.getPaginatedJobOffers(paginationFilter);
 
-      jobOffers.value = data.items;
-      totalCount.value = data.pagination.totalItems;
-      currentPage.value = data.pagination.currentPage;
-      pageSize.value = data.pagination.pageSize;
-      totalPages.value = data.pagination.totalPages;
-      hasPrevious.value = data.pagination.hasPrevious;
-      hasNext.value = data.pagination.hasNext;
-    } catch (err) {
-      setError(`Erreur lors du chargement des offres: ${err}`);
+      if (response?.isSuccess) {
+        jobOffers.value = convertEnums(response.data);
+        totalCount.value = response.pagination.totalItems;
+        currentPage.value = response.pagination.currentPage;
+        pageSize.value = response.pagination.pageSize;
+        totalPages.value = response.pagination.totalPages;
+        hasPrevious.value = response.pagination.hasPrevious;
+        hasNext.value = response.pagination.hasNext;
+
+        notification.showSuccessNotification('Offres chargées avec succès');
+      } else {
+        setError('Erreur lors du chargement des offres');
+        notification.showErrorNotification('Erreur lors du chargement des offres');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Erreur lors du chargement des offres');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des offres',
+      );
     } finally {
       setLoading(false);
     }
@@ -108,11 +134,21 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     try {
       setLoading(true);
       clearError();
-      const data = await jobOfferService.getJobOfferById(id);
-      currentJobOffer.value = data;
-      return data;
-    } catch (err) {
-      setError(`Erreur lors du chargement de l'offre: ${err}`);
+      const response = await jobOfferService.getJobOfferById(id);
+      if (response?.isSuccess) {
+        currentJobOffer.value = convertJobOffer(response.data!);
+      } else {
+        setError(response?.message || "Erreur lors du chargement de l'offre");
+        notification.showErrorNotification(
+          response?.message || "Erreur lors du chargement de l'offre",
+        );
+      }
+      return response?.data;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Erreur lors du chargement des offres');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des offres',
+      );
       return null;
     } finally {
       setLoading(false);
@@ -126,14 +162,21 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     try {
       setLoading(true);
       clearError();
-      const newJobOffer = await jobOfferService.createJobOffer(jobOfferData);
-      if (newJobOffer) {
-        jobOffers.value.unshift(newJobOffer);
+      const response = await jobOfferService.createJobOffer(jobOfferData);
+      if (response?.isSuccess) {
+        jobOffers.value.unshift(response.data!);
         totalCount.value++;
+        notification.showSuccessNotification('Offres créée avec succès');
+      } else {
+        setError(response?.message || 'Erreur lors de la création');
+        notification.showErrorNotification(response?.message || 'Erreur lors de la création');
       }
-      return newJobOffer;
-    } catch (err) {
-      setError(`Erreur lors de la création de l'offre: ${err}`);
+      return response?.data;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erreur lors de la création de l'offre");
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la création de l'offre",
+      );
       return null;
     } finally {
       setLoading(false);
@@ -147,22 +190,31 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     try {
       setLoading(true);
       clearError();
-      const updatedJobOffer = await jobOfferService.updateJobOffer(id, jobOfferData);
+      const response = await jobOfferService.updateJobOffer(id, jobOfferData);
 
-      if (updatedJobOffer) {
+      if (response?.isSuccess) {
         const index = jobOffers.value.findIndex((job) => job.id === id);
         if (index !== -1) {
-          jobOffers.value[index] = updatedJobOffer;
+          jobOffers.value[index] = convertJobOffer(response.data!);
         }
 
         if (currentJobOffer.value?.id === id) {
-          currentJobOffer.value = updatedJobOffer;
+          currentJobOffer.value = convertJobOffer(response.data!);
         }
+        notification.showSuccessNotification('Offre mise à jour avec succès');
+      } else {
+        setError(response?.message || "Erreur lors de la mise à jour de l'offre");
+        notification.showErrorNotification(
+          response?.message || "Erreur lors de la mise à jour de l'offre",
+        );
       }
 
-      return updatedJobOffer;
-    } catch (err) {
-      setError(`Erreur lors de la mise à jour de l'offre: ${err}`);
+      return response?.data;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erreur lors de la mise à jour de l'offre");
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la mise à jour de l'offre",
+      );
       return null;
     } finally {
       setLoading(false);
@@ -176,21 +228,30 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     try {
       setLoading(true);
       clearError();
-      await jobOfferService.deleteJobOffer(id);
+      const response = await jobOfferService.deleteJobOffer(id);
 
-      const index = jobOffers.value.findIndex((job) => job.id === id);
-      if (index !== -1) {
-        jobOffers.value.splice(index, 1);
-        totalCount.value--;
+      if (response?.isSuccess) {
+        const index = jobOffers.value.findIndex((job) => job.id === id);
+        if (index !== -1) {
+          jobOffers.value.splice(index, 1);
+          totalCount.value--;
+        }
+
+        if (currentJobOffer.value?.id === id) {
+          currentJobOffer.value = null;
+        }
+      } else {
+        setError(response?.message || "Erreur lors de la suppression de l'offre");
+        notification.showErrorNotification(
+          response?.message || "Erreur lors de la suppression de l'offre",
+        );
       }
-
-      if (currentJobOffer.value?.id === id) {
-        currentJobOffer.value = null;
-      }
-
-      return true;
-    } catch (err) {
-      setError(`Erreur lors de la suppression de l'offre: ${err}`);
+      return response?.isSuccess;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erreur lors de la suppression de l'offre");
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la suppression de l'offre",
+      );
       return false;
     } finally {
       setLoading(false);
@@ -204,22 +265,32 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     try {
       setLoading(true);
       clearError();
-      await jobOfferService.publishJobOffer(id);
+      const response = await jobOfferService.publishJobOffer(id);
 
-      const jobOffer = jobOffers.value.find((job) => job.id === id);
-      if (jobOffer) {
-        jobOffer.status = JobOfferStatus.Published;
-        jobOffer.publishedAt = new Date().toISOString();
+      if (response?.isSuccess) {
+        const jobOffer = jobOffers.value.find((job) => job.id === id);
+        if (jobOffer) {
+          jobOffer.status = JobOfferStatus.Published;
+          jobOffer.publishedAt = new Date().toISOString();
+        }
+
+        if (currentJobOffer.value?.id === id) {
+          currentJobOffer.value.status = JobOfferStatus.Published;
+          currentJobOffer.value.publishedAt = new Date().toISOString();
+        }
+        notification.showSuccessNotification('Offre puliée avec succès');
+      } else {
+        setError(response?.message || "Erreur lors de la publication de l'offre");
+        notification.showErrorNotification(
+          response?.message || "Erreur lors de la publication de l'offre",
+        );
       }
-
-      if (currentJobOffer.value?.id === id) {
-        currentJobOffer.value.status = JobOfferStatus.Published;
-        currentJobOffer.value.publishedAt = new Date().toISOString();
-      }
-
-      return true;
-    } catch (err) {
-      setError(`Erreur lors de la publication de l'offre: ${err}`);
+      return response?.isSuccess;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erreur lors de la publication de l'offre");
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la publication de l'offre",
+      );
       return false;
     } finally {
       setLoading(false);
@@ -245,8 +316,11 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       }
 
       return true;
-    } catch (err) {
-      setError(`Erreur lors de la fermeture de l'offre: ${err}`);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erreur lors de la fermeture de l'offre");
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de la fermeture de l'offre",
+      );
       return false;
     } finally {
       setLoading(false);
@@ -260,10 +334,20 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     try {
       setLoading(true);
       clearError();
-      const data = await jobOfferService.getMyJobOffers();
-      jobOffers.value = data;
-    } catch (err) {
-      setError(`Erreur lors du chargement de vos offres: ${err}`);
+      const response = await jobOfferService.getMyJobOffers();
+      if (response?.isSuccess) {
+        jobOffers.value = convertEnums(response.data!);
+      } else {
+        setError(response?.message || 'Erreur lors du chargement des offres');
+        notification.showErrorNotification(
+          response?.message || 'Erreur lors du chargement des offres',
+        );
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Erreur lors du chargement des offres');
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des offres',
+      );
     } finally {
       setLoading(false);
     }
@@ -274,9 +358,15 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
    */
   const checkCanManageJobOffer = async (id: string) => {
     try {
-      return await jobOfferService.canManageJobOffer(id);
-    } catch (err) {
-      setError(`Erreur lors de la vérification des permissions: ${err}`);
+      const response = await jobOfferService.canManageJobOffer(id);
+      if (!response?.isSuccess) {
+        setError(response?.message || 'Erreur lors de la vérification des permissions');
+      }
+      return response?.data;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors de la vérification des permissions',
+      );
       return false;
     }
   };

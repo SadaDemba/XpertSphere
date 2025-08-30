@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { JobOfferStatus, WorkMode, ContractType } from '../enums';
 import type { Filter } from './base';
 
@@ -147,6 +148,60 @@ export const jobOfferStatusConfig: Record<JobOfferStatus, JobOfferStatusConfig> 
     icon: 'visibility_off',
   },
 };
+
+function convertJobOfferStatus(status: string): JobOfferStatus {
+  switch (status) {
+    case 'Draft':
+      return JobOfferStatus.Draft;
+    case 'Published':
+      return JobOfferStatus.Published;
+    case 'Closed':
+      return JobOfferStatus.Closed;
+    default:
+      return JobOfferStatus.Draft;
+  }
+}
+
+function convertWorkMode(workMode: string): WorkMode {
+  switch (workMode) {
+    case 'OnSite':
+      return WorkMode.OnSite;
+    case 'Hybrid':
+      return WorkMode.Hybrid;
+    case 'FullRemote':
+      return WorkMode.FullRemote;
+    default:
+      return WorkMode.OnSite;
+  }
+}
+
+function convertContractType(contractType: string): ContractType {
+  switch (contractType) {
+    case 'FullTime':
+      return ContractType.FullTime;
+    case 'PartTime':
+      return ContractType.PartTime;
+    case 'Contract':
+      return ContractType.Contract;
+    case 'Freelance':
+      return ContractType.Freelance;
+    case 'Internship':
+      return ContractType.Internship;
+    case 'Temporary':
+      return ContractType.Temporary;
+    default:
+      return ContractType.FullTime;
+  }
+}
+
+export function convertJobOffer(job: any): JobOffer {
+  return {
+    ...job,
+    workMode: convertWorkMode(job.workMode),
+    contractType: convertContractType(job.contractType),
+    status: convertJobOfferStatus(job.status),
+  };
+}
 
 export const workModeLabels: Record<WorkMode, string> = {
   [WorkMode.OnSite]: 'Sur site',

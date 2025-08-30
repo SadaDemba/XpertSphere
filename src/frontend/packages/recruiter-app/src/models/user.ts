@@ -66,7 +66,7 @@ export interface UserDto {
   // Candidate info (for external users)
   linkedInProfile?: string;
   skills?: string;
-  yearsOfExperience?: number;
+  experience?: number;
   trainings?: Training[];
   experiences?: Experience[];
   desiredSalary?: number;

@@ -252,9 +252,9 @@ public class UsersController : ControllerBase
     /// <param name="organizationId">Organization ID</param>
     /// <returns>List of users in the organization</returns>
     [HttpGet("organization/{organizationId:guid}")]
-    [ProducesResponseType(typeof(List<UserSearchResultDto>), 200)]
+    [ProducesResponseType(typeof(IEnumerable<UserSearchResultDto>), 200)]
     [ProducesResponseType(404)]
-    public async Task<ActionResult<List<UserSearchResultDto>>> GetUsersByOrganization(Guid organizationId)
+    public async Task<ActionResult<IEnumerable<UserSearchResultDto>>> GetUsersByOrganization(Guid organizationId)
     {
         var result = await _userService.GetByOrganizationAsync(organizationId);
         return this.ToActionResult(result);
