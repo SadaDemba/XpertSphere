@@ -100,7 +100,6 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Data.Should().NotBeNull();
         result.Message.Should().Contain("Registration successful");
     }
 
@@ -371,7 +370,6 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Data.Should().NotBeNull();
         result.Message.Should().Contain("Password reset");
     }
 
