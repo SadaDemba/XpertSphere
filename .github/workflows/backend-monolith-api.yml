@@ -5,6 +5,7 @@ on:
     branches: [main, develop]
     paths:
       - "src/backend/XpertSphere.MonolithApi/**"
+      - "src/backend/XpertSphere.MonolithApi.Test/**"
       - "XpertSphere.sln"
       - "docker/backend/monolith-api/**"
       - ".github/workflows/backend-monolith-api.yml"
@@ -12,6 +13,7 @@ on:
     branches: [main, develop]
     paths:
       - "src/backend/XpertSphere.MonolithApi/**"
+      - "src/backend/XpertSphere.MonolithApi.Test/**"
       - "XpertSphere.sln"
       - "docker/backend/monolith-api/**"
       - ".github/workflows/backend-monolith-api.yml"
