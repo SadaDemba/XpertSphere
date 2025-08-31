@@ -12,10 +12,23 @@ public static class KeyVaultExtensions
             "Jwt:Key",
             "Admin:Email",
             "Admin:Password",
-            "ConnectionStrings:DefaultConnection",
             "ApplicationInsights:ConnectionString",
             "ConnectionStrings:BlobStorage"
         };
+        
+        // Add environment-specific connection string
+        if (environment.Equals("Production", StringComparison.CurrentCultureIgnoreCase))
+        {
+            mappings.Add("ConnectionStrings:DefaultConnection:Production");
+        }
+        else if (environment.Equals("Staging", StringComparison.CurrentCultureIgnoreCase))
+        {
+            mappings.Add("ConnectionStrings:DefaultConnection:Staging");
+        }
+        else
+        {
+            mappings.Add("ConnectionStrings:DefaultConnection");
+        }
         
         // Add Entra ID secrets with environment prefix for Staging/Production only
         if (environment != "Development")

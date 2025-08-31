@@ -74,20 +74,46 @@ public static class DatabaseExtensions
 
     private static string GetConnectionString(IConfiguration configuration,  IWebHostEnvironment environment)
     {
-        // Try to get from configuration first (includes Key Vault for staging/prod)
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        string? connectionString;
         
-        // Fallback to environment variable if not found
-        if (string.IsNullOrEmpty(connectionString))
+        // For Production, use the Production-specific connection string
+        if (environment.IsProduction())
         {
-            connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+            connectionString = configuration["ConnectionStrings:DefaultConnection:Production"];
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                // Fallback to environment variable
+                connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection__Production");
+            }
+        }
+        // For Staging, use the Staging-specific connection string
+        else if (environment.IsStaging())
+        {
+            connectionString = configuration["ConnectionStrings:DefaultConnection:Staging"];
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                // Fallback to environment variable
+                connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection__Staging");
+            }
+        }
+        // For Development or other environments
+        else
+        {
+            connectionString = configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                // Fallback to environment variable
+                connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+            }
         }
         
         if (string.IsNullOrEmpty(connectionString)) 
         {
-            throw new InvalidOperationException("No connection string found. Please configure ConnectionStrings:DefaultConnection");
+            var envName = environment.EnvironmentName;
+            throw new InvalidOperationException($"No connection string found for {envName} environment. Please configure the appropriate connection string in Key Vault or appsettings.");
         }
 
+        Console.WriteLine($"INFO - Using connection string for {environment.EnvironmentName} environment");
         return connectionString;
     }
 
