@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using XpertSphere.MonolithApi.Models.Base;
-using XpertSphere.MonolithApi.Enums;
+using XpertSphere.MonolithApi.Models;
 
 namespace XpertSphere.MonolithApi.DTOs.User;
 
@@ -22,9 +21,6 @@ public class CreateUserDto
     [MaxLength(20)]
     public string? PhoneNumber { get; set; }
 
-    [Required]
-    public UserType UserType { get; set; }
-
     // For internal users
     public Guid? OrganizationId { get; set; }
 
@@ -42,11 +38,39 @@ public class CreateUserDto
 
     public string? Skills { get; set; }
 
-    public int? Experience { get; set; }
+    public int? YearsOfExperience { get; set; }
+    
+    public List<Training>? Trainings { get; set; } = [];
+    
+    public List<Experience>? Experiences { get; set; } = [];
 
     public decimal? DesiredSalary { get; set; }
 
     public DateTime? Availability { get; set; }
+
+    [MaxLength(500)]
+    public string? CvPath { get; set; }
+
+    // Communication preferences
+    public bool EmailNotificationsEnabled { get; set; } = true;
+    public bool SmsNotificationsEnabled { get; set; } = false;
+    [MaxLength(20)]
+    public string? PreferredLanguage { get; set; } = "fr";
+    [MaxLength(50)]
+    public string? TimeZone { get; set; } = "UTC";
+
+    // Consent
+    public DateTime? ConsentGivenAt { get; set; }
+
+    // Authentication & Security
+    [MaxLength(255)]
+    public string? ExternalId { get; set; }
+    
+    [Required]
+    public string? Password { get; set; }
+    
+    public bool EmailConfirmed { get; set; } = false;
+    public bool IsActive { get; set; } = true;
 
     // Address
     public AddressDto? Address { get; set; }
@@ -57,7 +81,7 @@ public class AddressDto
     [MaxLength(10)]
     public string? StreetNumber { get; set; }
 
-    [MaxLength(255)]
+    [MaxLength(200)]
     public string? StreetName { get; set; }
 
     [MaxLength(100)]
@@ -72,6 +96,6 @@ public class AddressDto
     [MaxLength(100)]
     public string? Country { get; set; } = "France";
 
-    [MaxLength(255)]
+    [MaxLength(100)]
     public string? AddressLine2 { get; set; }
 }

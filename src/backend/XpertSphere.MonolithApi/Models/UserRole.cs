@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using XpertSphere.MonolithApi.Models.Base;
 
 namespace XpertSphere.MonolithApi.Models;
@@ -23,11 +24,14 @@ public class UserRole : AuditableEntity
 
     // Navigation properties
     [ForeignKey("UserId")]
+    [JsonIgnore]
     public virtual User User { get; set; } = null!;
 
     [ForeignKey("RoleId")]
+    [JsonIgnore]
     public virtual Role Role { get; set; } = null!;
 
     [ForeignKey("AssignedBy")]
+    [JsonIgnore]
     public virtual User? AssignedByUser { get; set; }
 }

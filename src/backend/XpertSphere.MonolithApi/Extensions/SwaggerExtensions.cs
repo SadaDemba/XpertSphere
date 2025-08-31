@@ -1,7 +1,7 @@
-﻿using Microsoft.OpenApi.Any;
+﻿using System.Reflection;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Reflection;
 
 namespace XpertSphere.MonolithApi.Extensions;
 
@@ -20,8 +20,9 @@ public static class SwaggerExtensions
                 Description = "Applicant Tracking System (ATS) for Expertime",
                 Contact = new OpenApiContact
                 {
-                    Name = "Sadad Demba THIAM",
-                    Email = "sthiam@expertime.com"
+                    Name = "Sada Demba THIAM",
+                    Email = "sthiam@expertime.com",
+                    Url = new Uri("https://www.sada-demba-thiam.me")
                 }
             });
 
@@ -31,9 +32,11 @@ public static class SwaggerExtensions
             // JWT Authentication configuration
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Description = @"JWT Authorization header using the Bearer scheme. 
-                              Enter 'Bearer' [space] and then your token in the text input below.
-                              Example: 'Bearer 12345abcdef'",
+                Description = """
+                              JWT Authorization header using the Bearer scheme. 
+                                                            Enter 'Bearer' [space] and then your token in the text input below.
+                                                            Example: 'Bearer 12345abcdef'
+                              """,
                 Name = "Authorization",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.ApiKey,

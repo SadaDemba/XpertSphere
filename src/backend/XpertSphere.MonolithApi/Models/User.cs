@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using XpertSphere.MonolithApi.Models.Base;
-using XpertSphere.MonolithApi.Enums;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
+using XpertSphere.MonolithApi.Models.Base;
+using XpertSphere.MonolithApi.Utils;
 
 namespace XpertSphere.MonolithApi.Models;
 
@@ -20,12 +21,7 @@ public class User : IdentityUser<Guid>, IAuditableEntity
     public Guid? CreatedBy { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public Guid? UpdatedBy { get; set; }
-
     public Address Address { get; set; } = new();
-
-    [Required]
-    public UserType UserType { get; set; }
-
     public Guid? OrganizationId { get; set; }
 
     [MaxLength(50)]
@@ -43,15 +39,18 @@ public class User : IdentityUser<Guid>, IAuditableEntity
     public string? CvPath { get; set; }
 
     public string? Skills { get; set; }
-
-    public int? Experience { get; set; }
+    
+    public int? YearsOfExperience { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal? DesiredSalary { get; set; }
 
     public DateTime? Availability { get; set; }
 
-    // Authentication & Security - NEW
+    // Authentication & Security
+    [MaxLength(255)]
+    public string? ExternalId { get; set; }
+
     [MaxLength(500)]
     public string? RefreshToken { get; set; }
 
@@ -67,34 +66,34 @@ public class User : IdentityUser<Guid>, IAuditableEntity
 
     public DateTime? EmailConfirmationTokenExpiry { get; set; }
 
-    // Account Status & Security - NEW
+    // Account Status & Security
     public DateTime? LastPasswordChangeAt { get; set; }
 
-    public int FailedLoginAttempts { get; set; } = 0;
+    public int FailedLoginAttempts { get; set; }
 
     public DateTime? AccountLockedUntil { get; set; }
 
-    // GDPR & Privacy - NEW
+    // GDPR & Privacy
     public DateTime? ConsentGivenAt { get; set; }
 
     public DateTime? ConsentWithdrawnAt { get; set; }
 
     public DateTime? DataRetentionUntil { get; set; }
 
-    public bool IsAnonymized { get; set; } = false;
+    public bool IsAnonymized { get; set; }
 
-    // Profile completeness tracking - NEW
-    public int ProfileCompletionPercentage { get; set; } = 0;
+    // Profile completeness tracking
+    public int ProfileCompletionPercentage { get; set; }
 
     public DateTime? ProfileLastUpdatedAt { get; set; }
 
-    // Communication preferences - NEW
+    // Communication preferences
     public bool EmailNotificationsEnabled { get; set; } = true;
 
-    public bool SmsNotificationsEnabled { get; set; } = false;
+    public bool SmsNotificationsEnabled { get; set; }
 
     [MaxLength(20)]
-    public string? PreferredLanguage { get; set; } = "en";
+    public string? PreferredLanguage { get; set; } = "fr";
 
     [MaxLength(50)]
     public string? TimeZone { get; set; } = "UTC";
@@ -105,15 +104,25 @@ public class User : IdentityUser<Guid>, IAuditableEntity
 
     // Navigation properties
     [ForeignKey("CreatedBy")]
+    [JsonIgnore]
     public virtual User? CreatedByUser { get; set; }
 
     [ForeignKey("UpdatedBy")]
+    [JsonIgnore]
     public virtual User? UpdatedByUser { get; set; }
 
     [ForeignKey("OrganizationId")]
+    [JsonIgnore]
     public virtual Organization? Organization { get; set; }
 
+    [JsonIgnore]
     public virtual ICollection<UserRole> UserRoles { get; set; } = [];
+    
+    [JsonIgnore]
+    public virtual ICollection<Training> Trainings { get; set; } = [];
+
+    [JsonIgnore]
+    public virtual ICollection<Experience> Experiences { get; set; } = [];
 
     // Computed properties
     [NotMapped]
@@ -127,6 +136,18 @@ public class User : IdentityUser<Guid>, IAuditableEntity
 
     [NotMapped]
     public bool HasValidConsent => ConsentGivenAt.HasValue && !ConsentWithdrawnAt.HasValue;
+    
+    [NotMapped]
+    public bool IsCandidate => !OrganizationId.HasValue;
+
+    [NotMapped]
+    public bool IsOrganizationalUser => OrganizationId.HasValue;
+
+    [NotMapped]
+    public bool IsXpertSphereUser => Organization?.Name == Constants.XPERTSPHERE;
+
+    [NotMapped]
+    public bool IsClientUser => OrganizationId.HasValue && Organization?.Name != Constants.XPERTSPHERE;
 
     // Methods for token management
     public void SetRefreshToken(string token, TimeSpan expiry)
@@ -158,7 +179,7 @@ public class User : IdentityUser<Guid>, IAuditableEntity
         FailedLoginAttempts++;
         if (FailedLoginAttempts >= 5)
         {
-            AccountLockedUntil = DateTime.UtcNow.AddMinutes(10);
+            AccountLockedUntil = DateTime.UtcNow.AddMinutes(5);
         }
     }
 
@@ -173,21 +194,25 @@ public class User : IdentityUser<Guid>, IAuditableEntity
         LastLoginAt = DateTime.UtcNow;
         ResetFailedLogins();
     }
-
+    
     public void CalculateProfileCompletion()
     {
-        var totalFields = 10; // Adjust based on required fields
+        
+        if (!IsCandidate) return;
+        const int totalFields = 12;
         var completedFields = 0;
 
         if (!string.IsNullOrEmpty(FirstName)) completedFields++;
         if (!string.IsNullOrEmpty(LastName)) completedFields++;
         if (!string.IsNullOrEmpty(Email)) completedFields++;
         if (!string.IsNullOrEmpty(PhoneNumber)) completedFields++;
-        if (Address != null && !string.IsNullOrEmpty(Address.Street)) completedFields++;
+        if (!string.IsNullOrEmpty(Address.StreetName)) completedFields++;
         if (!string.IsNullOrEmpty(Skills)) completedFields++;
-        if (Experience.HasValue) completedFields++;
+        if (YearsOfExperience.HasValue) completedFields++;
         if (!string.IsNullOrEmpty(CvPath)) completedFields++;
         if (!string.IsNullOrEmpty(LinkedInProfile)) completedFields++;
+        if (Experiences is { Count: > 0 }) completedFields++;
+        if (Trainings.Count > 0) completedFields++;
         if (Availability.HasValue) completedFields++;
 
         ProfileCompletionPercentage = (completedFields * 100) / totalFields;

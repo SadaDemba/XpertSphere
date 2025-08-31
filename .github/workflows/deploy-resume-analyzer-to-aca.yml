@@ -43,7 +43,7 @@ jobs:
           # Variables for staging
           APP_NAME="ca-resume-analyzer-staging"
           ENVIRONMENT_NAME="aca-env-xpertsphere-dev"
-          IDENTITY_ID="/subscriptions/8e2acc27-f89c-471d-bf4c-0b4951e43421/resourcegroups/rg-xpertsphere-dev/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-xpertsphere-resume-analyzer"
+
 
           # Use the SHA of workflow trigger
           if [ "${{ github.event_name }}" == "workflow_run" ]; then
@@ -63,7 +63,7 @@ jobs:
             az containerapp identity assign \
               --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --user-assigned "$IDENTITY_ID"
+              --user-assigned ${{ secrets.IDENTITY_ID }}
 
             echo "Updating environment variables..."
             az containerapp update \
@@ -80,7 +80,7 @@ jobs:
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --environment $ENVIRONMENT_NAME \
               --image acrxpertspheredev.azurecr.io/resume-analyzer-app:$IMAGE_TAG \
-              --user-assigned "$IDENTITY_ID" \
+              --user-assigned ${{ secrets.IDENTITY_ID }} \
               --registry-server acrxpertspheredev.azurecr.io \
               --registry-username ${{ secrets.ACR_USERNAME }} \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
@@ -92,7 +92,7 @@ jobs:
                 AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }} \
               --cpu 0.5 \
               --memory 1.0Gi \
-              --min-replicas 1 \
+              --min-replicas 0 \
               --max-replicas 2
           fi
 
@@ -140,7 +140,7 @@ jobs:
           # Variables for production
           APP_NAME="ca-resume-analyzer-prod"
           ENVIRONMENT_NAME="aca-env-xpertsphere-prod"
-          IDENTITY_ID="/subscriptions/8e2acc27-f89c-471d-bf4c-0b4951e43421/resourcegroups/rg-xpertsphere-dev/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-xpertsphere-resume-analyzer"
+
 
           # Use the SHA of workflow trigger
           if [ "${{ github.event_name }}" == "workflow_run" ]; then
@@ -160,7 +160,7 @@ jobs:
             az containerapp identity assign \
               --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --user-assigned "$IDENTITY_ID"
+              --user-assigned ${{ secrets.IDENTITY_ID }}
 
             echo "Updating environment variables..."
             az containerapp update \
@@ -177,7 +177,7 @@ jobs:
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --environment $ENVIRONMENT_NAME \
               --image acrxpertspheredev.azurecr.io/resume-analyzer-app:$IMAGE_TAG \
-              --user-assigned "$IDENTITY_ID" \
+              --user-assigned ${{ secrets.IDENTITY_ID }} \
               --registry-server acrxpertspheredev.azurecr.io \
               --registry-username ${{ secrets.ACR_USERNAME }} \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
@@ -189,7 +189,7 @@ jobs:
                 AZURE_CLIENT_ID=${{ vars.AZURE_CLIENT_ID }} \
               --cpu 0.5 \
               --memory 1.0Gi \
-              --min-replicas 1 \
+              --min-replicas 0 \
               --max-replicas 3
           fi
 

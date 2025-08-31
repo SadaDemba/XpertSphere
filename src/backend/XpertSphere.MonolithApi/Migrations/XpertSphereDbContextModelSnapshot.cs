@@ -153,6 +153,349 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Application", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AdditionalNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("AppliedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("AssignedManagerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AssignedTechnicalEvaluatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CandidateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CoverLetter")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CurrentStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("JobOfferId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastUpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppliedAt")
+                        .HasDatabaseName("IX_Applications_AppliedAt");
+
+                    b.HasIndex("AssignedManagerId");
+
+                    b.HasIndex("AssignedTechnicalEvaluatorId");
+
+                    b.HasIndex("CandidateId")
+                        .HasDatabaseName("IX_Applications_CandidateId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("CurrentStatus")
+                        .HasDatabaseName("IX_Applications_CurrentStatus");
+
+                    b.HasIndex("JobOfferId")
+                        .HasDatabaseName("IX_Applications_JobOfferId");
+
+                    b.HasIndex("LastUpdatedAt")
+                        .HasDatabaseName("IX_Applications_LastUpdatedAt");
+
+                    b.HasIndex("Rating")
+                        .HasDatabaseName("IX_Applications_Rating");
+
+                    b.HasIndex("UpdatedBy");
+
+                    b.HasIndex("CandidateId", "CurrentStatus")
+                        .HasDatabaseName("IX_Applications_CandidateId_Status");
+
+                    b.HasIndex("JobOfferId", "CandidateId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Applications_JobOfferId_CandidateId");
+
+                    b.HasIndex("JobOfferId", "CurrentStatus")
+                        .HasDatabaseName("IX_Applications_JobOfferId_Status");
+
+                    b.ToTable("Applications", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Application_AppliedAt", "[AppliedAt] <= GETUTCDATE()");
+
+                            t.HasCheckConstraint("CK_Application_LastUpdatedAt", "[LastUpdatedAt] IS NULL OR [LastUpdatedAt] >= [AppliedAt]");
+
+                            t.HasCheckConstraint("CK_Application_Rating", "[Rating] IS NULL OR ([Rating] >= 1 AND [Rating] <= 5)");
+                        });
+                });
+
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.ApplicationStatusHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<Guid>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("IX_ApplicationStatusHistories_ApplicationId");
+
+                    b.HasIndex("Rating")
+                        .HasDatabaseName("IX_ApplicationStatusHistories_Rating");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_ApplicationStatusHistories_Status");
+
+                    b.HasIndex("UpdatedAt")
+                        .HasDatabaseName("IX_ApplicationStatusHistories_UpdatedAt");
+
+                    b.HasIndex("UpdatedByUserId")
+                        .HasDatabaseName("IX_ApplicationStatusHistories_UpdatedByUserId");
+
+                    b.HasIndex("ApplicationId", "Status")
+                        .HasDatabaseName("IX_ApplicationStatusHistories_ApplicationId_Status");
+
+                    b.HasIndex("ApplicationId", "UpdatedAt")
+                        .HasDatabaseName("IX_ApplicationStatusHistories_ApplicationId_UpdatedAt");
+
+                    b.ToTable("ApplicationStatusHistories", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ApplicationStatusHistory_Rating", "[Rating] IS NULL OR ([Rating] >= 1 AND [Rating] <= 5)");
+
+                            t.HasCheckConstraint("CK_ApplicationStatusHistory_UpdatedAt", "[UpdatedAt] <= DATEADD(minute, 5, GETUTCDATE())");
+                        });
+                });
+
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Experience", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Company")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Date")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("UpdatedBy");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Experiences");
+                });
+
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.JobOffer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContractType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Requirements")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SalaryCurrency")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<decimal?>("SalaryMax")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SalaryMin")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WorkMode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractType")
+                        .HasDatabaseName("IX_JobOffers_ContractType");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("IX_JobOffers_CreatedByUserId");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("IX_JobOffers_ExpiresAt");
+
+                    b.HasIndex("Location")
+                        .HasDatabaseName("IX_JobOffers_Location");
+
+                    b.HasIndex("OrganizationId")
+                        .HasDatabaseName("IX_JobOffers_OrganizationId");
+
+                    b.HasIndex("PublishedAt")
+                        .HasDatabaseName("IX_JobOffers_PublishedAt");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_JobOffers_Status");
+
+                    b.HasIndex("Title")
+                        .HasDatabaseName("IX_JobOffers_Title");
+
+                    b.HasIndex("UpdatedBy");
+
+                    b.HasIndex("WorkMode")
+                        .HasDatabaseName("IX_JobOffers_WorkMode");
+
+                    b.HasIndex("OrganizationId", "Status")
+                        .HasDatabaseName("IX_JobOffers_OrganizationId_Status");
+
+                    b.HasIndex("Status", "PublishedAt")
+                        .HasDatabaseName("IX_JobOffers_Status_PublishedAt");
+
+                    b.ToTable("JobOffers", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_JobOffer_ExpiresAt", "[ExpiresAt] IS NULL OR [ExpiresAt] > [CreatedAt]");
+
+                            t.HasCheckConstraint("CK_JobOffer_SalaryRange", "[SalaryMin] IS NULL OR [SalaryMax] IS NULL OR [SalaryMin] <= [SalaryMax]");
+                        });
+                });
+
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.Organization", b =>
                 {
                     b.Property<Guid>("Id")
@@ -396,6 +739,57 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.ToTable("RolePermissions", (string)null);
                 });
 
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Training", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("Period")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("School")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("UpdatedBy");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Trainings");
+                });
+
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -464,8 +858,9 @@ namespace XpertSphere.MonolithApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("Experience")
-                        .HasColumnType("int");
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("FailedLoginAttempts")
                         .HasColumnType("int");
@@ -575,10 +970,8 @@ namespace XpertSphere.MonolithApi.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("UserType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int?>("YearsOfExperience")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -606,9 +999,6 @@ namespace XpertSphere.MonolithApi.Migrations
 
                     b.HasIndex("UpdatedBy");
 
-                    b.HasIndex("UserType")
-                        .HasDatabaseName("IX_Users_UserType");
-
                     b.HasIndex("OrganizationId", "EmployeeId")
                         .IsUnique()
                         .HasDatabaseName("IX_Users_OrganizationId_EmployeeId")
@@ -618,9 +1008,7 @@ namespace XpertSphere.MonolithApi.Migrations
                         {
                             t.HasCheckConstraint("CK_User_DesiredSalary", "[DesiredSalary] IS NULL OR [DesiredSalary] > 0");
 
-                            t.HasCheckConstraint("CK_User_Experience", "[Experience] IS NULL OR [Experience] >= 0");
-
-                            t.HasCheckConstraint("CK_User_Internal_OrganizationRequired", "([UserType] = 'RECRUITER' AND [OrganizationId] IS NOT NULL) OR([UserType] = 'MANAGER' AND [OrganizationId] IS NOT NULL) OR([UserType] = 'COLLABORATOR' AND [OrganizationId] IS NOT NULL)OR ([UserType] = 'CANDIDATE' AND [OrganizationId] IS NULL)");
+                            t.HasCheckConstraint("CK_User_YearsOfExperience", "[YearsOfExperience] IS NULL OR [YearsOfExperience] >= 0");
                         });
                 });
 
@@ -741,6 +1129,128 @@ namespace XpertSphere.MonolithApi.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Application", b =>
+                {
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "AssignedManager")
+                        .WithMany()
+                        .HasForeignKey("AssignedManagerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "AssignedTechnicalEvaluator")
+                        .WithMany()
+                        .HasForeignKey("AssignedTechnicalEvaluatorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "Candidate")
+                        .WithMany()
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.JobOffer", "JobOffer")
+                        .WithMany()
+                        .HasForeignKey("JobOfferId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AssignedManager");
+
+                    b.Navigation("AssignedTechnicalEvaluator");
+
+                    b.Navigation("Candidate");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("JobOffer");
+
+                    b.Navigation("UpdatedByUser");
+                });
+
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.ApplicationStatusHistory", b =>
+                {
+                    b.HasOne("XpertSphere.MonolithApi.Models.Application", "Application")
+                        .WithMany("StatusHistory")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+
+                    b.Navigation("UpdatedByUser");
+                });
+
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Experience", b =>
+                {
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy");
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy");
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "User")
+                        .WithMany("Experiences")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("UpdatedByUser");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.JobOffer", b =>
+                {
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUserNavigation")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("CreatedByUserNavigation");
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.Organization", b =>
@@ -880,6 +1390,29 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.Navigation("UpdatedByUser");
                 });
 
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Training", b =>
+                {
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy");
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy");
+
+                    b.HasOne("XpertSphere.MonolithApi.Models.User", "User")
+                        .WithMany("Trainings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("UpdatedByUser");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.User", b =>
                 {
                     b.HasOne("XpertSphere.MonolithApi.Models.User", "CreatedByUser")
@@ -997,6 +1530,11 @@ namespace XpertSphere.MonolithApi.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.Application", b =>
+                {
+                    b.Navigation("StatusHistory");
+                });
+
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.Organization", b =>
                 {
                     b.Navigation("Users");
@@ -1016,6 +1554,10 @@ namespace XpertSphere.MonolithApi.Migrations
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.User", b =>
                 {
+                    b.Navigation("Experiences");
+
+                    b.Navigation("Trainings");
+
                     b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618

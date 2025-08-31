@@ -1,15 +1,17 @@
+using System.Text.Json.Serialization;
 using XpertSphere.MonolithApi.Enums;
+using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Models.Base;
 
 namespace XpertSphere.MonolithApi.DTOs.User;
 
-public class UserDto
+public record UserDto
 {
     public Guid Id { get; set; }
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
     public required string Email { get; set; }
     public string? PhoneNumber { get; set; }
-    public UserType UserType { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
@@ -26,11 +28,15 @@ public class UserDto
     public string? LinkedInProfile { get; set; }
     public string? Skills { get; set; }
     public int? Experience { get; set; }
+    public List<Training>? Trainings { get; set; } = [];
+    public List<Experience>? Experiences { get; set; } = [];
     public decimal? DesiredSalary { get; set; }
     public DateTime? Availability { get; set; }
     public string FullName { get; init; } = string.Empty;
     public bool EmailConfirmed { get; init; }
     public int ProfileCompletionPercentage { get; init; }
+    
+    public string? CvPath { get; set; }
 
     // Address
     public AddressDto? Address { get; set; }

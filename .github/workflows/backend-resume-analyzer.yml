@@ -2,13 +2,13 @@ name: Backend Resume Analyzer CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
     paths:
       - "src/backend/XpertSphere.ResumeAnalyzer/**"
       - "docker/backend/resume-analyzer/**"
       - ".github/workflows/backend-resume-analyzer.yml"
   pull_request:
-    branches: [main, develop]
+    branches: [ main, develop ]
     paths:
       - "src/backend/XpertSphere.ResumeAnalyzer/**"
       - "docker/backend/resume-analyzer/**"
@@ -75,6 +75,22 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
+      - name: Generate version
+        id: version
+        run: |
+          # Version format: YYYY.MM.DD-{environment}-{short-sha}
+          DATE=$(date +%Y.%m.%d)
+          SHORT_SHA=${GITHUB_SHA:0:8}
+          
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            VERSION="${DATE}-prod-${SHORT_SHA}"
+          else
+            VERSION="${DATE}-staging-${SHORT_SHA}"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
+
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
@@ -83,6 +99,7 @@ jobs:
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           platforms: linux/amd64
 

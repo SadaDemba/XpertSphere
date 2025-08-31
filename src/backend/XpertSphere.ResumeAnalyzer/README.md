@@ -38,7 +38,7 @@ pytest -v
 Start the development server:
 
 ```bash
-uvicorn main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8000
 ```
 
 The API will be available at:

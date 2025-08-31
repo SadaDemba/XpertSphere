@@ -2,10 +2,10 @@ name: Deploy Recruiter app to Azure Container Apps
 
 on:
   workflow_run:
-    workflows: ["Recruiter App CI"]
+    workflows: [ "Recruiter App CI" ]
     types:
       - completed
-    branches: [main, develop]
+    branches: [ main, develop ]
   workflow_dispatch:
     inputs:
       environment:
@@ -54,8 +54,7 @@ jobs:
             az containerapp update \
               --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --image acrxpertspheredev.azurecr.io/recruiter-app:$IMAGE_TAG \
-              --set-env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL_STAGING }}
+              --image acrxpertspheredev.azurecr.io/recruiter-app:$IMAGE_TAG
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
@@ -66,9 +65,8 @@ jobs:
               --registry-server acrxpertspheredev.azurecr.io \
               --registry-username ${{ secrets.ACR_USERNAME }} \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
-              --target-port 3000 \
+              --target-port 3001 \
               --ingress external \
-              --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL_STAGING }} \
               --cpu 0.25 \
               --memory 0.5Gi \
               --min-replicas 0 \
@@ -111,8 +109,7 @@ jobs:
             az containerapp update \
               --name $APP_NAME \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --image acrxpertspheredev.azurecr.io/recruiter-app:$IMAGE_TAG \
-              --set-env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+              --image acrxpertspheredev.azurecr.io/recruiter-app:$IMAGE_TAG
           else
             echo "Container app doesn't exist, creating..."
             az containerapp create \
@@ -123,9 +120,8 @@ jobs:
               --registry-server acrxpertspheredev.azurecr.io \
               --registry-username ${{ secrets.ACR_USERNAME }} \
               --registry-password ${{ secrets.ACR_PASSWORD }} \
-              --target-port 3000 \
+              --target-port 3001 \
               --ingress external \
-              --env-vars VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
               --cpu 0.5 \
               --memory 1Gi \
               --min-replicas 0 \

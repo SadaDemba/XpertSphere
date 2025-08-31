@@ -9,6 +9,30 @@ Le frontend XpertSphere utilise une architecture monorepo avec npm workspaces, r
 - **Candidate App** : Interface destinée aux candidats pour consulter les offres et postuler
 - **Recruiter App** : Interface de gestion pour les recruteurs et équipes RH
 
+### Communication avec les APIs
+
+Les applications frontend communiquent avec les services backend exclusivement via **Azure API Management (APIM)** :
+
+- **Sécurité centralisée** : Authentification, autorisation et clés d'API gérées par APIM
+- **Monitoring unifié** : Logs, métriques et alertes centralisés
+- **Gestion des versions** : Versioning des APIs et dépréciation contrôlée
+- **Cache et performance** : Mise en cache des réponses et throttling
+- **Transformation des données** : Mapping et validation des requêtes/réponses
+
+#### Configuration par environnement
+
+| Environnement | URL APIM | Suffix |
+|---------------|----------|--------|
+| **Development** | `localhost:7001` | N/A |
+| **Staging** | `https://apim-xpertsphere-dev.azure-api.net` | `/staging` |
+| **Production** | `https://apim-xpertsphere-dev.azure-api.net` | `/prod` |
+
+**APIs exposées via APIM** :
+- `/monolith/api` - API principale (auth, jobs, applications, users)
+- `/resume` - Service d'analyse de CV (candidate-app uniquement)
+
+> **Sécurité** : La clé de subscription APIM (`Ocp-Apim-Subscription-Key`) est automatiquement injectée par le `BaseClient` pour les environnements staging et production. Elle est stockée de manière sécurisée dans GitHub Secrets.
+
 ### Stack technique
 
 - **Framework** : Vue.js 3.4+ avec Composition API
@@ -109,11 +133,13 @@ npm run preview:candidate    # Aperçu de l'app candidat buildée
 npm run preview:recruiter    # Aperçu de l'app recruteur buildée
 ```
 
+> **Note** : En mode développement, `vue-axe` analyse automatiquement l'accessibilité et affiche les violations RGAA/WCAG dans la console du navigateur.
+
 ### Scripts de qualité
 
 ```bash
 # Linting
-npm run lint                # Lint sur tous les workspaces
+npm run lint                # Lint sur tous les workspaces (inclut accessibilité)
 npm run lint:fix            # Lint avec correction automatique
 
 # Formatage
@@ -125,6 +151,8 @@ npm run lint-and-format     # Lint + format en une commande
 npm run test               # Lance les tests sur tous les workspaces
 npm run test:coverage      # Tests avec couverture de code
 ```
+
+> **Important** : Le script `lint` inclut désormais la validation automatique de l'accessibilité RGAA/WCAG. Les violations empêchent le succès du lint.
 
 ### Scripts utilitaires
 
@@ -148,6 +176,19 @@ Configuration centralisée dans `eslint.config.mjs` avec :
 - Intégration Prettier
 - Variables d'environnement conditionnelles
 - Règles personnalisées XpertSphere
+- **Règles d'accessibilité RGAA/WCAG 2.1 AA** avec `eslint-plugin-vuejs-accessibility`
+
+#### Règles d'accessibilité
+
+Le projet applique les standards RGAA avec validation automatique via ESLint :
+
+- Labels obligatoires sur tous les contrôles de formulaire
+- Textes alternatifs requis pour les images
+- Structure sémantique des titres
+- Support clavier complet
+- Contrastes de couleurs conformes
+- Attributs ARIA appropriés
+- Gestion du focus visible
 
 ### Prettier
 
@@ -297,7 +338,7 @@ cat .husky/pre-commit
 
 - Installation des dépendances
 - Vérification du formatage
-- Linting complet
+- Linting complet (incluant accessibilité RGAA)
 - Tests unitaires
 - Build check
 
@@ -338,5 +379,7 @@ docs(frontend): update setup instructions
 
 1. Vérifier que tous les tests passent
 2. S'assurer que le formatage est correct
-3. Documenter les nouvelles fonctionnalités
-4. Tester les deux applications en local
+3. **Valider l'accessibilité** avec `npm run lint` (aucune violation RGAA)
+4. Tester manuellement avec `vue-axe` en développement
+5. Documenter les nouvelles fonctionnalités
+6. Tester les deux applications en local

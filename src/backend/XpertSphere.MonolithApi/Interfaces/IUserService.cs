@@ -1,80 +1,121 @@
 using XpertSphere.MonolithApi.DTOs.User;
-using XpertSphere.MonolithApi.Models;
-using XpertSphere.MonolithApi.Utils.Pagination;
+using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Interfaces;
 
+/// <summary>
+/// Service interface for user management operations
+/// </summary>
 public interface IUserService
 {
     /// <summary>
-    /// 
+    /// Get user by ID
     /// </summary>
-    /// <param name="createUserDto"></param>
-    /// <returns></returns>
-    Task<User> Post(CreateUserDto createUserDto);
+    Task<ServiceResult<UserDto>> GetByIdAsync(Guid id);
 
     /// <summary>
-    /// 
+    /// Get detailed user profile by ID
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    Task<User?> Get(Guid id);
+    Task<ServiceResult<UserProfileDto>> GetProfileAsync(Guid id);
 
     /// <summary>
-    /// 
+    /// Get all users without pagination (for organization filtering)
     /// </summary>
-    /// <param name="userFilters"></param>
-    /// <returns></returns>
-    Task<ResponseResource<User>> GetAll(UserFilterDto userFilters);
+    Task<ServiceResult<List<UserSearchResultDto>>> GetAllAsync();
 
     /// <summary>
-    /// 
+    /// Search users with filters and pagination
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="user"></param>
-    /// <returns></returns>
-    Task<User?> Put(Guid id, UpdateUserDto updateUserDto);
+    Task<PaginatedResult<UserSearchResultDto>> SearchAsync(UserFilterDto filter);
 
     /// <summary>
-    /// 
+    /// Create a new user
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    Task<bool> Delete(Guid id);
+    Task<ServiceResult<UserDto>> CreateAsync(CreateUserDto dto);
 
     /// <summary>
-    /// 
+    /// Update an existing user
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    Task<bool> HardDelete(Guid id);
+    Task<ServiceResult<UserDto>> UpdateAsync(Guid id, UpdateUserDto dto);
 
     /// <summary>
-    /// 
+    /// Soft delete a user (set IsActive = false)
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    Task<bool> Exists(Guid id);
+    Task<ServiceResult> DeleteAsync(Guid id);
 
     /// <summary>
-    /// 
+    /// Hard delete a user (remove from database)
     /// </summary>
-    /// <param name="email"></param>
-    /// <param name="excludeUserId"></param>
-    /// <returns></returns>
-    Task<bool> EmailExists(string email, Guid? excludeUserId = null);
+    Task<ServiceResult> HardDeleteAsync(Guid id);
 
     /// <summary>
-    /// s
+    /// Upload CV for a user
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    Task<User?> UpdateLastLogin(Guid id);
+    Task<ServiceResult<UploadCvResponseDto>> UploadCvAsync(Guid userId, UploadCvDto dto);
 
     /// <summary>
-    /// 
+    /// Get users by organization
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    Task<bool> ActivateUser(Guid id);
+    Task<ServiceResult<IEnumerable<UserSearchResultDto>>> GetByOrganizationAsync(Guid organizationId);
+
+    /// <summary>
+    /// Activate a user account
+    /// </summary>
+    Task<ServiceResult> ActivateAsync(Guid id);
+
+    /// <summary>
+    /// Deactivate a user account
+    /// </summary>
+    Task<ServiceResult> DeactivateAsync(Guid id);
+
+    /// <summary>
+    /// Check if user exists
+    /// </summary>
+    Task<ServiceResult<bool>> ExistsAsync(Guid id);
+
+    /// <summary>
+    /// Check if email exists (optionally excluding a specific user)
+    /// </summary>
+    Task<ServiceResult<bool>> EmailExistsAsync(string email, Guid? excludeUserId = null);
+
+    /// <summary>
+    /// Update last login timestamp
+    /// </summary>
+    Task<ServiceResult> UpdateLastLoginAsync(Guid id);
+
+    /// <summary>
+    /// Calculate and update profile completion percentage
+    /// </summary>
+    Task<ServiceResult<int>> UpdateProfileCompletionAsync(Guid id);
+
+    /// <summary>
+    /// Get users with incomplete profiles (for admin purposes)
+    /// </summary>
+    Task<ServiceResult<List<UserSearchResultDto>>> GetUsersWithIncompleteProfilesAsync(int threshold = 80);
+
+    /// <summary>
+    /// Get recently registered users
+    /// </summary>
+    Task<ServiceResult<List<UserSearchResultDto>>> GetRecentlyRegisteredUsersAsync(int days = 7);
+
+    /// <summary>
+    /// Get inactive users (haven't logged in for X days)
+    /// </summary>
+    Task<ServiceResult<List<UserSearchResultDto>>> GetInactiveUsersAsync(int days = 30);
+
+    /// <summary>
+    /// Bulk update users (for admin operations)
+    /// </summary>
+    Task<ServiceResult<int>> BulkUpdateAsync(List<Guid> userIds, UpdateUserDto updates);
+
+    /// <summary>
+    /// Update user skills (replace all existing skills)
+    /// </summary>
+    Task<ServiceResult<UserDto>> UpdateSkillsAsync(Guid id, UpdateUserSkillsDto dto);
+
+    /// <summary>
+    /// Update user profile general information
+    /// </summary>
+    Task<ServiceResult<UserDto>> UpdateProfileAsync(Guid id, UpdateUserProfileDto dto);
 }

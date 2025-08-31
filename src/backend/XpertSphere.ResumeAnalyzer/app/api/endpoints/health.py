@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 import sys
 import os
-import psutil
 import asyncio
 from app.core.config import settings
 from app.utils import get_llm

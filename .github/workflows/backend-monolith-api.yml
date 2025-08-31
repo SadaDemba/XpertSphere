@@ -5,14 +5,18 @@ on:
     branches: [main, develop]
     paths:
       - "src/backend/XpertSphere.MonolithApi/**"
+      - "src/backend/XpertSphere.MonolithApi.Test/**"
       - "XpertSphere.sln"
       - "docker/backend/monolith-api/**"
+      - ".github/workflows/backend-monolith-api.yml"
   pull_request:
     branches: [main, develop]
     paths:
       - "src/backend/XpertSphere.MonolithApi/**"
+      - "src/backend/XpertSphere.MonolithApi.Test/**"
       - "XpertSphere.sln"
       - "docker/backend/monolith-api/**"
+      - ".github/workflows/backend-monolith-api.yml"
   workflow_dispatch:
 
 env:
@@ -32,7 +36,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: "9.0.x"
 
       - name: Restore dependencies
         run: dotnet restore src/backend/XpertSphere.MonolithApi/XpertSphere.MonolithApi.csproj
@@ -41,7 +45,7 @@ jobs:
         run: dotnet build src/backend/XpertSphere.MonolithApi/XpertSphere.MonolithApi.csproj --no-restore
 
       - name: Test
-        run: dotnet test src/backend/XpertSphere.MonolithApi/XpertSphere.MonolithApi.csproj --no-build --verbosity normal
+        run: dotnet test src/backend/XpertSphere.MonolithApi.Tests/XpertSphere.MonolithApi.Tests.csproj --no-build --verbosity normal --collect:"XPlat Code Coverage"
 
   # Build et push pour main/develop
   build-and-push:
@@ -57,62 +61,42 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Login to ACR using Azure CLI
+      - name: Login to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Generate version
+        id: version
         run: |
-          echo "Login to ACR using Azure CLI..."
-          az acr login --name acrxpertspheredev
+          # Version format: YYYY.MM.DD-{environment}-{short-sha}
+          DATE=$(date +%Y.%m.%d)
+          SHORT_SHA=${GITHUB_SHA:0:8}
+
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            VERSION="${DATE}-prod-${SHORT_SHA}"
+          else
+            VERSION="${DATE}-staging-${SHORT_SHA}"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
 
       - name: Build and Push
         run: |
           docker build \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }} \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
             -f docker/backend/monolith-api/Dockerfile .
 
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-      - name: Cleanup old images
-        run: |
-          echo "🧹 Starting cleanup of old images..."
-
-          # Récupérer tous les tags sauf 'latest', triés par date (plus récent en premier)
-          ALL_TAGS=$(az acr repository show-tags \
-            --name acrxpertspheredev \
-            --repository ${{ env.IMAGE_NAME }} \
-            --orderby time_desc \
-            --output tsv | grep -v "^latest$")
-
-          echo "All tags found (excluding 'latest'):"
-          echo "$ALL_TAGS"
-
-          # Garder les 5 plus récents, supprimer le reste
-          TAGS_TO_DELETE=$(echo "$ALL_TAGS" | tail -n +6)
-
-          if [ -z "$TAGS_TO_DELETE" ]; then
-            echo "✅ No tags to delete. Less than 5 images exist."
-          else
-            echo "🗑️ Tags to delete:"
-            echo "$TAGS_TO_DELETE"
-            
-            # Supprimer chaque tag
-            for TAG in $TAGS_TO_DELETE; do
-              if [ ! -z "$TAG" ]; then
-                echo "Deleting tag: $TAG"
-                az acr repository delete \
-                  --name acrxpertspheredev \
-                  --repository ${{ env.IMAGE_NAME }} \
-                  --tag "$TAG" \
-                  --yes || echo "⚠️ Failed to delete tag: $TAG"
-              fi
-            done
-            
-            echo "✅ Cleanup completed!"
-          fi
-
-          # Afficher les tags restants
-          echo "📋 Remaining tags after cleanup:"
-          az acr repository show-tags \
-            --name acrxpertspheredev \
-            --repository ${{ env.IMAGE_NAME }} \
-            --output table
+          echo "Pushed versions:"
+          echo "- SHA: ${{ github.sha }}"
+          echo "- Semantic: ${{ steps.version.outputs.version }}"
+          echo "- Latest: latest"

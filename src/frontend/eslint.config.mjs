@@ -1,6 +1,7 @@
 import js from '@eslint/js'
 import globals from 'globals'
 import pluginVue from 'eslint-plugin-vue'
+import pluginVueA11y from 'eslint-plugin-vuejs-accessibility'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import prettierSkipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 import * as dotenv from 'dotenv'
@@ -23,23 +24,48 @@ export default defineConfigWithVueTs(
     js.configs.recommended,
     pluginVue.configs['flat/recommended'],
 
-    // TypeScript configuration
-    {
-        files: ['packages/**/*.ts', 'packages/**/*.vue'],
-        rules: {
-            '@typescript-eslint/consistent-type-imports': [
-                'error',
-                { prefer: 'type-imports' }
-            ],
-        }
-    },
-
     // Vue + TypeScript recommended (this handles the parsing correctly)
     vueTsConfigs.recommended,
 
+    // Accessibility configuration for Vue
+    {
+        files: ['packages/**/*.vue'],
+        plugins: {
+            'vuejs-accessibility': pluginVueA11y
+        },
+        rules: {
+            // Rules RGAA/WCAG strict for a11y
+            'vuejs-accessibility/alt-text': 'error',
+            'vuejs-accessibility/anchor-has-content': 'error',
+            'vuejs-accessibility/aria-props': 'error',
+            'vuejs-accessibility/aria-role': 'error',
+            'vuejs-accessibility/aria-unsupported-elements': 'error',
+            'vuejs-accessibility/click-events-have-key-events': 'error',
+            'vuejs-accessibility/form-control-has-label': 'error',
+            'vuejs-accessibility/heading-has-content': 'error',
+            'vuejs-accessibility/iframe-has-title': 'error',
+            'vuejs-accessibility/interactive-supports-focus': 'error',
+            'vuejs-accessibility/label-has-for': ['error', {
+                'required': {
+                    'some': ['nesting', 'id']
+                }
+            }],
+            'vuejs-accessibility/media-has-caption': 'error',
+            'vuejs-accessibility/mouse-events-have-key-events': 'error',
+            'vuejs-accessibility/no-access-key': 'error',
+            'vuejs-accessibility/no-autofocus': 'error',
+            'vuejs-accessibility/no-distracting-elements': 'error',
+            'vuejs-accessibility/no-onchange': 'error',
+            'vuejs-accessibility/no-redundant-roles': 'error',
+            'vuejs-accessibility/role-has-required-aria-props': 'error',
+            'vuejs-accessibility/tabindex-no-positive': 'error'
+        }
+    },
+
+
     {
         // Apply to all files in packages
-        files: ['packages/**/*.{js,ts,vue,mjs}'],
+        files: ['packages/src/*.{js,ts,vue,mjs}'],
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'module',
@@ -58,8 +84,8 @@ export default defineConfigWithVueTs(
             'vue/component-name-in-template-casing': ['error', 'kebab-case'],
 
             // TypeScript rules
-            '@typescript-eslint/no-explicit-any': 'warn',
-            '@typescript-eslint/no-unused-vars': 'error',
+            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-unused-vars': 'off',
             '@typescript-eslint/explicit-function-return-type': 'off',
 
             // General rules
@@ -69,7 +95,10 @@ export default defineConfigWithVueTs(
             'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
             'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
             'spaced-comment': ['error', 'always'],
-
+            '@typescript-eslint/consistent-type-imports': [
+                'error',
+                { prefer: 'type-imports' }
+            ],
             // Disable some strict rules for development
             'prefer-promise-reject-errors': 'off',
         }

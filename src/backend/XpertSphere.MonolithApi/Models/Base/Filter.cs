@@ -1,7 +1,9 @@
-﻿using XpertSphere.MonolithApi.Enums;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using XpertSphere.MonolithApi.Enums;
 
-namespace XpertSphere.MonolithApi.Models.Base
+namespace XpertSphere.MonolithApi.DTOs.Base
 {
+    [NotMapped]
     public class Filter
     {
         public string? SearchTerms { get; set; }

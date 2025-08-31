@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using XpertSphere.MonolithApi.DTOs.Auth;
-using XpertSphere.MonolithApi.Interfaces;
-using System.Security.Claims;
-using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.DTOs.User;
+using XpertSphere.MonolithApi.Extensions;
+using XpertSphere.MonolithApi.Interfaces;
 
 namespace XpertSphere.MonolithApi.Controllers;
 
@@ -13,60 +13,32 @@ namespace XpertSphere.MonolithApi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthenticationService _authService;
-    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthenticationService authService, ILogger<AuthController> logger)
+    public AuthController(IAuthenticationService authService)
     {
         _authService = authService;
-        _logger = logger;
     }
 
     /// <summary>
-    /// Register a new user account
+    /// Register a new user account (restricted to authorized users only)
     /// </summary>
     [HttpPost("register")]
-    [AllowAnonymous]
+    [Authorize(Policy = "CanCreateUsers")]
     public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterDto registerDto)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+        var result = await _authService.RegisterAsync(registerDto);
+        return this.ToActionResult(result);
+    }
 
-            
-            if (!registerDto.AcceptTerms || !registerDto.AcceptPrivacyPolicy)
-            {
-                return BadRequest(new AuthResponseDto
-                {
-                    Success = false,
-                    Message = "You must accept the terms of service and privacy policy to register",
-                    Errors = ["Terms and privacy policy acceptance required"]
-                });
-            }
-
-            var result = await _authService.RegisterAsync(registerDto);
-            var response = result.ToDto();
-
-            if (result.IsSuccessful)
-            {
-                _logger.LogInformation("User registered successfully: {Email}", registerDto.Email);
-                return CreatedAtAction(nameof(Register), response);
-            }
-
-            return BadRequest(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during user registration");
-            return StatusCode(500, new AuthResponseDto
-            {
-                Success = false,
-                Message = "An internal error occurred during registration",
-                Errors = ["Internal server error"]
-            });
-        }
+    /// <summary>
+    /// Register a new candidate with complete profile and optional resume
+    /// </summary>
+    [HttpPost("register/candidate")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponseDto>> RegisterCandidate([FromForm] RegisterCandidateDto registerDto, IFormFile? resume = null)
+    {
+        var result = await _authService.RegisterCandidateAsync(registerDto, resume);
+        return this.ToActionResult(result);
     }
 
     /// <summary>
@@ -76,34 +48,8 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto loginDto)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var result = await _authService.LoginAsync(loginDto);
-            var response = result.ToDto();
-
-            if (result.IsSuccessful)
-            {
-                _logger.LogInformation("User logged in successfully: {Email}", loginDto.Email);
-                return Ok(response);
-            }
-
-            return Unauthorized(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during user login");
-            return StatusCode(500, new AuthResponseDto
-            {
-                Success = false,
-                Message = "An internal error occurred during login",
-                Errors = ["Internal server error"]
-            });
-        }
+        var result = await _authService.LoginAsync(loginDto);
+        return this.ToActionResult(result);
     }
 
     /// <summary>
@@ -113,33 +59,8 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] RefreshTokenDto refreshTokenDto)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var result = await _authService.RefreshTokenAsync(refreshTokenDto);
-            var response = result.ToDto();
-
-            if (result.IsSuccessful)
-            {
-                return Ok(response);
-            }
-
-            return Unauthorized(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during token refresh");
-            return StatusCode(500, new AuthResponseDto
-            {
-                Success = false,
-                Message = "An internal error occurred during token refresh",
-                Errors = ["Internal server error"]
-            });
-        }
+        var result = await _authService.RefreshTokenAsync(refreshTokenDto);
+        return this.ToActionResult(result);
     }
 
     /// <summary>
@@ -149,40 +70,10 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<ActionResult<AuthResponseDto>> Logout()
     {
-        try
-        {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrEmpty(email))
-            {
-                return BadRequest(new AuthResponseDto
-                {
-                    Success = false,
-                    Message = "Invalid user context",
-                    Errors = ["User email not found in token"]
-                });
-            }
+        var email = User.FindFirstValue(ClaimTypes.Email);
 
-            var result = await _authService.LogoutAsync(email);
-            var response = result.ToDto();
-
-            if (result.IsSuccessful)
-            {
-                _logger.LogInformation("User logged out successfully: {Email}", email);
-                return Ok(response);
-            }
-
-            return BadRequest(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during user logout");
-            return StatusCode(500, new AuthResponseDto
-            {
-                Success = false,
-                Message = "An internal error occurred during logout",
-                Errors = ["Internal server error"]
-            });
-        }
+        var result = await _authService.LogoutAsync(email!);
+        return this.ToActionResult(result);
     }
 
     /// <summary>
@@ -192,34 +83,8 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponseDto>> ConfirmEmail([FromBody] ConfirmEmailDto confirmEmailDto)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var result = await _authService.ConfirmEmailAsync(confirmEmailDto.Email, confirmEmailDto.Token);
-            var response = result.ToDto();
-
-            if (result.IsSuccessful)
-            {
-                _logger.LogInformation("Email confirmed successfully: {Email}", confirmEmailDto.Email);
-                return Ok(response);
-            }
-
-            return BadRequest(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during email confirmation");
-            return StatusCode(500, new AuthResponseDto
-            {
-                Success = false,
-                Message = "An internal error occurred during email confirmation",
-                Errors = ["Internal server error"]
-            });
-        }
+        var result = await _authService.ConfirmEmailAsync(confirmEmailDto);
+        return this.ToActionResult(result);
     }
 
     /// <summary>
@@ -229,32 +94,8 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponseDto>> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            await _authService.ForgotPasswordAsync(forgotPasswordDto.Email);
-
-            // Always return success to prevent email enumeration attacks
-            return Ok(new AuthResponseDto
-            {
-                Success = true,
-                Message = "If an account with that email exists, a password reset link has been sent"
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during password reset request");
-            return StatusCode(500, new AuthResponseDto
-            {
-                Success = false,
-                Message = "An internal error occurred while processing your request",
-                Errors = ["Internal server error"]
-            });
-        }
+        var result = await _authService.ForgotPasswordAsync(forgotPasswordDto);
+        return this.ToActionResult(result);
     }
 
     /// <summary>
@@ -264,94 +105,96 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponseDto>> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var result = await _authService.ResetPasswordAsync(resetPasswordDto);
-            var response = result.ToDto();
-
-            if (result.IsSuccessful)
-            {
-                _logger.LogInformation("Password reset successfully: {Email}", resetPasswordDto.Email);
-                return Ok(response);
-            }
-
-            return BadRequest(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during password reset");
-            return StatusCode(500, new AuthResponseDto
-            {
-                Success = false,
-                Message = "An internal error occurred during password reset",
-                Errors = ["Internal server error"]
-            });
-        }
+        var result = await _authService.ResetPasswordAsync(resetPasswordDto);
+        return this.ToActionResult(result);
     }
 
     /// <summary>
-    /// Get current user information
+    /// Admin reset password for a user by email (SuperAdmin XpertSphere for all, Admin for their organization)
+    /// </summary>
+    [HttpPost("admin-reset-password")]
+    [Authorize(Policy = "CanResetPasswords")]
+    public async Task<ActionResult<AuthResponseDto>> AdminResetPassword([FromBody] AdminResetPasswordDto adminResetPasswordDto)
+    {
+        var result = await _authService.AdminResetPasswordAsync(adminResetPasswordDto);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Generate Entra ID login URL based on user type
+    /// </summary>
+    /// <param name="email">User email to determine organization membership</param>
+    /// <param name="returnUrl">URL to redirect after authentication</param>
+    /// <returns>Entra ID login URL or local login instruction</returns>
+    [HttpGet("login-url")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthUrlResponseDto), 200)]
+    public ActionResult<AuthUrlResponseDto> GetLoginUrl([FromQuery] string? email, [FromQuery] string? returnUrl = "/dashboard")
+    {
+        var result = _authService.GetLoginUrl(email, returnUrl);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Generate Entra ID signup URL for candidates
+    /// </summary>
+    /// <param name="returnUrl">URL to redirect after registration</param>
+    /// <returns>Entra ID B2C signup URL or local registration instruction</returns>
+    [HttpGet("signup-url")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthUrlResponseDto), 200)]
+    public ActionResult<AuthUrlResponseDto> GetSignupUrl([FromQuery] string? returnUrl = "/profile")
+    {
+        var result = _authService.GetSignupUrl(returnUrl);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Link Entra ID account to existing user
+    /// </summary>
+    /// <param name="linkAccountDto">Account linking data</param>
+    /// <returns>Link result</returns>
+    [HttpPost("link-account")]
+    [Authorize]
+    [ProducesResponseType(typeof(AuthResponseDto), 200)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<AuthResponseDto>> LinkAccount([FromBody] LinkAccountDto linkAccountDto)
+    {
+        var userId = this.GetCurrentUserId();
+
+        var result = await _authService.LinkEntraIdAccount(userId!.Value.ToString(), linkAccountDto.EntraIdToken);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Determine user type for appropriate authentication flow
+    /// </summary>
+    /// <param name="email">User email address</param>
+    /// <returns>User type and recommended authentication method</returns>
+    [HttpGet("user-type")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(UserTypeResponseDto), 200)]
+    public async Task<ActionResult<UserTypeResponseDto>> GetUserType([FromQuery] string email)
+    {
+        var result = await _authService.GetUserTypeAsync(email);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Get current user information with Entra ID claims support
     /// </summary>
     [HttpGet("me")]
     [Authorize]
-    public ActionResult<UserDto> GetCurrentUser()
+    public async Task<ActionResult<UserDto>> GetCurrentUser()
     {
-        try
+        var userId = this.GetCurrentUserId();
+        if (!userId.HasValue)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            var name = User.FindFirstValue(ClaimTypes.Name);
-            var userType = User.FindFirstValue("UserType");
-            var organizationId = User.FindFirstValue("OrganizationId");
-
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email))
-            {
-                return Unauthorized(new { message = "Invalid user context" });
-            }
-
-            var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
-
-            var currentUser = new UserDto
-            {
-                Id = Guid.Parse(userId),
-                Email = email,
-                FirstName = name?.Split(' ').FirstOrDefault() ?? "",
-                LastName = name?.Split(' ').Skip(1).FirstOrDefault() ?? "",
-                FullName = name ?? "",
-                UserType = Enum.TryParse<UserType>(userType, out var parsedUserType) ? parsedUserType : UserType.Candidate,
-                OrganizationId = Guid.TryParse(organizationId, out var orgId) ? orgId : null,
-                IsActive = true,
-                EmailConfirmed = true,
-                Roles = roles
-            };
-
-            return Ok(currentUser);
+            return Unauthorized(new { message = "Invalid user context" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting current user information");
-            return StatusCode(500, new { message = "An internal error occurred" });
-        }
-    }
 
-    /// <summary>
-    /// Check if user is authenticated
-    /// </summary>
-    [HttpGet("status")]
-    [Authorize]
-    public ActionResult GetAuthStatus()
-    {
-        return Ok(new
-        {
-            authenticated = true,
-            timestamp = DateTime.UtcNow,
-            userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-        });
+        var result = await _authService.GetCurrentUserAsync(userId.Value);
+        return this.ToActionResult(result);
     }
 
     /// <summary>

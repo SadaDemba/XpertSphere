@@ -1,6 +1,6 @@
 ﻿using XpertSphere.MonolithApi.DTOs.Organization;
-using XpertSphere.MonolithApi.Models;
-using XpertSphere.MonolithApi.Utils.Pagination;
+using XpertSphere.MonolithApi.Utils.Results;
+using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
 namespace XpertSphere.MonolithApi.Interfaces
 {
@@ -11,36 +11,42 @@ namespace XpertSphere.MonolithApi.Interfaces
         /// </summary>
         /// <param name="organizationId"></param>
         /// <returns></returns>
-        Task<Organization> Get(Guid organizationId);
+        Task<ServiceResult<OrganizationDto>> GetByIdAsync(Guid organizationId);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="organizationFilterDto"></param>
         /// <returns></returns>
-        Task<ResponseResource<Organization>> GetAll(OrganizationFilterDto organizationFilterDto);
+        Task<PaginatedResult<OrganizationDto>> GetAllAsync(OrganizationFilterDto organizationFilterDto);
+
+        /// <summary>
+        /// Get all organizations without pagination
+        /// </summary>
+        /// <returns></returns>
+        Task<ServiceResult<IEnumerable<OrganizationDto>>> GetAllWithoutPaginationAsync();
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="organization"></param>
         /// <returns></returns>
-        Task<Organization> Post(Organization organization);
+        Task<ServiceResult<OrganizationDto>> CreateAsync(CreateOrganizationDto organization);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="organization"></param>
+        /// <param name="updateOrganizationDto"></param>
         /// <returns></returns>
-        Task<Organization> Put(Guid id, Organization organization);
+        Task<ServiceResult<OrganizationDto>> UpdateAsync(Guid id, UpdateOrganizationDto updateOrganizationDto);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<bool> Delete(Guid id);
+        Task<ServiceResult> DeleteAsync(Guid id);
 
     }
 }
