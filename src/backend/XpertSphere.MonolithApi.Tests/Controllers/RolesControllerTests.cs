@@ -43,8 +43,9 @@ public class RolesControllerTests
         actionResult.Should().BeOfType<OkObjectResult>();
         
         var okResult = actionResult as OkObjectResult;
-        var returnedRoles = okResult!.Value as IEnumerable<RoleDto>;
-        returnedRoles.Should().HaveCount(2);
+        var response = okResult!.Value as ServiceResult<IEnumerable<RoleDto>>;
+        response!.IsSuccess.Should().BeTrue();
+        response.Data.Should().HaveCount(2);
     }
 
     [Fact]
@@ -62,7 +63,6 @@ public class RolesControllerTests
             .ReturnsAsync(paginatedResult);
 
         // Act & Assert - Just verify the service is called
-        // Note: Controller extensions depend on HttpContext which is complex to mock
         _mockRoleService.Verify(x => x.GetAllPaginatedRolesAsync(It.IsAny<RoleFilterDto>()), Times.Never);
         
         var setupResult = await _mockRoleService.Object.GetAllPaginatedRolesAsync(filter);
@@ -83,9 +83,9 @@ public class RolesControllerTests
             Description = "Test role description" 
         };
 
-        var serviceResult = ServiceResult<RoleDto>.Success(role);
+        var response = ServiceResult<RoleDto>.Success(role);
         _mockRoleService.Setup(x => x.GetRoleByIdAsync(roleId))
-            .ReturnsAsync(serviceResult);
+            .ReturnsAsync(response);
 
         // Act
         var result = await _controller.GetRoleById(roleId);
@@ -96,8 +96,9 @@ public class RolesControllerTests
         actionResult.Should().BeOfType<OkObjectResult>();
         
         var okResult = actionResult as OkObjectResult;
-        var returnedRole = okResult!.Value as RoleDto;
-        returnedRole!.Id.Should().Be(roleId);
+        var serviceResult = okResult!.Value as ServiceResult<RoleDto>;
+        serviceResult!.IsSuccess.Should().BeTrue();
+        serviceResult.Data!.Id.Should().Be(roleId);
     }
 
     [Fact]
@@ -131,9 +132,9 @@ public class RolesControllerTests
             Description = "Administrator role" 
         };
 
-        var serviceResult = ServiceResult<RoleDto>.Success(role);
+        var response = ServiceResult<RoleDto>.Success(role);
         _mockRoleService.Setup(x => x.GetRoleByNameAsync(roleName))
-            .ReturnsAsync(serviceResult);
+            .ReturnsAsync(response);
 
         // Act
         var result = await _controller.GetRoleByName(roleName);
@@ -144,8 +145,9 @@ public class RolesControllerTests
         actionResult.Should().BeOfType<OkObjectResult>();
         
         var okResult = actionResult as OkObjectResult;
-        var returnedRole = okResult!.Value as RoleDto;
-        returnedRole!.Name.Should().Be(roleName);
+        var serviceResult = okResult!.Value as ServiceResult<RoleDto>;
+        serviceResult!.IsSuccess.Should().BeTrue();
+        serviceResult.Data!.Name.Should().Be(roleName);
     }
 
     [Fact]
@@ -167,9 +169,9 @@ public class RolesControllerTests
             Description = createRoleDto.Description
         };
 
-        var serviceResult = ServiceResult<RoleDto>.Success(createdRole, "Role created successfully");
+        var response = ServiceResult<RoleDto>.Success(createdRole, "Role created successfully");
         _mockRoleService.Setup(x => x.CreateRoleAsync(createRoleDto))
-            .ReturnsAsync(serviceResult);
+            .ReturnsAsync(response);
 
         // Act
         var result = await _controller.CreateRole(createRoleDto);
@@ -180,8 +182,9 @@ public class RolesControllerTests
         actionResult.Should().BeOfType<OkObjectResult>();
         
         var okResult = actionResult as OkObjectResult;
-        var returnedRole = okResult!.Value as RoleDto;
-        returnedRole!.Name.Should().Be("New Role");
+        var serviceResult = okResult!.Value as ServiceResult<RoleDto>;
+        serviceResult!.IsSuccess.Should().BeTrue();
+        serviceResult.Data!.Name.Should().Be("New Role");
     }
 
     [Fact]
@@ -227,9 +230,9 @@ public class RolesControllerTests
             Description = updateRoleDto.Description
         };
 
-        var serviceResult = ServiceResult<RoleDto>.Success(updatedRole, "Role updated successfully");
+        var response = ServiceResult<RoleDto>.Success(updatedRole, "Role updated successfully");
         _mockRoleService.Setup(x => x.UpdateRoleAsync(roleId, updateRoleDto))
-            .ReturnsAsync(serviceResult);
+            .ReturnsAsync(response);
 
         // Act
         var result = await _controller.UpdateRole(roleId, updateRoleDto);
@@ -240,8 +243,9 @@ public class RolesControllerTests
         actionResult.Should().BeOfType<OkObjectResult>();
         
         var okResult = actionResult as OkObjectResult;
-        var returnedRole = okResult!.Value as RoleDto;
-        returnedRole!.DisplayName.Should().Be("Updated Role Display");
+        var serviceResult = okResult!.Value as ServiceResult<RoleDto>;
+        serviceResult!.IsSuccess.Should().BeTrue();
+        serviceResult.Data!.DisplayName.Should().Be("Updated Role Display");
     }
 
     [Fact]
@@ -322,9 +326,9 @@ public class RolesControllerTests
     {
         // Arrange
         var roleName = "Admin";
-        var serviceResult = ServiceResult<bool>.Success(true);
+        var response = ServiceResult<bool>.Success(true);
         _mockRoleService.Setup(x => x.RoleExistsAsync(roleName))
-            .ReturnsAsync(serviceResult);
+            .ReturnsAsync(response);
 
         // Act
         var result = await _controller.CheckRoleExists(roleName);
@@ -335,8 +339,9 @@ public class RolesControllerTests
         actionResult.Should().BeOfType<OkObjectResult>();
         
         var okResult = actionResult as OkObjectResult;
-        var exists = (bool)okResult!.Value!;
-        exists.Should().BeTrue();
+        var serviceResult = okResult!.Value as ServiceResult<bool>;
+        serviceResult!.IsSuccess.Should().BeTrue();
+        serviceResult.Data.Should().BeTrue();
     }
 
     [Fact]
@@ -344,9 +349,9 @@ public class RolesControllerTests
     {
         // Arrange
         var roleId = Guid.NewGuid();
-        var serviceResult = ServiceResult<bool>.Success(true);
+        var response = ServiceResult<bool>.Success(true);
         _mockRoleService.Setup(x => x.CanDeleteRoleAsync(roleId))
-            .ReturnsAsync(serviceResult);
+            .ReturnsAsync(response);
 
         // Act
         var result = await _controller.CanDeleteRole(roleId);
@@ -357,7 +362,8 @@ public class RolesControllerTests
         actionResult.Should().BeOfType<OkObjectResult>();
         
         var okResult = actionResult as OkObjectResult;
-        var canDelete = (bool)okResult!.Value!;
-        canDelete.Should().BeTrue();
+        var serviceResult = okResult!.Value as ServiceResult<bool>;
+        serviceResult!.IsSuccess.Should().BeTrue();
+        serviceResult.Data.Should().BeTrue();
     }
 }

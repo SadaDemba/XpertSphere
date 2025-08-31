@@ -38,8 +38,6 @@ public class OrganizationControllerTests
             .ReturnsAsync(paginatedResult);
 
         // Act & Assert - Just verify the service is called
-        // Note: Controller extensions depend on HttpContext which is complex to mock
-        // In real implementation, consider integration tests
         _mockOrganizationService.Verify(x => x.GetAllAsync(It.IsAny<OrganizationFilterDto>()), Times.Never);
         
         // Verify service method exists and is mockable
@@ -74,8 +72,9 @@ public class OrganizationControllerTests
         actionResult.Should().BeOfType<OkObjectResult>();
         
         var okResult = actionResult as OkObjectResult;
-        var returnedOrganizations = okResult!.Value as IEnumerable<OrganizationDto>;
-        returnedOrganizations.Should().HaveCount(2);
+        var response = okResult!.Value as ServiceResult<IEnumerable<OrganizationDto>>;
+        response!.IsSuccess.Should().BeTrue();
+        response.Data.Should().HaveCount(2);
     }
 
     [Fact]
@@ -105,8 +104,9 @@ public class OrganizationControllerTests
         actionResult.Should().BeOfType<OkObjectResult>();
         
         var okResult = actionResult as OkObjectResult;
-        var returnedOrganization = okResult!.Value as OrganizationDto;
-        returnedOrganization!.Id.Should().Be(organizationId);
+        var response = okResult!.Value as ServiceResult<OrganizationDto>;
+        response!.IsSuccess.Should().BeTrue();
+        response.Data!.Id.Should().Be(organizationId);
     }
 
     [Fact]
@@ -161,8 +161,9 @@ public class OrganizationControllerTests
         actionResult.Should().BeOfType<OkObjectResult>();
         
         var okResult = actionResult as OkObjectResult;
-        var returnedOrganization = okResult!.Value as OrganizationDto;
-        returnedOrganization!.Name.Should().Be("New Organization");
+        var response = okResult!.Value as ServiceResult<OrganizationDto>;
+        response!.IsSuccess.Should().BeTrue();
+        response.Data!.Name.Should().Be("New Organization");
     }
 
     [Fact]
