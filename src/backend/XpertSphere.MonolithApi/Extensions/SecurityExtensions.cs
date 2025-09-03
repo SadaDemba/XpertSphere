@@ -67,7 +67,8 @@ public static class SecurityExtensions
 
     private static void ConfigureSignInOptions(IdentityOptions options, IWebHostEnvironment environment)
     {
-        options.SignIn.RequireConfirmedEmail = !environment.IsDevelopment();
+        //Dismiss until confirmation process is added
+        options.SignIn.RequireConfirmedEmail = false;
         options.SignIn.RequireConfirmedAccount = false;
     }
 
