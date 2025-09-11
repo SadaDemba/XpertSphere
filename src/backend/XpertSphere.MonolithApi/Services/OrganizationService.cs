@@ -20,7 +20,7 @@ namespace XpertSphere.MonolithApi.Services
         private readonly IValidator<UpdateOrganizationDto> _updateValidator;
         private readonly IValidator<OrganizationFilterDto> _filterValidator;
         private readonly ILogger<OrganizationService> _logger;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICurrentUserService _currentUserService;
 
         public OrganizationService(
             XpertSphereDbContext context,
@@ -29,7 +29,7 @@ namespace XpertSphere.MonolithApi.Services
             IValidator<UpdateOrganizationDto> updateValidator,
             IValidator<OrganizationFilterDto> filterValidator,
             ILogger<OrganizationService> logger,
-            IHttpContextAccessor httpContextAccessor)
+            ICurrentUserService currentUserService)
         {
             _context = context;
             _mapper = mapper;
@@ -37,7 +37,7 @@ namespace XpertSphere.MonolithApi.Services
             _updateValidator = updateValidator;
             _filterValidator = filterValidator;
             _logger = logger;
-            _httpContextAccessor = httpContextAccessor;
+            _currentUserService = currentUserService;
         }
 
         public async Task<ServiceResult<OrganizationDto>> CreateAsync(CreateOrganizationDto createDto)
@@ -154,13 +154,15 @@ namespace XpertSphere.MonolithApi.Services
                 var paginatedResult = await query.ToPaginatedResultAsync(pageNumber, pageSize);
                 var result = paginatedResult.Map(org => _mapper.Map<OrganizationDto>(org));
                 
-                // Apply organization filtering for non-XpertSphere users
-                if (!IsXpertSphereUser() && result.IsSuccess)
+                // Apply organization filtering for non-platform users
+                if (_currentUserService.User?.Identity?.IsAuthenticated == true && result.IsSuccess)
                 {
-                    var userOrgId = GetUserOrganizationId();
-                    if (userOrgId.HasValue)
+                    var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) || 
+                                        _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name);
+                    
+                    if (!isPlatformUser && _currentUserService.OrganizationId.HasValue)
                     {
-                        result.Data = result.Data.Where(o => o.Id == userOrgId.Value).ToList();
+                        result.Data = result.Data.Where(o => o.Id == _currentUserService.OrganizationId.Value).ToList();
                         result.Pagination.TotalItems = result.Data.Count;
                     }
                 }
@@ -185,13 +187,15 @@ namespace XpertSphere.MonolithApi.Services
 
                 var organizationDtos = _mapper.Map<IEnumerable<OrganizationDto>>(organizations);
                 
-                // Apply organization filtering for non-XpertSphere users
-                if (!IsXpertSphereUser())
+                // Apply organization filtering for non-platform users
+                if (_currentUserService.User?.Identity?.IsAuthenticated == true)
                 {
-                    var userOrgId = GetUserOrganizationId();
-                    if (userOrgId.HasValue)
+                    var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) || 
+                                        _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name);
+                    
+                    if (!isPlatformUser && _currentUserService.OrganizationId.HasValue)
                     {
-                        organizationDtos = organizationDtos.Where(o => o.Id == userOrgId.Value);
+                        organizationDtos = organizationDtos.Where(o => o.Id == _currentUserService.OrganizationId.Value);
                     }
                 }
                 
@@ -319,49 +323,7 @@ namespace XpertSphere.MonolithApi.Services
         }
 
         #region Helper Methods
-
-        /// <summary>
-        /// Check if the current user is affiliated with XpertSphere organization
-        /// </summary>
-        private bool IsXpertSphereUser()
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null) return false;
-
-            // Check by organization name
-            var organizationClaim = user.FindFirst("OrganizationName");
-            if (organizationClaim?.Value == "XpertSphere")
-            {
-                return true;
-            }
-
-            // Check by groups
-            if (user.HasClaim("group", "Org-XpertSphere") ||
-                user.HasClaim("group", "XpertSphere"))
-            {
-                return true;
-            }
-
-            // Check by platform roles
-            return user.IsInRole(Roles.PlatformAdmin.Name) || user.IsInRole(Roles.PlatformSuperAdmin.Name);
-        }
-
-        /// <summary>
-        /// Get the organization ID of the current user
-        /// </summary>
-        private Guid? GetUserOrganizationId()
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null) return null;
-
-            var orgIdClaim = user.FindFirst("OrganizationId");
-            if (orgIdClaim != null && Guid.TryParse(orgIdClaim.Value, out var orgId))
-            {
-                return orgId;
-            }
-            return null;
-        }
-
+        // Removed IsXpertSphereUser and GetUserOrganizationId methods - now using CurrentUserService
         #endregion
         
     }

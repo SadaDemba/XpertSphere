@@ -165,10 +165,12 @@ import { useUserRoleStore } from '../../stores/userRoleStore';
 import type { RoleDto } from '../../models/role';
 import type { AssignRoleDto, UserRoleDto } from '../../models/userRole';
 import { useQuasar } from 'quasar';
+import { useDialog } from 'src/composables/dialog';
 
 const $q = useQuasar();
 const roleStore = useRoleStore();
 const userRoleStore = useUserRoleStore();
+const dialog = useDialog();
 
 const selectedUser = ref<any>(null);
 const selectedRole = ref<RoleDto | null>(null);
@@ -309,12 +311,16 @@ const confirmExtendRole = async () => {
 };
 
 const removeRole = async (userRole: UserRoleDto) => {
-  $q.dialog({
-    title: 'Confirmer la suppression',
-    message: `Êtes-vous sûr de vouloir retirer le rôle "${userRole.roleName}" à cet utilisateur ?`,
-    cancel: true,
-    persistent: true,
-  }).onOk(async () => {
+  try {
+    await dialog.confirmAction('retirer le rôle', userRole.roleName, {
+      message: `Êtes-vous sûr de vouloir retirer le rôle "${userRole.roleName}" à cet utilisateur ?`,
+      ok: {
+        push: true,
+        label: 'Retirer',
+        color: 'negative',
+      },
+    });
+
     try {
       await userRoleStore.removeRoleFromUser(userRole.id);
       $q.notify({
@@ -328,7 +334,9 @@ const removeRole = async (userRole: UserRoleDto) => {
         message: 'Erreur lors de la suppression du rôle',
       });
     }
-  });
+  } catch {
+    // User cancelled
+  }
 };
 
 const isExpired = (expiryDate: string) => {

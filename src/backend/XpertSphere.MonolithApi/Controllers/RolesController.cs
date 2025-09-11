@@ -16,7 +16,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// Get all roles
     /// </summary>
     [HttpGet]
-    [Authorize(Policy = "RequirePlatformRole")]
+    [Authorize(Policy = "RequireInternalUser")]
     public async Task<ActionResult<IEnumerable<RoleDto>>> GetAllRoles()
     {
         var result = await roleService.GetAllRolesAsync();
@@ -27,7 +27,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// Get all roles with pagination
     /// </summary>
     [HttpGet("paginated")]
-    [Authorize(Policy = "RequirePlatformRole")]
+    [Authorize(Policy = "RequireInternalUser")]
     public async Task<ActionResult<PaginatedResult<RoleDto>>> GetAllPaginatedRoles([FromQuery] RoleFilterDto filter)
     {
         var result = await roleService.GetAllPaginatedRolesAsync(filter);
@@ -39,7 +39,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// Get a role by ID
     /// </summary>
     [HttpGet("{id:guid}")]
-    [Authorize(Policy = "RequirePlatformRole")]
+    [Authorize(Policy = "RequireInternalUser")]
     public async Task<ActionResult<RoleDto>> GetRoleById(Guid id)
     {
         var result = await roleService.GetRoleByIdAsync(id);
@@ -50,7 +50,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// Get a role by name
     /// </summary>
     [HttpGet("by-name/{name}")]
-    [Authorize(Policy = "RequirePlatformRole")]
+    [Authorize(Policy = "RequireInternalUser")]
     public async Task<ActionResult<RoleDto>> GetRoleByName(string name)
     {
         var result = await roleService.GetRoleByNameAsync(name);
@@ -61,7 +61,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
     /// Create a new role
     /// </summary>
     [HttpPost]
-    [Authorize(Policy = "RequirePlatformSuperAdminRole")]
+    [Authorize(Policy = "RequireInternalUser")]
     public async Task<ActionResult<RoleDto>> CreateRole([FromBody] CreateRoleDto createRoleDto)
     {
         var result = await roleService.CreateRoleAsync(createRoleDto);

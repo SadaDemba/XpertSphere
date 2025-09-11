@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
@@ -8,6 +9,7 @@ using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Models.Base;
+using XpertSphere.MonolithApi.Utils;
 using XpertSphere.MonolithApi.Utils.Results;
 using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
@@ -23,6 +25,7 @@ public class UserService : IUserService
     private readonly IValidator<UploadCvDto> _uploadCvValidator;
     private readonly ILogger<UserService> _logger;
     private readonly UserManager<User> _userManager;
+    private readonly ICurrentUserService _currentUserService;
     
     public UserService(
         XpertSphereDbContext context,
@@ -32,7 +35,8 @@ public class UserService : IUserService
         IValidator<UserFilterDto> filterValidator,
         IValidator<UploadCvDto> uploadCvValidator,
         ILogger<UserService> logger,
-        UserManager<User> userManager)
+        UserManager<User> userManager,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _mapper = mapper;
@@ -42,6 +46,7 @@ public class UserService : IUserService
         _uploadCvValidator = uploadCvValidator;
         _logger = logger;
         _userManager = userManager;
+        _currentUserService = currentUserService;
     }
     
     public async Task<ServiceResult<UserDto>> GetByIdAsync(Guid id)
@@ -168,6 +173,16 @@ public class UserService : IUserService
                 if (!orgExists)
                 {
                     return ServiceResult<UserDto>.Failure($"Organization with ID {dto.OrganizationId} not found");
+                }
+            }
+            
+            // Additional security check: OrganizationAdmin can only create users for their own organization
+            if (_currentUserService.User?.IsInRole(Roles.OrganizationAdmin.Name) == true)
+            {
+                var currentUserOrgId = _currentUserService.OrganizationId;
+                if (currentUserOrgId.HasValue && dto.OrganizationId != currentUserOrgId)
+                {
+                    return ServiceResult<UserDto>.Forbidden("Organization admin can only create users for their own organization");
                 }
             }
             
@@ -701,6 +716,22 @@ public class UserService : IUserService
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .AsQueryable();
+
+        // Check if current user has Organization.Admin or Manager role
+        if (filter.Role!= Roles.Candidate.Name && _currentUserService.User?.Identity?.IsAuthenticated == true)
+        {
+            var isOrgAdmin = _currentUserService.User.IsInRole(Roles.OrganizationAdmin.Name);
+            var isManager = _currentUserService.User.IsInRole(Roles.Manager.Name);
+            var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) || 
+                                 _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name);
+
+            
+            if ((isOrgAdmin || isManager) && !isPlatformUser && _currentUserService.OrganizationId.HasValue)
+            {
+                // Filter to only show users from their organization
+                query = query.Where(u => u.OrganizationId == _currentUserService.OrganizationId.Value);
+            }
+        }
 
         // Apply filters
         if (filter.OrganizationId.HasValue)

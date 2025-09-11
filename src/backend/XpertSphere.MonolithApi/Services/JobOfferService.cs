@@ -6,6 +6,7 @@ using XpertSphere.MonolithApi.DTOs.JobOffer;
 using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Utils;
 using XpertSphere.MonolithApi.Utils.Results;
 using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
@@ -19,6 +20,7 @@ public class JobOfferService : IJobOfferService
     private readonly IValidator<UpdateJobOfferDto> _updateJobOfferValidator;
     private readonly IValidator<JobOfferFilterDto> _filterValidator;
     private readonly ILogger<JobOfferService> _logger;
+    private readonly ICurrentUserService _currentUserService;
 
     public JobOfferService(
         XpertSphereDbContext context,
@@ -26,7 +28,8 @@ public class JobOfferService : IJobOfferService
         IValidator<CreateJobOfferDto> createJobOfferValidator,
         IValidator<UpdateJobOfferDto> updateJobOfferValidator,
         IValidator<JobOfferFilterDto> filterValidator,
-        ILogger<JobOfferService> logger)
+        ILogger<JobOfferService> logger,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _mapper = mapper;
@@ -34,15 +37,22 @@ public class JobOfferService : IJobOfferService
         _updateJobOfferValidator = updateJobOfferValidator;
         _filterValidator = filterValidator;
         _logger = logger;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ServiceResult<IEnumerable<JobOfferDto>>> GetAllJobOffersAsync()
     {
         try
         {
-            var jobOffers = await _context.JobOffers
+            var query = _context.JobOffers
                 .Include(jo => jo.Organization)
                 .Include(jo => jo.CreatedByUserNavigation)
+                .AsQueryable();
+
+            // Apply filtering based on user type
+            query = await ApplyUserBasedFilteringAsync(query);
+
+            var jobOffers = await query
                 .OrderByDescending(jo => jo.CreatedAt)
                 .ToListAsync();
 
@@ -68,6 +78,9 @@ public class JobOfferService : IJobOfferService
             }
 
             var query = BuildJobOfferQuery(filter);
+
+            // Apply filtering based on user type
+            query = await ApplyUserBasedFilteringAsync(query);
 
             var pageNumber = int.TryParse(filter.PageNumber, out var pn) ? pn : 1;
             var pageSize = int.TryParse(filter.PageSize, out var ps) ? ps : 10;
@@ -527,5 +540,55 @@ public class JobOfferService : IJobOfferService
                 ? query.OrderBy(jo => jo.CreatedAt)
                 : query.OrderByDescending(jo => jo.CreatedAt)
         };
+    }
+
+    private async Task<IQueryable<JobOffer>> ApplyUserBasedFilteringAsync(IQueryable<JobOffer> query)
+    {
+        // If no user is authenticated, return empty query
+        if (!_currentUserService.UserId.HasValue)
+        {
+            return query.Where(jo => false);
+        }
+
+        var currentUserId = _currentUserService.UserId.Value;
+        var currentUser = await _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Id == currentUserId);
+
+        if (currentUser == null)
+        {
+            return query.Where(jo => false);
+        }
+
+        // Get user's roles
+        var userRoleNames = currentUser.UserRoles
+            .Where(ur => ur.IsActive && (ur.ExpiresAt == null || ur.ExpiresAt > DateTime.UtcNow))
+            .Select(ur => ur.Role.Name)
+            .ToList();
+
+        // Check if user is a candidate
+        if (userRoleNames.Contains(Roles.Candidate.Name))
+        {
+            // Candidates can see all published job offers
+            return query.Where(jo => jo.Status == JobOfferStatus.Published);
+        }
+
+        // Check if user is from XpertSphere (platform admin or super admin)
+        if (userRoleNames.Any(r => Roles.PlatformRoles.Contains(r)))
+        {
+            // XpertSphere admins can see all job offers
+            return query;
+        }
+
+        // Check if user is from a client organization
+        if (currentUser.OrganizationId.HasValue && userRoleNames.Any(r => Roles.OrganizationRoles.Contains(r)))
+        {
+            // Client organization users can only see their organization's job offers
+            return query.Where(jo => jo.OrganizationId == currentUser.OrganizationId.Value);
+        }
+
+        // Default: no access
+        return query.Where(jo => false);
     }
 }

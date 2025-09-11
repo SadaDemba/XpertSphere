@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Moq;
 using XpertSphere.MonolithApi.DTOs.Role;
+using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Services;
 using XpertSphere.MonolithApi.Tests.Helpers;
@@ -15,7 +16,8 @@ public class RoleServiceTests : IDisposable
     private readonly Mock<IValidator<UpdateRoleDto>> _mockUpdateRoleValidator;
     private readonly Mock<IValidator<RoleFilterDto>> _mockFilterValidator;
     private readonly Mock<ILogger<RoleService>> _mockLogger;
-    private readonly XpertSphere.MonolithApi.Data.XpertSphereDbContext _context;
+    private readonly Data.XpertSphereDbContext _context;
+    private readonly Mock<ICurrentUserService> _mockCurrentUserService;
 
     public RoleServiceTests()
     {
@@ -24,6 +26,7 @@ public class RoleServiceTests : IDisposable
         _mockUpdateRoleValidator = new Mock<IValidator<UpdateRoleDto>>();
         _mockFilterValidator = new Mock<IValidator<RoleFilterDto>>();
         _mockLogger = MockHelper.CreateMockLogger<RoleService>();
+        _mockCurrentUserService =  new Mock<ICurrentUserService>();
     }
 
     [Fact]
@@ -312,7 +315,8 @@ public class RoleServiceTests : IDisposable
             _mockCreateRoleValidator.Object,
             _mockUpdateRoleValidator.Object,
             _mockFilterValidator.Object,
-            _mockLogger.Object
+            _mockLogger.Object,
+            _mockCurrentUserService.Object
         );
     }
 

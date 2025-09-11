@@ -43,6 +43,7 @@ export interface UserSearchResultDto {
   fullName: string;
   isAvailable: boolean;
   experienceDisplay: string;
+  roles?: string[];
 }
 
 export interface UserDto {

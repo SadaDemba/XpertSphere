@@ -6,6 +6,7 @@ using XpertSphere.MonolithApi.DTOs.Role;
 using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Utils;
 using XpertSphere.MonolithApi.Utils.Results;
 using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
@@ -19,6 +20,7 @@ public class RoleService : IRoleService
     private readonly IValidator<UpdateRoleDto> _updateRoleValidator;
     private readonly IValidator<RoleFilterDto> _filterValidator;
     private readonly ILogger<RoleService> _logger;
+    private readonly ICurrentUserService _currentUserService;
 
     public RoleService(
         XpertSphereDbContext context, 
@@ -26,7 +28,8 @@ public class RoleService : IRoleService
         IValidator<CreateRoleDto> createRoleValidator,
         IValidator<UpdateRoleDto> updateRoleValidator,
         IValidator<RoleFilterDto> filterValidator,
-        ILogger<RoleService> logger)
+        ILogger<RoleService> logger,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _mapper = mapper;
@@ -34,18 +37,32 @@ public class RoleService : IRoleService
         _updateRoleValidator = updateRoleValidator;
         _filterValidator = filterValidator;
         _logger = logger;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ServiceResult<IEnumerable<RoleDto>>> GetAllRolesAsync()
     {
         try
         {
-            var roles = await _context.Roles
+            var query = _context.Roles
                 .Include(r => r.UserRoles)
                 .Include(r => r.RolePermissions)
-                .OrderBy(r => r.Name)
-                .ToListAsync();
+                .AsQueryable();
 
+            // Check if current user is an organization user (not platform admin)
+            if (_currentUserService.User?.Identity?.IsAuthenticated == true)
+            {
+                var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) || 
+                                    _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name);
+                
+                if (!isPlatformUser)
+                {
+                    // Filter out platform roles for organization users
+                    query = query.Where(r => !Roles.PlatformRoles.Contains(r.Name));
+                }
+            }
+
+            var roles = await query.OrderBy(r => r.Name).ToListAsync();
             var roleDtos = _mapper.Map<IEnumerable<RoleDto>>(roles);
             return ServiceResult<IEnumerable<RoleDto>>.Success(roleDtos);
         }
@@ -345,6 +362,19 @@ public class RoleService : IRoleService
             .Include(r => r.UserRoles)
             .ThenInclude(ur => ur.User)
             .AsQueryable();
+
+        // Check if current user is an organization user (not platform admin)
+        if (_currentUserService.User?.Identity?.IsAuthenticated == true)
+        {
+            var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) || 
+                                _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name);
+            
+            if (!isPlatformUser)
+            {
+                // Filter out platform roles for organization users
+                query = query.Where(r => !Roles.PlatformRoles.Contains(r.Name));
+            }
+        }
         
         // Apply filters
         if (filter.IsActive.HasValue)

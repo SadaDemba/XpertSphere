@@ -616,24 +616,11 @@ public static class SecurityExtensions
                     }
 
 
-                    // Admin in client organization can create users only for their own organization
+                    // Admin in client organization can create users - validation done in service layer
                     if (organizationClaim?.Value != "XpertSphere" &&
                         context.User.IsInRole(Roles.OrganizationAdmin.Name))
                     {
-                        // Verify that the admin is creating for their own organization
-                        var userOrgIdClaim = context.User.FindFirst("OrganizationId");
-                        if (userOrgIdClaim != null && Guid.TryParse(userOrgIdClaim.Value, out var userOrgId))
-                        {
-                            var httpContext = context.Resource as DefaultHttpContext;
-                            if (httpContext?.Request.RouteValues.TryGetValue("organizationId", out var orgIdValue) ==
-                                true)
-                            {
-                                if (Guid.TryParse(orgIdValue?.ToString(), out var requestedOrgId))
-                                {
-                                    return userOrgId == requestedOrgId;
-                                }
-                            }
-                        }
+                        return true;
                     }
 
                     return false;
@@ -674,6 +661,13 @@ public static class SecurityExtensions
                     // Platform SuperAdmin and Admin can access all organizations
                     if (context.User.IsInRole(Roles.PlatformSuperAdmin.Name) ||
                         context.User.IsInRole(Roles.PlatformAdmin.Name))
+                    {
+                        return true;
+                    }
+
+                    // Admin & Manager Organization roles can access - filtering will be done at service level
+                    if (context.User.IsInRole(Roles.OrganizationAdmin.Name) ||
+                        context.User.IsInRole(Roles.Manager.Name))
                     {
                         return true;
                     }

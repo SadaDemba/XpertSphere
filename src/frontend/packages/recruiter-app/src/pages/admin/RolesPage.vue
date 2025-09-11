@@ -235,15 +235,15 @@ import { useRoleStore } from '../../stores/roleStore';
 import { useUserRoleStore } from '../../stores/userRoleStore';
 import type { RoleDto, CreateRoleDto, UpdateRoleDto, RoleFilterDto } from '../../models/role';
 import type { UserRoleDto } from '../../models/userRole';
-import { useQuasar } from 'quasar';
 import { useDataTable } from 'src/composables/datatable';
 import { useNotification } from 'src/composables/notification';
+import { useDialog } from 'src/composables/dialog';
 
-const $q = useQuasar();
 const roleStore = useRoleStore();
 const userRoleStore = useUserRoleStore();
 const dataTable = useDataTable();
 const notification = useNotification();
+const dialog = useDialog();
 
 const showCreateDialog = ref(false);
 const showUserRolesDialog = ref(false);
@@ -472,39 +472,22 @@ const toggleRoleStatus = async (role: RoleDto, isActive: boolean) => {
   }
 };
 
-const confirmToggleStatus = (role: RoleDto) => {
-  const action = role.isActive ? 'désactiver' : 'activer';
-  const actionCapitalized = role.isActive ? 'Désactiver' : 'Activer';
-
-  $q.dialog({
-    title: "Confirmer l'action",
-    message: `Êtes-vous sûr de vouloir ${action} le rôle "${role.displayName}" ?`,
-    cancel: true,
-    ok: {
-      push: true,
-      label: actionCapitalized,
-      color: role.isActive ? 'warning' : 'positive',
-    },
-    persistent: true,
-  }).onOk(() => {
-    toggleRoleStatus(role, !role.isActive);
-  });
+const confirmToggleStatus = async (role: RoleDto) => {
+  try {
+    await dialog.confirmToggle(role.isActive, role.displayName, 'rôle');
+    await toggleRoleStatus(role, !role.isActive);
+  } catch {
+    // User cancelled
+  }
 };
 
-const confirmDelete = (role: RoleDto) => {
-  $q.dialog({
-    title: 'Confirmer la suppression',
-    message: `Êtes-vous sûr de vouloir supprimer le rôle "${role.displayName}" ? Cette action est irréversible.`,
-    cancel: true,
-    ok: {
-      push: true,
-      label: 'Supprimer',
-      color: 'negative',
-    },
-    persistent: true,
-  }).onOk(() => {
-    deleteRole(role);
-  });
+const confirmDelete = async (role: RoleDto) => {
+  try {
+    await dialog.confirmDelete(role.displayName, 'rôle');
+    await deleteRole(role);
+  } catch {
+    // User cancelled
+  }
 };
 
 const deleteRole = async (role: RoleDto) => {

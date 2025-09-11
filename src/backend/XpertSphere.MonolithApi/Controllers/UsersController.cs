@@ -26,7 +26,7 @@ public class UsersController : ControllerBase
     /// <param name="filter">Filter criteria for searching users</param>
     /// <returns>Paginated list of users</returns>
     [HttpGet]
-    [Authorize(Policy = "OrganizationIsolation")]
+    [Authorize(Policy = "RequireInternalUser")]
     [ProducesResponseType(typeof(PaginatedResult<UserSearchResultDto>), 200)]
     [ProducesResponseType(400)]
     public async Task<ActionResult<PaginatedResult<UserSearchResultDto>>> GetUsers([FromQuery] UserFilterDto filter)

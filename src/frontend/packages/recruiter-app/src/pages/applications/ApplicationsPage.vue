@@ -54,7 +54,7 @@
 
         <q-table
           v-model:pagination="pagination"
-          :rows="applicationStore.applications"
+          :rows="applicationStore.applications || []"
           :columns="columns"
           :loading="applicationStore.isLoading"
           :rows-per-page-options="dataTable.defaultPagination.value.rowsPerPageOptions"
