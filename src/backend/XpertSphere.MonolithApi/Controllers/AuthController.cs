@@ -35,7 +35,8 @@ public class AuthController : ControllerBase
     /// </summary>
     [HttpPost("register/candidate")]
     [AllowAnonymous]
-    public async Task<ActionResult<AuthResponseDto>> RegisterCandidate([FromForm] RegisterCandidateDto registerDto, IFormFile? resume = null)
+    public async Task<ActionResult<AuthResponseDto>> RegisterCandidate([FromForm] RegisterCandidateDto registerDto,
+        IFormFile? resume = null)
     {
         var result = await _authService.RegisterCandidateAsync(registerDto, resume);
         return this.ToActionResult(result);
@@ -114,7 +115,8 @@ public class AuthController : ControllerBase
     /// </summary>
     [HttpPost("admin-reset-password")]
     [Authorize(Policy = "CanResetPasswords")]
-    public async Task<ActionResult<AuthResponseDto>> AdminResetPassword([FromBody] AdminResetPasswordDto adminResetPasswordDto)
+    public async Task<ActionResult<AuthResponseDto>> AdminResetPassword(
+        [FromBody] AdminResetPasswordDto adminResetPasswordDto)
     {
         var result = await _authService.AdminResetPasswordAsync(adminResetPasswordDto);
         return this.ToActionResult(result);
@@ -129,7 +131,8 @@ public class AuthController : ControllerBase
     [HttpGet("login-url")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(AuthUrlResponseDto), 200)]
-    public ActionResult<AuthUrlResponseDto> GetLoginUrl([FromQuery] string? email, [FromQuery] string? returnUrl = "/dashboard")
+    public ActionResult<AuthUrlResponseDto> GetLoginUrl([FromQuery] string? email,
+        [FromQuery] string? returnUrl = "/dashboard")
     {
         var result = _authService.GetLoginUrl(email, returnUrl);
         return this.ToActionResult(result);

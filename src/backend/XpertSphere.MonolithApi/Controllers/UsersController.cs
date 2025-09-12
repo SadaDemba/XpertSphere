@@ -350,7 +350,8 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(UserDto), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
-    public async Task<ActionResult<UserDto>> UpdateUserProfile(Guid id, [FromBody] UpdateUserProfileDto updateProfileDto)
+    public async Task<ActionResult<UserDto>> UpdateUserProfile(Guid id,
+        [FromBody] UpdateUserProfileDto updateProfileDto)
     {
         var result = await _userService.UpdateProfileAsync(id, updateProfileDto);
         return this.ToActionResult(result);

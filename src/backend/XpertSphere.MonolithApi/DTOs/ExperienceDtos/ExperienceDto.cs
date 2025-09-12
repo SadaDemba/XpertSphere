@@ -12,7 +12,7 @@ public class ExperienceDto
     public bool IsCurrent { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     // User info
     public string? UserFullName { get; set; }
     public string? UserEmail { get; set; }

@@ -9,11 +9,9 @@ namespace XpertSphere.MonolithApi.DTOs.User;
 /// </summary>
 public class UploadCvDto
 {
-    [Required]
-    public required IFormFile CvFile { get; set; }
+    [Required] public required IFormFile CvFile { get; set; }
 
-    [MaxLength(500)]
-    public string? Description { get; set; }
+    [MaxLength(500)] public string? Description { get; set; }
 
     public bool ReplaceExisting { get; set; } = true;
 
@@ -31,7 +29,7 @@ public class UploadCvResponseDto
     public string? FileName { get; set; }
     public long? FileSizeBytes { get; set; }
     public DateTime UploadedAt { get; set; }
-    
+
     // Extracted information (if ExtractInformation was true)
     public CvExtractedInfoDto? ExtractedInfo { get; set; }
 

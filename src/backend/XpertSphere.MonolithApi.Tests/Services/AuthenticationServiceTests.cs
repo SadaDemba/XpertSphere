@@ -118,8 +118,8 @@ public class AuthenticationServiceTests : IDisposable
             Experiences = new List<Experience>()
         };
 
-        var existingUser = new User 
-        { 
+        var existingUser = new User
+        {
             Email = registerDto.Email,
             FirstName = "Existing",
             LastName = "User"
@@ -153,14 +153,14 @@ public class AuthenticationServiceTests : IDisposable
             ConfirmPassword = "456", // Different from password
             FirstName = "",
             LastName = "",
-            Trainings =[],
+            Trainings = [],
             Experiences = []
         };
 
         var validationErrors = new FluentValidation.Results.ValidationResult(
         [
             new FluentValidation.Results.ValidationFailure("Email", "Invalid email format"),
-                new FluentValidation.Results.ValidationFailure("Password", "Password too weak")
+            new FluentValidation.Results.ValidationFailure("Password", "Password too weak")
         ]);
 
         _mockRegisterValidator.Setup(x => x.ValidateAsync(registerDto, CancellationToken.None))

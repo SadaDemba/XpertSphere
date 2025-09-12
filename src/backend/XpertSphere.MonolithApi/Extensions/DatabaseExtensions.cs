@@ -13,7 +13,7 @@ public static class DatabaseExtensions
     public static IServiceCollection AddDatabase(this IServiceCollection services,
         IConfiguration configuration, IWebHostEnvironment environment)
     {
-        var connectionString = GetConnectionString(configuration,  environment);
+        var connectionString = GetConnectionString(configuration, environment);
 
         services.AddDbContext<XpertSphereDbContext>(options =>
         {
@@ -37,7 +37,7 @@ public static class DatabaseExtensions
             }
 
             // Production or Staging optimizations
-            else if(!environment.IsDevelopment())
+            else if (!environment.IsDevelopment())
             {
                 options.EnableServiceProviderCaching();
                 options.EnableSensitiveDataLogging(false);
@@ -72,10 +72,10 @@ public static class DatabaseExtensions
         return app;
     }
 
-    private static string GetConnectionString(IConfiguration configuration,  IWebHostEnvironment environment)
+    private static string GetConnectionString(IConfiguration configuration, IWebHostEnvironment environment)
     {
         string? connectionString;
-        
+
         // For Production, use the Production-specific connection string
         if (environment.IsProduction())
         {
@@ -83,7 +83,8 @@ public static class DatabaseExtensions
             if (string.IsNullOrEmpty(connectionString))
             {
                 // Fallback to environment variable
-                connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection__Production");
+                connectionString =
+                    Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection__Production");
             }
         }
         // For Staging, use the Staging-specific connection string
@@ -106,18 +107,20 @@ public static class DatabaseExtensions
                 connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
             }
         }
-        
-        if (string.IsNullOrEmpty(connectionString)) 
+
+        if (string.IsNullOrEmpty(connectionString))
         {
             var envName = environment.EnvironmentName;
-            throw new InvalidOperationException($"No connection string found for {envName} environment. Please configure the appropriate connection string in Key Vault or appsettings.");
+            throw new InvalidOperationException(
+                $"No connection string found for {envName} environment. Please configure the appropriate connection string in Key Vault or appsettings.");
         }
 
         Console.WriteLine($"INFO - Using connection string for {environment.EnvironmentName} environment");
         return connectionString;
     }
 
-    private static async Task SeedDatabaseAsync(XpertSphereDbContext context, UserManager<User> userManager, IConfiguration configuration)
+    private static async Task SeedDatabaseAsync(XpertSphereDbContext context, UserManager<User> userManager,
+        IConfiguration configuration)
     {
         await SeedXpertSphereOrganizationAsync(context, configuration);
         await SeedDefaultRolesAsync(context);
@@ -126,7 +129,8 @@ public static class DatabaseExtensions
         await context.SaveChangesAsync();
     }
 
-    private static async Task SeedXpertSphereOrganizationAsync(XpertSphereDbContext context, IConfiguration configuration)
+    private static async Task SeedXpertSphereOrganizationAsync(XpertSphereDbContext context,
+        IConfiguration configuration)
     {
         // Check if XpertSphere organization already exists
         var xpertSphereOrg = await context.Organizations
@@ -135,7 +139,7 @@ public static class DatabaseExtensions
         if (xpertSphereOrg == null)
         {
             var orgConfig = configuration.GetSection("Seeding:Organization");
-            
+
             xpertSphereOrg = new Organization
             {
                 Id = Guid.NewGuid(),
@@ -209,12 +213,14 @@ public static class DatabaseExtensions
         }
     }
 
-    private static async Task SeedPlatformSuperAdminAsync(XpertSphereDbContext context, UserManager<User> userManager, IConfiguration configuration)
+    private static async Task SeedPlatformSuperAdminAsync(XpertSphereDbContext context, UserManager<User> userManager,
+        IConfiguration configuration)
     {
         var adminConfig = configuration.GetSection("Seeding:PlatformSuperAdmin");
-        
+
         var adminEmail = configuration["Admin:Email"] ?? throw new InvalidOperationException("No admin email found");
-        var adminPassword = configuration["Admin:Password"] ?? throw new InvalidOperationException("No admin password found");
+        var adminPassword = configuration["Admin:Password"] ??
+                            throw new InvalidOperationException("No admin password found");
         var adminFirstName = adminConfig["FirstName"] ?? throw new InvalidOperationException("No First Name found");
         var adminLastName = adminConfig["LastName"] ?? throw new InvalidOperationException("No Last Name found");
 
@@ -229,7 +235,7 @@ public static class DatabaseExtensions
         // Get XpertSphere organization
         var xpertSphereOrg = await context.Organizations
             .FirstOrDefaultAsync(o => o.Name == Constants.XPERTSPHERE);
-        
+
         if (xpertSphereOrg == null)
         {
             Console.WriteLine("XpertSphere organization not found. Cannot create PlatformSuperAdmin");
@@ -239,7 +245,7 @@ public static class DatabaseExtensions
         // Get PlatformSuperAdmin role
         var superAdminRole = await context.Roles
             .FirstOrDefaultAsync(r => r.Name == Roles.PlatformSuperAdmin.Name);
-        
+
         if (superAdminRole == null)
         {
             Console.WriteLine("PlatformSuperAdmin role not found. Cannot create PlatformSuperAdmin user");
@@ -263,10 +269,11 @@ public static class DatabaseExtensions
 
         // Create user with UserManager (handles password hashing)
         var result = await userManager.CreateAsync(superAdminUser, adminPassword);
-        
+
         if (!result.Succeeded)
         {
-            Console.WriteLine($"Failed to create PlatformSuperAdmin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            Console.WriteLine(
+                $"Failed to create PlatformSuperAdmin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
             return;
         }
 
@@ -282,7 +289,7 @@ public static class DatabaseExtensions
         };
 
         context.UserRoles.Add(userRole);
-        
+
         Console.WriteLine($"PlatformSuperAdmin user created successfully");
         Console.WriteLine($"⚠Default password used. Please change it after first login.");
     }

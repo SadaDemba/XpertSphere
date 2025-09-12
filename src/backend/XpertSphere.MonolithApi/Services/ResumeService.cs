@@ -69,7 +69,8 @@ public class ResumeService : IResumeService
         }
     }
 
-    public async Task<ServiceResult<string>> UpdateResumeAsync(IFormFile file, Guid userId, string? existingResumePath = null)
+    public async Task<ServiceResult<string>> UpdateResumeAsync(IFormFile file, Guid userId,
+        string? existingResumePath = null)
     {
         try
         {
@@ -173,15 +174,19 @@ public class ResumeService : IResumeService
             var blobClient = containerClient.GetBlobClient(blobName);
 
             var properties = await blobClient.GetPropertiesAsync();
-            
+
             var metadata = new ResumeMetadata
             {
-                FileName = properties.Value.Metadata.TryGetValue("originalFileName", out var fileName) ? fileName : "resume.pdf",
+                FileName = properties.Value.Metadata.TryGetValue("originalFileName", out var fileName)
+                    ? fileName
+                    : "resume.pdf",
                 Size = properties.Value.ContentLength,
                 ContentType = properties.Value.ContentType,
                 LastModified = properties.Value.LastModified.DateTime,
-                UploadedAt = properties.Value.Metadata.TryGetValue("uploadedAt", out var uploadedAtStr) && DateTime.TryParse(uploadedAtStr, out var uploadedAt) 
-                    ? uploadedAt : properties.Value.LastModified.DateTime
+                UploadedAt = properties.Value.Metadata.TryGetValue("uploadedAt", out var uploadedAtStr) &&
+                             DateTime.TryParse(uploadedAtStr, out var uploadedAt)
+                    ? uploadedAt
+                    : properties.Value.LastModified.DateTime
             };
 
             return ServiceResult<ResumeMetadata>.Success(metadata, "Metadata retrieved successfully");
@@ -208,7 +213,9 @@ public class ResumeService : IResumeService
         var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!_allowedExtensions.Contains(fileExtension))
         {
-            return ServiceResult<string>.ValidationError([$"File type {fileExtension} is not allowed. Allowed types: {string.Join(", ", _allowedExtensions)}"]);
+            return ServiceResult<string>.ValidationError([
+                $"File type {fileExtension} is not allowed. Allowed types: {string.Join(", ", _allowedExtensions)}"
+            ]);
         }
 
         return ServiceResult<string>.Success("", "File validation passed");

@@ -27,7 +27,7 @@ public record UserProfileDto
     // Professional information
     public string? LinkedInProfile { get; set; }
     public string? Skills { get; set; }
-    
+
     public int? Experience { get; set; }
     public decimal? DesiredSalary { get; set; }
     public DateTime? Availability { get; set; }

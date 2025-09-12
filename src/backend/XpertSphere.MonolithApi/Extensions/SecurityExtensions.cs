@@ -377,7 +377,7 @@ public static class SecurityExtensions
     {
         // Try to get from configuration first (includes Key Vault for staging/prod)
         var jwtKey = configuration["Jwt:Key"];
-        
+
         // Fallback to environment variable if not found
         if (string.IsNullOrEmpty(jwtKey))
         {
@@ -630,12 +630,12 @@ public static class SecurityExtensions
                 policy.RequireAssertion(context =>
                 {
                     // Platform SuperAdmin and Admin can create Admins for other organizations
-                    if (context.User.IsInRole(Roles.PlatformSuperAdmin.Name) || 
+                    if (context.User.IsInRole(Roles.PlatformSuperAdmin.Name) ||
                         context.User.IsInRole(Roles.PlatformAdmin.Name))
                     {
                         return true;
                     }
-                    
+
                     // XpertSphere users can create Admins for other organizations
                     var organizationClaim = context.User.FindFirst("OrganizationName");
                     if (organizationClaim?.Value == "XpertSphere" &&
@@ -644,14 +644,14 @@ public static class SecurityExtensions
                     {
                         return true;
                     }
-                    
+
                     // Users with XpertSphere group can create Admins for other organizations
                     if (context.User.HasClaim("group", "Org-XpertSphere") ||
                         context.User.HasClaim("group", "XpertSphere"))
                     {
                         return true;
                     }
-                    
+
                     return false;
                 }));
 
@@ -721,32 +721,32 @@ public static class SecurityExtensions
                 policy.RequireAssertion(context =>
                 {
                     // Platform SuperAdmin and Admin can reset any password
-                    if (context.User.IsInRole(Roles.PlatformSuperAdmin.Name) || 
+                    if (context.User.IsInRole(Roles.PlatformSuperAdmin.Name) ||
                         context.User.IsInRole(Roles.PlatformAdmin.Name))
                     {
                         return true;
                     }
-                    
+
                     // XpertSphere users can reset any password
                     var organizationClaim = context.User.FindFirst("OrganizationName");
                     if (organizationClaim?.Value == "XpertSphere")
                     {
                         return true;
                     }
-                    
+
                     // Users with XpertSphere group can reset any password
                     if (context.User.HasClaim("group", "Org-XpertSphere") ||
                         context.User.HasClaim("group", "XpertSphere"))
                     {
                         return true;
                     }
-                    
+
                     // Organization admins can reset passwords for users in their organization
                     if (context.User.IsInRole(Roles.OrganizationAdmin.Name))
                     {
                         return true; // Organization-specific validation will be done in the service
                     }
-                    
+
                     return false;
                 }));
         });

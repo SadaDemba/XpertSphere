@@ -25,7 +25,7 @@ public class AuthenticationLogger : IAuthenticationLogger
     public void LogAuthenticationAttempt(string email, string authType, string source, string? userAgent = null)
     {
         var sanitizedEmail = SanitizeEmail(email);
-        
+
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {
             ["EventType"] = "AuthenticationAttempt",
@@ -49,7 +49,7 @@ public class AuthenticationLogger : IAuthenticationLogger
     public void LogAuthenticationSuccess(string email, string authType, string userId, TimeSpan duration)
     {
         var sanitizedEmail = SanitizeEmail(email);
-        
+
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {
             ["EventType"] = "AuthenticationSuccess",
@@ -76,7 +76,7 @@ public class AuthenticationLogger : IAuthenticationLogger
     public void LogAuthenticationFailure(string email, string authType, string reason, string? errorCode = null)
     {
         var sanitizedEmail = SanitizeEmail(email);
-        
+
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {
             ["EventType"] = "AuthenticationFailure",
@@ -95,7 +95,7 @@ public class AuthenticationLogger : IAuthenticationLogger
     public void LogEntraIdCallback(string state, string authFlow, bool success, string? error = null)
     {
         var stateInfo = ParseStateParameter(state);
-        
+
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {
             ["EventType"] = "EntraIdCallback",
@@ -123,7 +123,7 @@ public class AuthenticationLogger : IAuthenticationLogger
     public void LogAccountLinking(string userId, string email, string externalId, bool success)
     {
         var sanitizedEmail = SanitizeEmail(email);
-        
+
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {
             ["EventType"] = "AccountLinking",
@@ -167,7 +167,7 @@ public class AuthenticationLogger : IAuthenticationLogger
     public void LogSecurityEvent(string eventType, string details, string? userId = null, string? email = null)
     {
         var sanitizedEmail = string.IsNullOrEmpty(email) ? null : SanitizeEmail(email);
-        
+
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {
             ["EventType"] = "SecurityEvent",
@@ -195,8 +195,8 @@ public class AuthenticationLogger : IAuthenticationLogger
             {
                 var localPart = parts[0];
                 var domain = parts[1];
-                var maskedLocal = localPart.Length > 3 
-                    ? $"{localPart[..2]}***{localPart[^1]}" 
+                var maskedLocal = localPart.Length > 3
+                    ? $"{localPart[..2]}***{localPart[^1]}"
                     : "***";
                 return $"{maskedLocal}@{domain}";
             }
@@ -211,15 +211,15 @@ public class AuthenticationLogger : IAuthenticationLogger
         {
             var stateJson = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
             var stateData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(stateJson);
-            
-            var returnUrl = stateData?.TryGetValue("returnUrl", out var returnUrlValue) == true 
-                ? returnUrlValue?.ToString() ?? "/" 
+
+            var returnUrl = stateData?.TryGetValue("returnUrl", out var returnUrlValue) == true
+                ? returnUrlValue?.ToString() ?? "/"
                 : "/";
-                
-            var authType = stateData?.TryGetValue("authType", out var authTypeValue) == true 
-                ? authTypeValue?.ToString() ?? "Unknown" 
+
+            var authType = stateData?.TryGetValue("authType", out var authTypeValue) == true
+                ? authTypeValue?.ToString() ?? "Unknown"
                 : "Unknown";
-                
+
             return (returnUrl, authType);
         }
         catch

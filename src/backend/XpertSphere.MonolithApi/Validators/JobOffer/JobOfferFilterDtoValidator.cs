@@ -59,7 +59,8 @@ public class JobOfferFilterDtoValidator : AbstractValidator<JobOfferFilterDto>
             .WithName("SalaryRange");
 
         RuleFor(x => x)
-            .Must(x => !x.PublishedAfter.HasValue || !x.PublishedBefore.HasValue || x.PublishedAfter <= x.PublishedBefore)
+            .Must(x => !x.PublishedAfter.HasValue || !x.PublishedBefore.HasValue ||
+                       x.PublishedAfter <= x.PublishedBefore)
             .WithMessage("Published after date cannot be greater than published before date")
             .WithName("PublishedDateRange");
 

@@ -20,11 +20,11 @@ public class EntraIdRateLimitService : IEntraIdRateLimitService
     private readonly ILogger<EntraIdRateLimitService> _logger;
     private readonly IAuthenticationLogger _authLogger;
     private readonly EntraIdSettings _entraIdSettings;
-    
+
     // Rate limiting tracking
     private static readonly ConcurrentDictionary<string, RateLimitInfo> _rateLimits = new();
     private static readonly ConcurrentDictionary<string, ApiCallHistory> _apiCallHistory = new();
-    
+
     // Configuration
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan MaxRetryDelay = TimeSpan.FromMinutes(5);
@@ -41,7 +41,7 @@ public class EntraIdRateLimitService : IEntraIdRateLimitService
     }
 
     public async Task<HttpResponseMessage> ExecuteWithRateLimitHandling(
-        Func<Task<HttpResponseMessage>> apiCall, 
+        Func<Task<HttpResponseMessage>> apiCall,
         string operation)
     {
         var attempt = 0;
@@ -70,18 +70,18 @@ public class EntraIdRateLimitService : IEntraIdRateLimitService
             try
             {
                 RecordApiCall(operation);
-                
+
                 using var cts = new CancellationTokenSource(DefaultTimeout);
                 var response = await ExecuteWithTimeout(() => apiCall(), DefaultTimeout);
-                
+
                 var duration = DateTime.UtcNow - startTime;
-                
+
                 // Check response for rate limiting
                 if (response.StatusCode == HttpStatusCode.TooManyRequests)
                 {
                     var retryAfter = GetRetryAfterFromResponse(response) ?? TimeSpan.FromSeconds(60);
                     RecordRateLimit(operation, retryAfter);
-                    
+
                     _logger.LogWarning(
                         "Rate limited by Microsoft API for {Operation}. Retry after {RetryAfter}s",
                         operation, retryAfter.TotalSeconds);
@@ -90,7 +90,7 @@ public class EntraIdRateLimitService : IEntraIdRateLimitService
                     {
                         continue; // Retry
                     }
-                    
+
                     throw new HttpRequestException(
                         $"Rate limit exceeded for {operation}. Retry after {retryAfter}");
                 }
@@ -100,7 +100,7 @@ public class EntraIdRateLimitService : IEntraIdRateLimitService
                     response.StatusCode == HttpStatusCode.RequestTimeout)
                 {
                     var retryAfter = GetRetryAfterFromResponse(response) ?? TimeSpan.FromSeconds(Math.Pow(2, attempt));
-                    
+
                     _logger.LogWarning(
                         "Service unavailable for {Operation} (Status: {StatusCode}). Retrying in {RetryAfter}s",
                         operation, response.StatusCode, retryAfter.TotalSeconds);
@@ -153,7 +153,7 @@ public class EntraIdRateLimitService : IEntraIdRateLimitService
         }
 
         var isLimited = DateTime.UtcNow < rateLimitInfo.RetryAfter;
-        
+
         if (!isLimited)
         {
             // Clean up expired rate limit
@@ -178,15 +178,15 @@ public class EntraIdRateLimitService : IEntraIdRateLimitService
     {
         var now = DateTime.UtcNow;
         var history = _apiCallHistory.GetOrAdd(operation, _ => new ApiCallHistory());
-        
+
         lock (history)
         {
             history.Calls.Add(now);
-            
+
             // Keep only calls from the last hour for rate limit tracking
             var oneHourAgo = now.AddHours(-1);
             history.Calls.RemoveAll(call => call < oneHourAgo);
-            
+
             // Log if we're making many calls
             if (history.Calls.Count > 100) // Threshold for monitoring
             {
@@ -200,8 +200,8 @@ public class EntraIdRateLimitService : IEntraIdRateLimitService
     public void RecordRateLimit(string operation, TimeSpan retryAfter)
     {
         var retryTime = DateTime.UtcNow.Add(retryAfter);
-        
-        _rateLimits.AddOrUpdate(operation, 
+
+        _rateLimits.AddOrUpdate(operation,
             new RateLimitInfo { RetryAfter = retryTime, RecordedAt = DateTime.UtcNow },
             (key, existing) => new RateLimitInfo { RetryAfter = retryTime, RecordedAt = DateTime.UtcNow });
 

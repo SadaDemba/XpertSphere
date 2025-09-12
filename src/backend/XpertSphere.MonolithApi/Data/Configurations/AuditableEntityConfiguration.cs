@@ -31,3 +31,4 @@ public class AuditableEntityConfiguratio : IEntityTypeConfiguration<AuditableEnt
         builder.HasIndex(e => e.CreatedBy);
     }
 }*/
+

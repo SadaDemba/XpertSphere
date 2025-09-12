@@ -40,9 +40,9 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
     {
         var errorCode = NormalizeErrorCode(error);
         var severity = GetErrorSeverity(errorCode);
-        
-        _logger.Log(severity, 
-            "OAuth2 error in {AuthFlow}: {Error} - {Description}. State: {State}", 
+
+        _logger.Log(severity,
+            "OAuth2 error in {AuthFlow}: {Error} - {Description}. State: {State}",
             authFlow, error, errorDescription, state);
 
         var userMessage = GetUserFriendlyMessage(errorCode, authFlow);
@@ -58,13 +58,13 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
     public AuthResult HandleApiTimeout(string operation, TimeSpan duration)
     {
         _logger.LogWarning(
-            "Entra ID API timeout for operation {Operation} after {Duration}ms", 
+            "Entra ID API timeout for operation {Operation} after {Duration}ms",
             operation, duration.TotalMilliseconds);
 
         if (duration > TimeSpan.FromSeconds(30))
         {
             _logger.LogError(
-                "Critical timeout for {Operation}. Consider fallback to local auth", 
+                "Critical timeout for {Operation}. Consider fallback to local auth",
                 operation);
         }
 
@@ -77,12 +77,12 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
     public AuthResult HandleRateLimitExceeded(string operation, TimeSpan retryAfter)
     {
         _logger.LogWarning(
-            "Rate limit exceeded for {Operation}. Retry after {RetryAfter} seconds", 
+            "Rate limit exceeded for {Operation}. Retry after {RetryAfter} seconds",
             operation, retryAfter.TotalSeconds);
 
         return AuthResult.Failure(
-            $"Too many authentication requests. Please wait {Math.Ceiling(retryAfter.TotalSeconds)} seconds before trying again.",
-            ["RATE_LIMIT_EXCEEDED"]
+                $"Too many authentication requests. Please wait {Math.Ceiling(retryAfter.TotalSeconds)} seconds before trying again.",
+                ["RATE_LIMIT_EXCEEDED"]
             )
             .WithStatusCode(429)
             .WithMetadata("retry_after", retryAfter.TotalSeconds);
@@ -93,8 +93,8 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
         _logger.LogError(exception,
             "Entra ID service unavailable for operation {Operation}", operation);
 
-        var fallbackMessage = _environment.IsDevelopment() 
-            ? "Entra ID is unavailable in development. Use local authentication." 
+        var fallbackMessage = _environment.IsDevelopment()
+            ? "Entra ID is unavailable in development. Use local authentication."
             : "External authentication is temporarily unavailable. Please use local authentication or try again later.";
 
         return AuthResult.Failure(fallbackMessage, ["SERVICE_UNAVAILABLE"])
@@ -136,13 +136,13 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
 
             var healthEndpoint = $"{_entraIdSettings.B2B.Authority}/.well-known/openid_configuration";
             var response = await httpClient.GetAsync(healthEndpoint);
-            
+
             _lastHealthStatus = response.IsSuccessStatusCode;
             _lastHealthCheck = DateTime.UtcNow;
 
             _logger.LogInformation(
-                "Entra ID health check: {Status} ({StatusCode})", 
-                _lastHealthStatus ? "Healthy" : "Unhealthy", 
+                "Entra ID health check: {Status} ({StatusCode})",
+                _lastHealthStatus ? "Healthy" : "Unhealthy",
                 response.StatusCode);
 
             return _lastHealthStatus;
@@ -230,4 +230,3 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
         };
     }
 }
-

@@ -7,16 +7,12 @@ namespace XpertSphere.MonolithApi.Models;
 
 public class RolePermission : AuditableEntity
 {
-    [Required]
-    public Guid RoleId { get; set; }
+    [Required] public Guid RoleId { get; set; }
 
-    [Required]
-    public Guid PermissionId { get; set; }
+    [Required] public Guid PermissionId { get; set; }
 
     // Navigation properties
-    [ForeignKey("RoleId")]
-    [JsonIgnore]
-    public virtual Role Role { get; set; } = null!;
+    [ForeignKey("RoleId")] [JsonIgnore] public virtual Role Role { get; set; } = null!;
 
     [ForeignKey("PermissionId")]
     [JsonIgnore]

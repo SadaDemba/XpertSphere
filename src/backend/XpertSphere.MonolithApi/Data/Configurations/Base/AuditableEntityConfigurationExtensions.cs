@@ -6,7 +6,7 @@ namespace XpertSphere.MonolithApi.Data.Configurations.Base;
 
 public static class AuditableEntityConfigurationExtensions
 {
-    public static void ConfigureAuditableEntity<T>(this EntityTypeBuilder<T> builder) 
+    public static void ConfigureAuditableEntity<T>(this EntityTypeBuilder<T> builder)
         where T : class, new()
     {
         // Configure default values at database level

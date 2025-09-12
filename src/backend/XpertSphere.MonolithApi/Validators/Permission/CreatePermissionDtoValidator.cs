@@ -18,12 +18,14 @@ public class CreatePermissionDtoValidator : AbstractValidator<CreatePermissionDt
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Permission name is required")
             .MaximumLength(100).WithMessage("Permission name cannot exceed 100 characters")
-            .Matches(@"^[a-zA-Z0-9._-]+$").WithMessage("Permission name can only contain letters, numbers, dots, underscores, and hyphens");
+            .Matches(@"^[a-zA-Z0-9._-]+$")
+            .WithMessage("Permission name can only contain letters, numbers, dots, underscores, and hyphens");
 
         RuleFor(x => x.Resource)
             .NotEmpty().WithMessage("Resource is required")
             .MaximumLength(100).WithMessage("Resource cannot exceed 100 characters")
-            .Matches(@"^[a-zA-Z0-9._-]+$").WithMessage("Resource can only contain letters, numbers, dots, underscores, and hyphens");
+            .Matches(@"^[a-zA-Z0-9._-]+$")
+            .WithMessage("Resource can only contain letters, numbers, dots, underscores, and hyphens");
 
         RuleFor(x => x.Action)
             .IsInEnum().WithMessage("Invalid permission action");

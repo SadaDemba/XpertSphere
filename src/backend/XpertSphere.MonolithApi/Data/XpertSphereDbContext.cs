@@ -15,7 +15,8 @@ public class XpertSphereDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     {
     }
 
-    public XpertSphereDbContext(DbContextOptions<XpertSphereDbContext> options, ICurrentUserService currentUserService) : base(options)
+    public XpertSphereDbContext(DbContextOptions<XpertSphereDbContext> options, ICurrentUserService currentUserService)
+        : base(options)
     {
         _currentUserService = currentUserService;
     }
@@ -53,6 +54,7 @@ public class XpertSphereDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
                     {
                         entry.Entity.CreatedBy = currentUserId.Value;
                     }
+
                     break;
                 case EntityState.Modified:
                     entry.Entity.UpdatedAt = DateTime.UtcNow;
@@ -60,6 +62,7 @@ public class XpertSphereDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
                     {
                         entry.Entity.UpdatedBy = currentUserId.Value;
                     }
+
                     break;
             }
         }

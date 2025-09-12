@@ -4,7 +4,7 @@ using XpertSphere.MonolithApi.Models.Base;
 
 namespace XpertSphere.MonolithApi.DTOs.User;
 
-public class UserFilterDto: Filter
+public class UserFilterDto : Filter
 {
     public Guid? OrganizationId { get; set; }
     public string? Department { get; set; }

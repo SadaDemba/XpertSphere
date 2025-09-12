@@ -10,10 +10,18 @@ public interface IApplicationService
     Task<ServiceResult<IEnumerable<ApplicationDto>>> GetAllApplicationsAsync();
     Task<PaginatedResult<ApplicationDto>> GetAllPaginatedApplicationsAsync(ApplicationFilterDto filter);
     Task<ServiceResult<ApplicationDto>> GetApplicationByIdAsync(Guid id);
-    Task<ServiceResult<ApplicationDto>> CreateApplicationAsync(CreateApplicationDto createApplicationDto, Guid candidateId);
-    Task<ServiceResult<ApplicationDto>> UpdateApplicationAsync(Guid id, UpdateApplicationDto updateApplicationDto, Guid userId);
+
+    Task<ServiceResult<ApplicationDto>> CreateApplicationAsync(CreateApplicationDto createApplicationDto,
+        Guid candidateId);
+
+    Task<ServiceResult<ApplicationDto>> UpdateApplicationAsync(Guid id, UpdateApplicationDto updateApplicationDto,
+        Guid userId);
+
     Task<ServiceResult> DeleteApplicationAsync(Guid id, Guid userId);
-    Task<ServiceResult<ApplicationDto>> UpdateApplicationStatusAsync(Guid id, UpdateApplicationStatusDto updateStatusDto, Guid userId);
+
+    Task<ServiceResult<ApplicationDto>> UpdateApplicationStatusAsync(Guid id,
+        UpdateApplicationStatusDto updateStatusDto, Guid userId);
+
     Task<ServiceResult> WithdrawApplicationAsync(Guid id, string reason, Guid candidateId);
     Task<ServiceResult<IEnumerable<ApplicationDto>>> GetApplicationsByJobOfferAsync(Guid jobOfferId);
     Task<ServiceResult<IEnumerable<ApplicationDto>>> GetApplicationsByCandidateAsync(Guid candidateId);

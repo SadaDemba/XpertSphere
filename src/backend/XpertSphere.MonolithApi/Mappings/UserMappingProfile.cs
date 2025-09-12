@@ -20,23 +20,30 @@ public class UserMappingProfile : Profile
     {
         // User -> UserDto
         CreateMap<User, UserDto>()
-            .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.Organization != null ? src.Organization.Name : null))
+            .ForMember(dest => dest.OrganizationName,
+                opt => opt.MapFrom(src => src.Organization != null ? src.Organization.Name : null))
             .ForMember(dest => dest.Experiences, opt => opt.MapFrom(src => src.Experiences.ToList()))
             .ForMember(dest => dest.Trainings, opt => opt.MapFrom(src => src.Trainings.ToList()))
-            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Where(ur => ur.IsActive).Select(ur => ur.Role.Name).ToList()))
+            .ForMember(dest => dest.Roles,
+                opt => opt.MapFrom(src => src.UserRoles.Where(ur => ur.IsActive).Select(ur => ur.Role.Name).ToList()))
             .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
 
         // User -> UserProfileDto
         CreateMap<User, UserProfileDto>()
-            .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.Organization != null ? src.Organization.Name : null))
-            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Where(ur => ur.IsActive).Select(ur => ur.Role.Name).ToList()));
+            .ForMember(dest => dest.OrganizationName,
+                opt => opt.MapFrom(src => src.Organization != null ? src.Organization.Name : null))
+            .ForMember(dest => dest.Roles,
+                opt => opt.MapFrom(src => src.UserRoles.Where(ur => ur.IsActive).Select(ur => ur.Role.Name).ToList()));
 
         // User -> UserSearchResultDto
         CreateMap<User, UserSearchResultDto>()
-            .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.Organization != null ? src.Organization.Name : null))
+            .ForMember(dest => dest.OrganizationName,
+                opt => opt.MapFrom(src => src.Organization != null ? src.Organization.Name : null))
             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Address != null ? src.Address.City : null))
-            .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Address != null ? src.Address.Country : null))
-            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Where(ur => ur.IsActive).Select(ur => ur.Role.Name).ToList()));
+            .ForMember(dest => dest.Country,
+                opt => opt.MapFrom(src => src.Address != null ? src.Address.Country : null))
+            .ForMember(dest => dest.Roles,
+                opt => opt.MapFrom(src => src.UserRoles.Where(ur => ur.IsActive).Select(ur => ur.Role.Name).ToList()));
 
         // CreateUserDto -> User
         CreateMap<CreateUserDto, User>()

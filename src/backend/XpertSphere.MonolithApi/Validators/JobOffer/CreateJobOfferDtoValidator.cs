@@ -50,7 +50,7 @@ public class CreateJobOfferDtoValidator : AbstractValidator<CreateJobOfferDto>
         RuleFor(x => x.Location)
             .NotEmpty().WithMessage("Location is required for non-remote positions")
             .When(x => x.WorkMode != WorkMode.FullRemote);
-        
+
 
         RuleFor(x => x.SalaryMin)
             .GreaterThan(0).WithMessage("Minimum salary must be greater than 0")

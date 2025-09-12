@@ -62,7 +62,8 @@ public class JobOfferService : IJobOfferService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving all job offers");
-            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError("An error occurred while retrieving job offers");
+            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError(
+                "An error occurred while retrieving job offers");
         }
     }
 
@@ -120,7 +121,8 @@ public class JobOfferService : IJobOfferService
         }
     }
 
-    public async Task<ServiceResult<JobOfferDto>> CreateJobOfferAsync(CreateJobOfferDto createJobOfferDto, Guid userId, Guid organizationId)
+    public async Task<ServiceResult<JobOfferDto>> CreateJobOfferAsync(CreateJobOfferDto createJobOfferDto, Guid userId,
+        Guid organizationId)
     {
         try
         {
@@ -131,7 +133,8 @@ public class JobOfferService : IJobOfferService
                 return ServiceResult<JobOfferDto>.ValidationError(errors);
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && u.OrganizationId == organizationId);
+            var user = await _context.Users.FirstOrDefaultAsync(u =>
+                u.Id == userId && u.OrganizationId == organizationId);
             if (user == null)
             {
                 return ServiceResult<JobOfferDto>.Forbidden("User does not belong to the specified organization");
@@ -155,7 +158,8 @@ public class JobOfferService : IJobOfferService
             _context.JobOffers.Add(jobOffer);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Created new job offer with ID {JobOfferId} for organization {OrganizationId}", jobOffer.Id, organizationId);
+            _logger.LogInformation("Created new job offer with ID {JobOfferId} for organization {OrganizationId}",
+                jobOffer.Id, organizationId);
 
             var jobOfferDto = _mapper.Map<JobOfferDto>(jobOffer);
             return ServiceResult<JobOfferDto>.Success(jobOfferDto, "Job offer created successfully");
@@ -167,7 +171,8 @@ public class JobOfferService : IJobOfferService
         }
     }
 
-    public async Task<ServiceResult<JobOfferDto>> UpdateJobOfferAsync(Guid id, UpdateJobOfferDto updateJobOfferDto, Guid userId)
+    public async Task<ServiceResult<JobOfferDto>> UpdateJobOfferAsync(Guid id, UpdateJobOfferDto updateJobOfferDto,
+        Guid userId)
     {
         try
         {
@@ -344,7 +349,8 @@ public class JobOfferService : IJobOfferService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving job offers for organization {OrganizationId}", organizationId);
-            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError("An error occurred while retrieving job offers");
+            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError(
+                "An error occurred while retrieving job offers");
         }
     }
 
@@ -365,7 +371,8 @@ public class JobOfferService : IJobOfferService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving job offers for user {UserId}", userId);
-            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError("An error occurred while retrieving job offers");
+            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError(
+                "An error occurred while retrieving job offers");
         }
     }
 
@@ -394,7 +401,7 @@ public class JobOfferService : IJobOfferService
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) return false;
 
-        return jobOffer.CreatedByUserId == userId || 
+        return jobOffer.CreatedByUserId == userId ||
                (user.OrganizationId.HasValue && user.OrganizationId == jobOffer.OrganizationId);
     }
 
@@ -452,9 +459,11 @@ public class JobOfferService : IJobOfferService
 
         if (filter.IsActive.HasValue)
         {
-            query = filter.IsActive.Value 
-                ? query.Where(jo => jo.Status == JobOfferStatus.Published && (jo.ExpiresAt == null || jo.ExpiresAt > DateTime.UtcNow))
-                : query.Where(jo => jo.Status != JobOfferStatus.Published || (jo.ExpiresAt != null && jo.ExpiresAt <= DateTime.UtcNow));
+            query = filter.IsActive.Value
+                ? query.Where(jo =>
+                    jo.Status == JobOfferStatus.Published && (jo.ExpiresAt == null || jo.ExpiresAt > DateTime.UtcNow))
+                : query.Where(jo =>
+                    jo.Status != JobOfferStatus.Published || (jo.ExpiresAt != null && jo.ExpiresAt <= DateTime.UtcNow));
         }
 
         if (filter.IsExpired.HasValue)
@@ -508,7 +517,8 @@ public class JobOfferService : IJobOfferService
         return query;
     }
 
-    private static IQueryable<JobOffer> ApplySorting(IQueryable<JobOffer> query, string sortBy, SortDirection sortDirection)
+    private static IQueryable<JobOffer> ApplySorting(IQueryable<JobOffer> query, string sortBy,
+        SortDirection sortDirection)
     {
         return sortBy.ToLower() switch
         {
@@ -553,7 +563,7 @@ public class JobOfferService : IJobOfferService
         var currentUserId = _currentUserService.UserId.Value;
         var currentUser = await _context.Users
             .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
+            .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Id == currentUserId);
 
         if (currentUser == null)

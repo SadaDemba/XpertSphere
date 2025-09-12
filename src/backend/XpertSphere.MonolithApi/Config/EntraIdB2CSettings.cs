@@ -5,24 +5,20 @@ namespace XpertSphere.MonolithApi.Config;
 public class EntraIdB2CSettings
 {
     public string ClientId { get; set; } = string.Empty;
-    
+
     public string ClientSecret { get; set; } = string.Empty;
 
-    [Required]
-    public string Authority { get; set; } = string.Empty;
+    [Required] public string Authority { get; set; } = string.Empty;
 
-    [Required]
-    public string Domain { get; set; } = string.Empty;
+    [Required] public string Domain { get; set; } = string.Empty;
 
-    [Required]
-    public string SignUpSignInPolicyId { get; set; } = string.Empty;
+    [Required] public string SignUpSignInPolicyId { get; set; } = string.Empty;
 
     public string ResetPasswordPolicyId { get; set; } = string.Empty;
 
     public string EditProfilePolicyId { get; set; } = string.Empty;
 
-    [Required]
-    public List<string> Scopes { get; set; } = new();
+    [Required] public List<string> Scopes { get; set; } = new();
 
     public List<string> RedirectUris { get; set; } = new();
 

@@ -15,7 +15,7 @@ public static class KeyVaultExtensions
             "ApplicationInsights:ConnectionString",
             "ConnectionStrings:BlobStorage"
         };
-        
+
         // Add environment-specific connection string
         if (environment.Equals("Production", StringComparison.CurrentCultureIgnoreCase))
         {
@@ -29,31 +29,35 @@ public static class KeyVaultExtensions
         {
             mappings.Add("ConnectionStrings:DefaultConnection");
         }
-        
+
         // Add Entra ID secrets with environment prefix for Staging/Production only
         if (environment != "Development")
         {
-            var envPrefix = environment.Equals("Production", StringComparison.CurrentCultureIgnoreCase) ? "PROD" : "STAGING";
+            var envPrefix = environment.Equals("Production", StringComparison.CurrentCultureIgnoreCase)
+                ? "PROD"
+                : "STAGING";
             mappings.Add($"EntraId:B2B:ClientSecret:{envPrefix}");
             mappings.Add($"EntraId:B2C:ClientSecret:{envPrefix}");
         }
+
         return mappings;
     }
 
-    public static IServiceCollection AddKeyVaultConfiguration(this IServiceCollection services, WebApplicationBuilder builder)
+    public static IServiceCollection AddKeyVaultConfiguration(this IServiceCollection services,
+        WebApplicationBuilder builder)
     {
         var environment = builder.Environment.EnvironmentName;
-        
+
         // Skip Key Vault in Development - use local .env file
         if (builder.Environment.IsDevelopment())
         {
             Console.WriteLine("INFO - Development environment detected, using local environment variables (.env file)");
             return services;
         }
-        
+
         // For Staging/Production, Key Vault is required
         var keyVaultUrl = Environment.GetEnvironmentVariable("KEY_VAULT_URL");
-        
+
         if (string.IsNullOrEmpty(keyVaultUrl))
         {
             throw new InvalidOperationException($"KEY_VAULT_URL is required for {environment} environment");
@@ -62,10 +66,10 @@ public static class KeyVaultExtensions
         try
         {
             Console.WriteLine($"INFO - Configuring Key Vault for {environment} environment: {keyVaultUrl}");
-            
+
             // Use specific Managed Identity if AZURE_CLIENT_ID is provided, otherwise use DefaultAzureCredential
             var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
-            
+
             if (string.IsNullOrEmpty(clientId))
             {
                 Console.WriteLine("INFO - Using DefaultAzureCredential (no AZURE_CLIENT_ID specified)");
@@ -83,7 +87,7 @@ public static class KeyVaultExtensions
                         ManagedIdentityClientId = clientId
                     }));
             }
-                
+
             Console.WriteLine("INFO - Key Vault configuration added successfully");
             ValidateSecretsLoading(builder.Configuration, environment);
         }
@@ -94,16 +98,17 @@ public static class KeyVaultExtensions
 
         return services;
     }
-    
+
     private static void ValidateSecretsLoading(IConfiguration configuration, string environment)
     {
         var missingSecrets = new List<string>();
-       
+
         var secretMappings = GetSecretMappings(environment);
-        
+
         // All secrets are checked (Development uses .env, Staging/Prod uses Key Vault)
         Console.WriteLine("DEBUG - Checking secrets from Key Vault:");
-        secretMappings.ToList().ForEach(configPath => {
+        secretMappings.ToList().ForEach(configPath =>
+        {
             var value = configuration[configPath];
             Console.WriteLine($"{configPath}): {(string.IsNullOrEmpty(value) ? "MISSING" : "FOUND")}");
             if (string.IsNullOrEmpty(value))
@@ -111,7 +116,7 @@ public static class KeyVaultExtensions
                 missingSecrets.Add(configPath);
             }
         });
-        
+
         if (missingSecrets.Any())
         {
             Console.WriteLine($"WARNING - Missing or placeholder secrets in {environment}:");

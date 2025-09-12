@@ -26,7 +26,7 @@ public class UserService : IUserService
     private readonly ILogger<UserService> _logger;
     private readonly UserManager<User> _userManager;
     private readonly ICurrentUserService _currentUserService;
-    
+
     public UserService(
         XpertSphereDbContext context,
         IMapper mapper,
@@ -48,7 +48,7 @@ public class UserService : IUserService
         _userManager = userManager;
         _currentUserService = currentUserService;
     }
-    
+
     public async Task<ServiceResult<UserDto>> GetByIdAsync(Guid id)
     {
         try
@@ -56,7 +56,7 @@ public class UserService : IUserService
             var user = await _context.Users
                 .Include(u => u.Organization)
                 .Include(u => u.Experiences)
-                .Include(u=>u.Trainings)
+                .Include(u => u.Trainings)
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Id == id);
@@ -90,6 +90,7 @@ public class UserService : IUserService
             {
                 return ServiceResult<UserProfileDto>.NotFound($"User with ID {id} not found");
             }
+
             var userProfileDto = _mapper.Map<UserProfileDto>(user);
             return ServiceResult<UserProfileDto>.Success(userProfileDto);
         }
@@ -133,12 +134,12 @@ public class UserService : IUserService
             }
 
             var query = BuildUserQuery(filter);
-            
+
             var pageNumber = int.TryParse(filter.PageNumber, out var pn) ? pn : 1;
             var pageSize = int.TryParse(filter.PageSize, out var ps) ? ps : 10;
 
             var paginatedResult = await query.ToPaginatedResultAsync(pageNumber, pageSize);
-            
+
             return paginatedResult.Map(user => _mapper.Map<UserSearchResultDto>(user));
         }
         catch (Exception ex)
@@ -159,13 +160,13 @@ public class UserService : IUserService
                 var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
                 return ServiceResult<UserDto>.ValidationError(errors);
             }
-            
+
             var emailExists = await _context.Users.AnyAsync(u => u.Email == dto.Email);
             if (emailExists)
             {
                 return ServiceResult<UserDto>.Conflict($"User with email '{dto.Email}' already exists");
             }
-            
+
             // Validate organization exists for internal users
             if (dto.OrganizationId.HasValue)
             {
@@ -175,26 +176,27 @@ public class UserService : IUserService
                     return ServiceResult<UserDto>.Failure($"Organization with ID {dto.OrganizationId} not found");
                 }
             }
-            
+
             // Additional security check: OrganizationAdmin can only create users for their own organization
             if (_currentUserService.User?.IsInRole(Roles.OrganizationAdmin.Name) == true)
             {
                 var currentUserOrgId = _currentUserService.OrganizationId;
                 if (currentUserOrgId.HasValue && dto.OrganizationId != currentUserOrgId)
                 {
-                    return ServiceResult<UserDto>.Forbidden("Organization admin can only create users for their own organization");
+                    return ServiceResult<UserDto>.Forbidden(
+                        "Organization admin can only create users for their own organization");
                 }
             }
-            
+
             var user = _mapper.Map<User>(dto);
             user.Id = Guid.NewGuid();
             user.UserName = dto.Email; // UserManager requires UserName
             user.CalculateProfileCompletion();
-            
+
             await _userManager.CreateAsync(user);
-            
+
             _logger.LogInformation("Created new user with ID {UserId} and email {Email}", user.Id, user.Email);
-            
+
             var userDto = _mapper.Map<UserDto>(user);
             return ServiceResult<UserDto>.Success(userDto, "User created successfully");
         }
@@ -215,13 +217,13 @@ public class UserService : IUserService
                 var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
                 return ServiceResult<UserDto>.ValidationError(errors);
             }
-            
+
             var user = await _context.Users
                 .Include(u => u.Organization)
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Id == id);
-            
+
             if (user == null)
             {
                 return ServiceResult<UserDto>.NotFound($"User with ID {id} not found");
@@ -246,10 +248,10 @@ public class UserService : IUserService
                     return ServiceResult<UserDto>.Failure($"Organization with ID {dto.OrganizationId} not found");
                 }
             }
-            
+
             _mapper.Map(dto, user);
             user.UpdatedAt = DateTime.UtcNow;
-            
+
             user.CalculateProfileCompletion();
 
             await _context.SaveChangesAsync();
@@ -337,7 +339,7 @@ public class UserService : IUserService
             var fileExtension = Path.GetExtension(dto.CvFile.FileName);
             var fileName = $"{userId}_{Guid.NewGuid()}{fileExtension}";
             var filePath = Path.Combine("uploads", "cvs", fileName);
-            
+
             // Ensure directory exists
             var directory = Path.GetDirectoryName(filePath);
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
@@ -380,7 +382,8 @@ public class UserService : IUserService
             // TODO: If ExtractInformation is true, call CV analysis service
             if (dto.ExtractInformation)
             {
-                _logger.LogInformation("CV information extraction requested for user {UserId} but not implemented yet", userId);
+                _logger.LogInformation("CV information extraction requested for user {UserId} but not implemented yet",
+                    userId);
                 // response.ExtractedInfo = await ExtractCvInformation(filePath);
             }
 
@@ -401,7 +404,8 @@ public class UserService : IUserService
             var orgExists = await _context.Organizations.AnyAsync(o => o.Id == organizationId);
             if (!orgExists)
             {
-                return ServiceResult<IEnumerable<UserSearchResultDto>>.NotFound($"Organization with ID {organizationId} not found");
+                return ServiceResult<IEnumerable<UserSearchResultDto>>.NotFound(
+                    $"Organization with ID {organizationId} not found");
             }
 
             var users = await _context.Users
@@ -412,14 +416,16 @@ public class UserService : IUserService
                 .ToListAsync();
 
             var userDtos = users.Select(user => _mapper.Map<UserSearchResultDto>(user)).ToList();
-            
-            _logger.LogInformation("Retrieved {Count} users for organization {OrganizationId}", userDtos.Count, organizationId);
+
+            _logger.LogInformation("Retrieved {Count} users for organization {OrganizationId}", userDtos.Count,
+                organizationId);
             return ServiceResult<IEnumerable<UserSearchResultDto>>.Success(userDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving users for organization {OrganizationId}", organizationId);
-            return ServiceResult<IEnumerable<UserSearchResultDto>>.InternalError("An error occurred while retrieving users for the organization");
+            return ServiceResult<IEnumerable<UserSearchResultDto>>.InternalError(
+                "An error occurred while retrieving users for the organization");
         }
     }
 
@@ -502,12 +508,12 @@ public class UserService : IUserService
         try
         {
             var query = _context.Users.Where(u => u.Email == email);
-            
+
             if (excludeUserId.HasValue)
             {
                 query = query.Where(u => u.Id != excludeUserId.Value);
             }
-            
+
             var exists = await query.AnyAsync();
             return ServiceResult<bool>.Success(exists);
         }
@@ -558,8 +564,10 @@ public class UserService : IUserService
 
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Updated profile completion for user {UserId}: {Completion}%", id, user.ProfileCompletionPercentage);
-            return ServiceResult<int>.Success(user.ProfileCompletionPercentage, "Profile completion updated successfully");
+            _logger.LogInformation("Updated profile completion for user {UserId}: {Completion}%", id,
+                user.ProfileCompletionPercentage);
+            return ServiceResult<int>.Success(user.ProfileCompletionPercentage,
+                "Profile completion updated successfully");
         }
         catch (Exception ex)
         {
@@ -580,14 +588,16 @@ public class UserService : IUserService
                 .ToListAsync();
 
             var userDtos = users.Select(user => _mapper.Map<UserSearchResultDto>(user)).ToList();
-            
-            _logger.LogInformation("Found {Count} users with incomplete profiles (threshold: {Threshold}%)", userDtos.Count, threshold);
+
+            _logger.LogInformation("Found {Count} users with incomplete profiles (threshold: {Threshold}%)",
+                userDtos.Count, threshold);
             return ServiceResult<List<UserSearchResultDto>>.Success(userDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving users with incomplete profiles");
-            return ServiceResult<List<UserSearchResultDto>>.InternalError("An error occurred while retrieving users with incomplete profiles");
+            return ServiceResult<List<UserSearchResultDto>>.InternalError(
+                "An error occurred while retrieving users with incomplete profiles");
         }
     }
 
@@ -596,7 +606,7 @@ public class UserService : IUserService
         try
         {
             var cutoffDate = DateTime.UtcNow.AddDays(-days);
-            
+
             var users = await _context.Users
                 .Include(u => u.Organization)
                 .Where(u => u.IsActive && u.CreatedAt >= cutoffDate)
@@ -604,14 +614,15 @@ public class UserService : IUserService
                 .ToListAsync();
 
             var userDtos = users.Select(user => _mapper.Map<UserSearchResultDto>(user)).ToList();
-            
+
             _logger.LogInformation("Found {Count} recently registered users (last {Days} days)", userDtos.Count, days);
             return ServiceResult<List<UserSearchResultDto>>.Success(userDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving recently registered users");
-            return ServiceResult<List<UserSearchResultDto>>.InternalError("An error occurred while retrieving recently registered users");
+            return ServiceResult<List<UserSearchResultDto>>.InternalError(
+                "An error occurred while retrieving recently registered users");
         }
     }
 
@@ -620,23 +631,24 @@ public class UserService : IUserService
         try
         {
             var cutoffDate = DateTime.UtcNow.AddDays(-days);
-            
+
             var users = await _context.Users
                 .Include(u => u.Organization)
-                .Where(u => u.IsActive && 
-                           (u.LastLoginAt == null || u.LastLoginAt < cutoffDate))
+                .Where(u => u.IsActive &&
+                            (u.LastLoginAt == null || u.LastLoginAt < cutoffDate))
                 .OrderBy(u => u.LastLoginAt ?? u.CreatedAt)
                 .ToListAsync();
 
             var userDtos = users.Select(user => _mapper.Map<UserSearchResultDto>(user)).ToList();
-            
+
             _logger.LogInformation("Found {Count} inactive users (no login for {Days} days)", userDtos.Count, days);
             return ServiceResult<List<UserSearchResultDto>>.Success(userDtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving inactive users");
-            return ServiceResult<List<UserSearchResultDto>>.InternalError("An error occurred while retrieving inactive users");
+            return ServiceResult<List<UserSearchResultDto>>.InternalError(
+                "An error occurred while retrieving inactive users");
         }
     }
 
@@ -673,10 +685,12 @@ public class UserService : IUserService
                     // Check email uniqueness if email is being changed
                     if (!string.IsNullOrEmpty(updates.Email) && updates.Email != user.Email)
                     {
-                        var emailExists = await _context.Users.AnyAsync(u => u.Email == updates.Email && u.Id != user.Id);
+                        var emailExists =
+                            await _context.Users.AnyAsync(u => u.Email == updates.Email && u.Id != user.Id);
                         if (emailExists)
                         {
-                            _logger.LogWarning("Skipping user {UserId} - email already exists: {Email}", user.Id, updates.Email);
+                            _logger.LogWarning("Skipping user {UserId} - email already exists: {Email}", user.Id,
+                                updates.Email);
                             continue;
                         }
                     }
@@ -685,7 +699,7 @@ public class UserService : IUserService
                     _mapper.Map(updates, user);
                     user.UpdatedAt = DateTime.UtcNow;
                     user.CalculateProfileCompletion();
-                    
+
                     updatedCount++;
                 }
                 catch (Exception ex)
@@ -697,7 +711,8 @@ public class UserService : IUserService
             if (updatedCount > 0)
             {
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Bulk updated {UpdatedCount} out of {RequestedCount} users", updatedCount, userIds.Count);
+                _logger.LogInformation("Bulk updated {UpdatedCount} out of {RequestedCount} users", updatedCount,
+                    userIds.Count);
             }
 
             return ServiceResult<int>.Success(updatedCount, $"Successfully updated {updatedCount} users");
@@ -708,7 +723,7 @@ public class UserService : IUserService
             return ServiceResult<int>.InternalError("An error occurred during bulk update");
         }
     }
-    
+
     private IQueryable<User> BuildUserQuery(UserFilterDto filter)
     {
         var query = _context.Users
@@ -718,14 +733,14 @@ public class UserService : IUserService
             .AsQueryable();
 
         // Check if current user has Organization.Admin or Manager role
-        if (filter.Role!= Roles.Candidate.Name && _currentUserService.User?.Identity?.IsAuthenticated == true)
+        if (filter.Role != Roles.Candidate.Name && _currentUserService.User?.Identity?.IsAuthenticated == true)
         {
             var isOrgAdmin = _currentUserService.User.IsInRole(Roles.OrganizationAdmin.Name);
             var isManager = _currentUserService.User.IsInRole(Roles.Manager.Name);
-            var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) || 
+            var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) ||
                                  _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name);
 
-            
+
             if ((isOrgAdmin || isManager) && !isPlatformUser && _currentUserService.OrganizationId.HasValue)
             {
                 // Filter to only show users from their organization
@@ -773,17 +788,18 @@ public class UserService : IUserService
         {
             query = query.Where(u => u.Skills != null && u.Skills.Contains(filter.Skills));
         }
-        
+
         if (!string.IsNullOrEmpty(filter.Role))
         {
-            query = query.Where(u => u.UserRoles.Any(ur => ur.IsActive && ur.Role.Name.ToLower() == filter.Role.ToLower()));
+            query = query.Where(u =>
+                u.UserRoles.Any(ur => ur.IsActive && ur.Role.Name.ToLower() == filter.Role.ToLower()));
         }
-        
+
         // Search terms
         if (!string.IsNullOrEmpty(filter.SearchTerms))
         {
             var searchTerms = filter.SearchTerms.ToLower();
-            query = query.Where(u => 
+            query = query.Where(u =>
                 u.FirstName.ToLower().Contains(searchTerms) ||
                 u.LastName.ToLower().Contains(searchTerms) ||
                 u.Email!.ToLower().Contains(searchTerms) ||
@@ -811,37 +827,37 @@ public class UserService : IUserService
 
         return query;
     }
-    
+
     private static IQueryable<User> ApplySorting(IQueryable<User> query, string sortBy, SortDirection sortDirection)
     {
         return sortBy.ToLower() switch
         {
-            "firstname" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(u => u.FirstName) 
+            "firstname" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(u => u.FirstName)
                 : query.OrderByDescending(u => u.FirstName),
-            "lastname" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(u => u.LastName) 
+            "lastname" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(u => u.LastName)
                 : query.OrderByDescending(u => u.LastName),
-            "email" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(u => u.Email) 
+            "email" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(u => u.Email)
                 : query.OrderByDescending(u => u.Email),
-            "createdat" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(u => u.CreatedAt) 
+            "createdat" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(u => u.CreatedAt)
                 : query.OrderByDescending(u => u.CreatedAt),
-            "lastloginat" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(u => u.LastLoginAt) 
+            "lastloginat" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(u => u.LastLoginAt)
                 : query.OrderByDescending(u => u.LastLoginAt),
-            "experience" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(u => u.YearsOfExperience) 
+            "experience" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(u => u.YearsOfExperience)
                 : query.OrderByDescending(u => u.YearsOfExperience),
-            "desiredsalary" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(u => u.DesiredSalary) 
+            "desiredsalary" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(u => u.DesiredSalary)
                 : query.OrderByDescending(u => u.DesiredSalary),
-            
-            _ => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(u => u.CreatedAt) 
+
+            _ => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(u => u.CreatedAt)
                 : query.OrderByDescending(u => u.CreatedAt)
-            };
+        };
     }
 
     public async Task<ServiceResult<UserDto>> UpdateSkillsAsync(Guid id, UpdateUserSkillsDto dto)
@@ -857,10 +873,10 @@ public class UserService : IUserService
             // Replace skills
             user.Skills = dto.Skills;
             user.UpdatedAt = DateTime.UtcNow;
-            
+
             // Recalculate profile completion
             user.CalculateProfileCompletion();
-            
+
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Updated skills for user {UserId}", id);
@@ -898,22 +914,22 @@ public class UserService : IUserService
             // Update user properties
             if (!string.IsNullOrEmpty(dto.FirstName))
                 user.FirstName = dto.FirstName;
-            
+
             if (!string.IsNullOrEmpty(dto.LastName))
                 user.LastName = dto.LastName;
-                
+
             if (!string.IsNullOrEmpty(dto.PhoneNumber))
                 user.PhoneNumber = dto.PhoneNumber;
-                
+
             if (dto.YearsOfExperience.HasValue)
                 user.YearsOfExperience = dto.YearsOfExperience;
-                
+
             if (dto.DesiredSalary.HasValue)
                 user.DesiredSalary = dto.DesiredSalary;
-                
+
             if (dto.Availability.HasValue)
                 user.Availability = dto.Availability;
-                
+
             if (!string.IsNullOrEmpty(dto.LinkedInProfile))
                 user.LinkedInProfile = dto.LinkedInProfile;
 
@@ -922,31 +938,31 @@ public class UserService : IUserService
             {
                 if (!string.IsNullOrEmpty(dto.StreetNumber))
                     user.Address.StreetNumber = dto.StreetNumber;
-                    
+
                 if (!string.IsNullOrEmpty(dto.Street))
                     user.Address.StreetName = dto.Street;
-                    
+
                 if (!string.IsNullOrEmpty(dto.City))
                     user.Address.City = dto.City;
-                    
+
                 if (!string.IsNullOrEmpty(dto.PostalCode))
                     user.Address.PostalCode = dto.PostalCode;
-                    
+
                 if (!string.IsNullOrEmpty(dto.Region))
                     user.Address.Region = dto.Region;
-                    
+
                 if (!string.IsNullOrEmpty(dto.Country))
                     user.Address.Country = dto.Country;
-                    
+
                 if (!string.IsNullOrEmpty(dto.AddressLine2))
                     user.Address.AddressLine2 = dto.AddressLine2;
             }
 
             user.UpdatedAt = DateTime.UtcNow;
-            
+
             // Recalculate profile completion
             user.CalculateProfileCompletion();
-            
+
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Updated profile for user {UserId}", id);

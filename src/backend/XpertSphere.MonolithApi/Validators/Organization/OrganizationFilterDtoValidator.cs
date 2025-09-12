@@ -20,7 +20,8 @@ public class OrganizationFilterDtoValidator : AbstractValidator<OrganizationFilt
             .When(x => !string.IsNullOrEmpty(x.SearchTerms));
 
         RuleFor(x => x.SortBy)
-            .Must(BeValidSortField).WithMessage("Invalid sort field. Valid fields are: name, code, industry, contactemail, createdat.")
+            .Must(BeValidSortField)
+            .WithMessage("Invalid sort field. Valid fields are: name, code, industry, contactemail, createdat.")
             .When(x => !string.IsNullOrEmpty(x.SortBy));
 
         RuleFor(x => x.SortDirection)

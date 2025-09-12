@@ -17,7 +17,7 @@ public static class FluentValidationExtensions
     {
         // Add validators from the current assembly (new approach)
         services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>(ServiceLifetime.Scoped);
-        
+
         // Configure global validation behavior
         ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
         ValidatorOptions.Global.DefaultClassLevelCascadeMode = CascadeMode.Continue;

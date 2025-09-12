@@ -45,7 +45,7 @@ public class AuthCallbackController : ControllerBase
         try
         {
             _authLogger.LogEntraIdCallback(state ?? "unknown", "B2B", false, error);
-            
+
             if (!string.IsNullOrEmpty(error))
             {
                 var errorResult = _errorHandler.HandleOAuth2Error(error, errorDescription, "B2B", state);
@@ -60,12 +60,12 @@ public class AuthCallbackController : ControllerBase
             }
 
             var result = await _authenticationService.HandleEntraIdCallback(code, state, error);
-            
+
             if (result.IsSuccess)
             {
                 _authLogger.LogEntraIdCallback(state, "B2B", true);
                 var returnUrl = result.Data?.RedirectUrl ?? "/dashboard";
-                
+
                 if (!string.IsNullOrEmpty(result.Data?.AccessToken))
                 {
                     var redirectUrl = BuildClientRedirectUrl(returnUrl, new
@@ -76,11 +76,11 @@ public class AuthCallbackController : ControllerBase
                         user_id = result.Data.User?.Id.ToString(),
                         message = result.Message
                     });
-                    
+
                     _logger.LogInformation("B2B authentication successful for user {UserId}", result.Data.User?.Id);
                     return Redirect(redirectUrl);
                 }
-                
+
                 var simpleRedirectUrl = BuildClientRedirectUrl(returnUrl, new { message = result.Message });
                 return Redirect(simpleRedirectUrl);
             }
@@ -116,7 +116,7 @@ public class AuthCallbackController : ControllerBase
         try
         {
             _authLogger.LogEntraIdCallback(state ?? "unknown", "B2C", false, error);
-            
+
             if (!string.IsNullOrEmpty(error))
             {
                 var errorResult = _errorHandler.HandleOAuth2Error(error, error_description, "B2C", state);
@@ -126,16 +126,17 @@ public class AuthCallbackController : ControllerBase
 
             if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
             {
-                var errorResult = _errorHandler.HandleOAuth2Error("invalid_request", "Missing required parameters", "B2C", state);
+                var errorResult =
+                    _errorHandler.HandleOAuth2Error("invalid_request", "Missing required parameters", "B2C", state);
                 return RedirectToClientWithError("invalid_request", "Missing required parameters", "b2c");
             }
 
             var result = await _authenticationService.HandleEntraIdCallback(code, state, error);
-            
+
             if (result.IsSuccess)
             {
                 var returnUrl = result.Data?.RedirectUrl ?? "/profile";
-                
+
                 if (!string.IsNullOrEmpty(result.Data?.AccessToken))
                 {
                     var redirectUrl = BuildClientRedirectUrl(returnUrl, new
@@ -146,11 +147,11 @@ public class AuthCallbackController : ControllerBase
                         user_id = result.Data.User?.Id.ToString(),
                         message = result.Message
                     });
-                    
+
                     _logger.LogInformation("B2C authentication successful for user {UserId}", result.Data.User?.Id);
                     return Redirect(redirectUrl);
                 }
-                
+
                 var simpleRedirectUrl = BuildClientRedirectUrl(returnUrl, new { message = result.Message });
                 return Redirect(simpleRedirectUrl);
             }
@@ -178,7 +179,7 @@ public class AuthCallbackController : ControllerBase
     {
         try
         {
-            _logger.LogWarning("Authentication error received: {Error} - {Description} - Flow: {Flow}", 
+            _logger.LogWarning("Authentication error received: {Error} - {Description} - Flow: {Flow}",
                 errorRequest.Error, errorRequest.ErrorDescription, errorRequest.AuthFlow);
 
             var errorResponse = new
@@ -263,8 +264,8 @@ public class AuthCallbackController : ControllerBase
 
     private string GetClientBaseUrl()
     {
-        return HttpContext.Request.Headers.Origin.FirstOrDefault() ?? 
-               Environment.GetEnvironmentVariable("CLIENT_BASE_URL") ?? 
+        return HttpContext.Request.Headers.Origin.FirstOrDefault() ??
+               Environment.GetEnvironmentVariable("CLIENT_BASE_URL") ??
                "http://localhost:3000";
     }
 

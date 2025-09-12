@@ -8,46 +8,33 @@ namespace XpertSphere.MonolithApi.Models;
 
 public class JobOffer : AuditableEntity
 {
-    [Required]
-    [MaxLength(200)]
-    public required string Title { get; set; }
+    [Required] [MaxLength(200)] public required string Title { get; set; }
 
-    [Required]
-    public required string Description { get; set; }
+    [Required] public required string Description { get; set; }
 
-    [Required]
-    public required string Requirements { get; set; }
+    [Required] public required string Requirements { get; set; }
 
-    [MaxLength(200)]
-    public string? Location { get; set; }
+    [MaxLength(200)] public string? Location { get; set; }
 
-    [Required]
-    public WorkMode WorkMode { get; set; }
+    [Required] public WorkMode WorkMode { get; set; }
 
-    [Required]
-    public ContractType ContractType { get; set; }
+    [Required] public ContractType ContractType { get; set; }
 
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? SalaryMin { get; set; }
+    [Column(TypeName = "decimal(18,2)")] public decimal? SalaryMin { get; set; }
 
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? SalaryMax { get; set; }
+    [Column(TypeName = "decimal(18,2)")] public decimal? SalaryMax { get; set; }
 
-    [MaxLength(10)]
-    public string? SalaryCurrency { get; set; } = "EUR";
+    [MaxLength(10)] public string? SalaryCurrency { get; set; } = "EUR";
 
-    [Required]
-    public JobOfferStatus Status { get; set; } = JobOfferStatus.Draft;
+    [Required] public JobOfferStatus Status { get; set; } = JobOfferStatus.Draft;
 
     public DateTime? PublishedAt { get; set; }
 
     public DateTime? ExpiresAt { get; set; }
 
-    [Required]
-    public Guid OrganizationId { get; set; }
+    [Required] public Guid OrganizationId { get; set; }
 
-    [Required]
-    public Guid CreatedByUserId { get; set; }
+    [Required] public Guid CreatedByUserId { get; set; }
 
     // Navigation properties
     [ForeignKey("OrganizationId")]
@@ -60,14 +47,12 @@ public class JobOffer : AuditableEntity
 
     // Computed properties
     [NotMapped]
-    public bool IsActive => Status == JobOfferStatus.Published && 
-                           (ExpiresAt == null || ExpiresAt > DateTime.UtcNow);
+    public bool IsActive => Status == JobOfferStatus.Published &&
+                            (ExpiresAt == null || ExpiresAt > DateTime.UtcNow);
 
-    [NotMapped]
-    public bool IsExpired => ExpiresAt.HasValue && ExpiresAt <= DateTime.UtcNow;
+    [NotMapped] public bool IsExpired => ExpiresAt.HasValue && ExpiresAt <= DateTime.UtcNow;
 
-    [NotMapped]
-    public bool RequiresLocation => WorkMode != WorkMode.FullRemote;
+    [NotMapped] public bool RequiresLocation => WorkMode != WorkMode.FullRemote;
 
     // Methods
     public void Publish()

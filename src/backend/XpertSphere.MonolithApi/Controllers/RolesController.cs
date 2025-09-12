@@ -34,7 +34,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
         return this.ToPaginatedActionResult(result);
     }
 
-    
+
     /// <summary>
     /// Get a role by ID
     /// </summary>

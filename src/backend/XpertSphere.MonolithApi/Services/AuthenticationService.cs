@@ -20,7 +20,7 @@ using XpertSphere.MonolithApi.Utils.Results;
 using XpertSphere.MonolithApi.Utils;
 using System.Web;
 
-namespace XpertSphere.MonolithApi.Services; 
+namespace XpertSphere.MonolithApi.Services;
 
 public class AuthenticationService : IAuthenticationService
 {
@@ -44,10 +44,10 @@ public class AuthenticationService : IAuthenticationService
     private readonly IExperienceService _experienceService;
     private readonly IResumeService _resumeService;
     private readonly XpertSphereDbContext _context;
-    
+
     // Check if Entra ID should be used (from environment variable)
-    private bool ShouldUseEntraId => 
-        !_environment.IsDevelopment() && 
+    private bool ShouldUseEntraId =>
+        !_environment.IsDevelopment() &&
         Environment.GetEnvironmentVariable("USE_ENTRA_ID")?.ToLower() == "true";
 
     public AuthenticationService(
@@ -119,8 +119,10 @@ public class AuthenticationService : IAuthenticationService
                 var entraIdSignUpUrl = GenerateEntraIdSignUpUrl(registerDto.ReturnUrl ?? "/profile");
                 if (!string.IsNullOrEmpty(entraIdSignUpUrl))
                 {
-                    _logger.LogInformation("Redirecting candidate {Email} to Entra ID B2C registration", registerDto.Email);
-                    return AuthResult.Success("Complete your registration with your preferred identity provider", entraIdSignUpUrl);
+                    _logger.LogInformation("Redirecting candidate {Email} to Entra ID B2C registration",
+                        registerDto.Email);
+                    return AuthResult.Success("Complete your registration with your preferred identity provider",
+                        entraIdSignUpUrl);
                 }
             }
 
@@ -146,8 +148,8 @@ public class AuthenticationService : IAuthenticationService
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 return AuthResult.Failure($"Registration failed: {errors}");
             }
-            
-            
+
+
             _logger.LogInformation("User {Email} registered successfully", registerDto.Email);
 
             // Generate email confirmation token
@@ -155,7 +157,8 @@ public class AuthenticationService : IAuthenticationService
             user.EmailConfirmationToken = emailConfirmationToken;
             var authDto = _mapper.Map<AuthResponseDto>(user);
 
-            return AuthResult.SuccessWithUser(authDto, "Registration successful. Please check your email to confirm your account.");
+            return AuthResult.SuccessWithUser(authDto,
+                "Registration successful. Please check your email to confirm your account.");
         }
         catch (Exception ex)
         {
@@ -198,7 +201,7 @@ public class AuthenticationService : IAuthenticationService
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     OrganizationId = null,
-                
+
                     // Address
                     Address = new Address
                     {
@@ -210,20 +213,20 @@ public class AuthenticationService : IAuthenticationService
                         Country = registerDto.Country,
                         AddressLine2 = registerDto.AddressLine2
                     },
-                
+
                     // Professional info
                     Skills = registerDto.Skills,
                     YearsOfExperience = registerDto.YearsOfExperience,
                     DesiredSalary = registerDto.DesiredSalary,
                     Availability = registerDto.Availability,
                     LinkedInProfile = registerDto.LinkedInProfile,
-                
+
                     // Communication preferences
                     EmailNotificationsEnabled = registerDto.EmailNotificationsEnabled,
                     SmsNotificationsEnabled = registerDto.SmsNotificationsEnabled,
                     PreferredLanguage = registerDto.PreferredLanguage,
                     TimeZone = registerDto.TimeZone,
-                
+
                     // Consent
                     ConsentGivenAt = registerDto.ConsentGivenAt ?? DateTime.UtcNow,
                     ExternalId = registerDto.ExternalId
@@ -236,7 +239,7 @@ public class AuthenticationService : IAuthenticationService
                     var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
                     return AuthResult.Failure($"User creation failed: {errors}");
                 }
-                
+
                 // Add trainings if provided
                 if (registerDto.Trainings?.Count > 0)
                 {
@@ -290,14 +293,16 @@ public class AuthenticationService : IAuthenticationService
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                _logger.LogInformation("Candidate {Email} registered successfully with complete profile", registerDto.Email);
+                _logger.LogInformation("Candidate {Email} registered successfully with complete profile",
+                    registerDto.Email);
 
                 // Generate email confirmation token
                 var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 user.EmailConfirmationToken = emailConfirmationToken;
                 var authResponseDto = _mapper.Map<AuthResponseDto>(user);
 
-                return AuthResult.SuccessWithUser(authResponseDto, "Registration successful. Please check your email to confirm your account.");
+                return AuthResult.SuccessWithUser(authResponseDto,
+                    "Registration successful. Please check your email to confirm your account.");
             }
             catch (Exception ex)
             {
@@ -330,11 +335,12 @@ public class AuthenticationService : IAuthenticationService
                     var entraIdLoginUrl = GenerateEntraIdLoginUrl(loginDto.ReturnUrl ?? "/dashboard");
                     if (!string.IsNullOrEmpty(entraIdLoginUrl))
                     {
-                        _logger.LogInformation("Redirecting organizational user {Email} to Entra ID B2B login", loginDto.Email);
+                        _logger.LogInformation("Redirecting organizational user {Email} to Entra ID B2B login",
+                            loginDto.Email);
                         return AuthResult.Success("Please use your organizational account to login", entraIdLoginUrl);
                     }
                 }
-                
+
                 // For users without organization (candidates), they can still use JWT auth in staging/prod
                 // or redirect to B2C if they prefer SSO
             }
@@ -344,7 +350,7 @@ public class AuthenticationService : IAuthenticationService
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
-            
+
             if (user == null)
             {
                 _logger.LogWarning("Login attempt with non-existent email: {Email}", loginDto.Email);
@@ -358,13 +364,14 @@ public class AuthenticationService : IAuthenticationService
                 await _userManager.UpdateAsync(user);
                 _logger.LogInformation("Account automatically unlocked for user: {Email}", loginDto.Email);
             }
-            
+
             if (user.IsAccountLocked)
             {
                 if (user.AccountLockedUntil.HasValue && user.AccountLockedUntil <= DateTime.UtcNow)
                 {
                     user.ResetFailedLogins();
                 }
+
                 _logger.LogWarning("Login attempt on locked account: {Email}", loginDto.Email);
                 return AuthResult.Failure($"Account is locked until {user.AccountLockedUntil:yyyy-MM-dd HH:mm}");
             }
@@ -390,10 +397,10 @@ public class AuthenticationService : IAuthenticationService
                 // Save refresh token
                 user.SetRefreshToken(refreshToken, TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays));
                 await _userManager.UpdateAsync(user);
-                
+
                 var authResponseDto = _mapper.Map<AuthResponseDto>(user);
                 authResponseDto.AccessToken = accessToken;
-                
+
                 _logger.LogInformation("User {Email} logged in successfully", loginDto.Email);
 
                 return AuthResult.SuccessWithUser(
@@ -446,7 +453,7 @@ public class AuthenticationService : IAuthenticationService
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Email == refreshTokenDto.Email);
-            
+
             if (user == null || !user.IsTokenValid || user.RefreshToken != refreshTokenDto.RefreshToken)
             {
                 _logger.LogWarning("Invalid refresh token attempt for {Email}", refreshTokenDto.Email);
@@ -512,7 +519,7 @@ public class AuthenticationService : IAuthenticationService
                 var validationErrors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
                 return AuthResult.ValidationError(validationErrors);
             }
-            
+
             var user = await _userManager.FindByEmailAsync(confirmEmailDto.Email);
             if (user == null)
             {
@@ -546,7 +553,7 @@ public class AuthenticationService : IAuthenticationService
                 var validationErrors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
                 return AuthResult.ValidationError(validationErrors);
             }
-            
+
             var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
             if (user == null)
             {
@@ -585,7 +592,8 @@ public class AuthenticationService : IAuthenticationService
                 return AuthResult.Failure("Invalid request");
             }
 
-            var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+            var result =
+                await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
 
             if (result.Succeeded)
             {
@@ -635,8 +643,8 @@ public class AuthenticationService : IAuthenticationService
             }
 
             // Check authorization - Organization admins can only reset passwords for users in their organization
-            if (currentUser.IsInRole(Roles.OrganizationAdmin.Name) && 
-                !currentUser.IsInRole(Roles.PlatformSuperAdmin.Name) && 
+            if (currentUser.IsInRole(Roles.OrganizationAdmin.Name) &&
+                !currentUser.IsInRole(Roles.PlatformSuperAdmin.Name) &&
                 !currentUser.IsInRole(Roles.PlatformAdmin.Name))
             {
                 var adminOrgIdClaim = currentUser.FindFirst("OrganizationId");
@@ -675,7 +683,7 @@ public class AuthenticationService : IAuthenticationService
             await _userManager.UpdateAsync(targetUser);
 
             var adminEmail = currentUser.FindFirst(ClaimTypes.Email)?.Value ?? "Unknown";
-            _logger.LogInformation("Password reset by admin {AdminEmail} for user: {Email}", 
+            _logger.LogInformation("Password reset by admin {AdminEmail} for user: {Email}",
                 adminEmail, adminResetPasswordDto.Email);
 
             return AuthResult.Success($"Password successfully reset for {targetUser.Email}");
@@ -686,7 +694,7 @@ public class AuthenticationService : IAuthenticationService
             return AuthResult.Failure("An error occurred during password reset");
         }
     }
-    
+
     public async Task<ServiceResult<UserDto>> GetCurrentUserAsync(Guid userId)
     {
         try
@@ -699,7 +707,7 @@ public class AuthenticationService : IAuthenticationService
                 .Include(u => u.Experiences)
                 .Include(u => u.Trainings)
                 .FirstOrDefaultAsync(u => u.Id == userId);
-                
+
             if (user == null)
             {
                 return ServiceResult<UserDto>.NotFound("User not found");
@@ -724,7 +732,8 @@ public class AuthenticationService : IAuthenticationService
             new(ClaimTypes.Email, user.Email!),
             new(ClaimTypes.Name, user.FullName),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+            new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
+                ClaimValueTypes.Integer64)
         };
 
         // Add organization claim if user belongs to one
@@ -772,7 +781,7 @@ public class AuthenticationService : IAuthenticationService
 
         var state = GenerateStateParameter(returnUrl, "B2B");
         var nonce = Guid.NewGuid().ToString();
-        
+
         var queryParams = new Dictionary<string, string>
         {
             ["client_id"] = _entraIdSettings.B2B.ClientId,
@@ -785,11 +794,11 @@ public class AuthenticationService : IAuthenticationService
             ["prompt"] = "select_account"
         };
 
-        var queryString = string.Join("&", queryParams.Select(kvp => 
+        var queryString = string.Join("&", queryParams.Select(kvp =>
             $"{HttpUtility.UrlEncode(kvp.Key)}={HttpUtility.UrlEncode(kvp.Value)}"));
 
         var authorizeUrl = $"{_entraIdSettings.B2B.Authority}/oauth2/v2.0/authorize?{queryString}";
-        
+
         _logger.LogInformation("Generated B2B login URL for client_id: {ClientId}", _entraIdSettings.B2B.ClientId);
         return authorizeUrl;
     }
@@ -804,7 +813,7 @@ public class AuthenticationService : IAuthenticationService
 
         var state = GenerateStateParameter(returnUrl, "B2C");
         var nonce = Guid.NewGuid().ToString();
-        
+
         var queryParams = new Dictionary<string, string>
         {
             ["client_id"] = _entraIdSettings.B2C.ClientId,
@@ -817,11 +826,11 @@ public class AuthenticationService : IAuthenticationService
             ["p"] = _entraIdSettings.B2C.SignUpSignInPolicyId
         };
 
-        var queryString = string.Join("&", queryParams.Select(kvp => 
+        var queryString = string.Join("&", queryParams.Select(kvp =>
             $"{HttpUtility.UrlEncode(kvp.Key)}={HttpUtility.UrlEncode(kvp.Value)}"));
 
         var authorizeUrl = $"{_entraIdSettings.B2C.Authority}/oauth2/v2.0/authorize?{queryString}";
-        
+
         _logger.LogInformation("Generated B2C signup URL for client_id: {ClientId}", _entraIdSettings.B2C.ClientId);
         return authorizeUrl;
     }
@@ -901,8 +910,9 @@ public class AuthenticationService : IAuthenticationService
 
             // New user will be created by ClaimsEnrichmentMiddleware
             _logger.LogInformation("New Entra ID user {Email} will be created via middleware", userEmail);
-            
-            return AuthResult.Success("Authentication successful. User profile will be created automatically.", returnUrl);
+
+            return AuthResult.Success("Authentication successful. User profile will be created automatically.",
+                returnUrl);
         }
         catch (Exception ex)
         {
@@ -941,7 +951,8 @@ public class AuthenticationService : IAuthenticationService
             // Check if email matches
             if (!string.Equals(user.Email, entraUserInfo.Email, StringComparison.OrdinalIgnoreCase))
             {
-                return AuthResult.Failure("Email address mismatch. Cannot link accounts with different email addresses.");
+                return AuthResult.Failure(
+                    "Email address mismatch. Cannot link accounts with different email addresses.");
             }
 
             // Check if this Entra ID is already linked to another user
@@ -959,7 +970,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (result.Succeeded)
             {
-                _logger.LogInformation("Successfully linked Entra ID account {EntraId} to user {UserId}", 
+                _logger.LogInformation("Successfully linked Entra ID account {EntraId} to user {UserId}",
                     entraUserInfo.ExternalId, userId);
                 return AuthResult.Success("Account successfully linked to Entra ID");
             }
@@ -990,16 +1001,20 @@ public class AuthenticationService : IAuthenticationService
             {
                 ExternalId = token.Claims.FirstOrDefault(c => c.Type is "sub" or "oid")?.Value ?? string.Empty,
                 Email = token.Claims.FirstOrDefault(c => c.Type is "email" or ClaimTypes.Email)?.Value ?? string.Empty,
-                FirstName = token.Claims.FirstOrDefault(c => c.Type is "given_name" or ClaimTypes.GivenName)?.Value ?? string.Empty,
-                LastName = token.Claims.FirstOrDefault(c => c.Type is "family_name" or ClaimTypes.Surname)?.Value ?? string.Empty,
-                DisplayName = token.Claims.FirstOrDefault(c => c.Type is "name" or ClaimTypes.Name)?.Value ?? string.Empty,
+                FirstName = token.Claims.FirstOrDefault(c => c.Type is "given_name" or ClaimTypes.GivenName)?.Value ??
+                            string.Empty,
+                LastName = token.Claims.FirstOrDefault(c => c.Type is "family_name" or ClaimTypes.Surname)?.Value ??
+                           string.Empty,
+                DisplayName = token.Claims.FirstOrDefault(c => c.Type is "name" or ClaimTypes.Name)?.Value ??
+                              string.Empty,
                 Groups = token.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList(),
                 Roles = token.Claims.Where(c => c.Type == "roles").Select(c => c.Value).ToList(),
                 AuthType = DetermineAuthType(token.Claims)
             };
 
             // If display name is empty, construct it from first and last name
-            if (string.IsNullOrEmpty(userInfo.DisplayName) && (!string.IsNullOrEmpty(userInfo.FirstName) || !string.IsNullOrEmpty(userInfo.LastName)))
+            if (string.IsNullOrEmpty(userInfo.DisplayName) && (!string.IsNullOrEmpty(userInfo.FirstName) ||
+                                                               !string.IsNullOrEmpty(userInfo.LastName)))
             {
                 userInfo.DisplayName = $"{userInfo.FirstName} {userInfo.LastName}".Trim();
             }
@@ -1016,19 +1031,19 @@ public class AuthenticationService : IAuthenticationService
     private static string DetermineAuthType(IEnumerable<Claim> claims)
     {
         var issuer = claims.FirstOrDefault(c => c.Type == "iss")?.Value ?? string.Empty;
-        
+
         // B2C issuers typically contain the tenant name and policy
         if (issuer.Contains(".b2clogin.com") || issuer.Contains("tfp"))
         {
             return "B2C";
         }
-        
+
         // B2B issuers typically use login.microsoftonline.com
         if (issuer.Contains("login.microsoftonline.com"))
         {
             return "B2B";
         }
-        
+
         return "Unknown";
     }
 
@@ -1037,17 +1052,18 @@ public class AuthenticationService : IAuthenticationService
         try
         {
             var authType = DetermineAuthTypeFromState(state);
-            var tokenEndpoint = authType == "B2C" 
+            var tokenEndpoint = authType == "B2C"
                 ? $"{_entraIdSettings.B2C.Authority}/oauth2/v2.0/token?p={_entraIdSettings.B2C.SignUpSignInPolicyId}"
                 : $"{_entraIdSettings.B2B.Authority}/oauth2/v2.0/token";
 
             var clientId = authType == "B2C" ? _entraIdSettings.B2C.ClientId : _entraIdSettings.B2B.ClientId;
-            var clientSecret = authType == "B2C" ? _entraIdSettings.B2C.ClientSecret : _entraIdSettings.B2B.ClientSecret;
+            var clientSecret =
+                authType == "B2C" ? _entraIdSettings.B2C.ClientSecret : _entraIdSettings.B2B.ClientSecret;
             var redirectUri = authType == "B2C" ? _entraIdSettings.B2C.RedirectUri : _entraIdSettings.B2B.RedirectUri;
             var scopes = authType == "B2C" ? _entraIdSettings.B2C.Scopes : _entraIdSettings.B2B.Scopes;
 
             using var httpClient = new HttpClient();
-            
+
             var tokenRequestParams = new Dictionary<string, string>
             {
                 ["grant_type"] = "authorization_code",
@@ -1068,7 +1084,8 @@ public class AuthenticationService : IAuthenticationService
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("Token exchange failed: {StatusCode} - {Content}", response.StatusCode, responseContent);
+                _logger.LogError("Token exchange failed: {StatusCode} - {Content}", response.StatusCode,
+                    responseContent);
                 return AuthResult.Failure("Failed to exchange authorization code for tokens");
             }
 
@@ -1088,7 +1105,7 @@ public class AuthenticationService : IAuthenticationService
         {
             var stateJson = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
             var stateData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(stateJson);
-            
+
             if (stateData?.TryGetValue("authType", out var authTypeValue) == true)
             {
                 return authTypeValue?.ToString() ?? "B2B";
@@ -1098,7 +1115,7 @@ public class AuthenticationService : IAuthenticationService
         {
             // If we can't parse state, assume B2B 
         }
-        
+
         return "B2B";
     }
 
@@ -1108,7 +1125,7 @@ public class AuthenticationService : IAuthenticationService
         {
             var stateJson = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
             var stateData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(stateJson);
-            
+
             if (stateData?.TryGetValue("returnUrl", out var returnUrlValue) == true)
             {
                 return returnUrlValue?.ToString() ?? "/";
@@ -1119,7 +1136,7 @@ public class AuthenticationService : IAuthenticationService
             // Log but don't fail - just return default
             Console.WriteLine($"Failed to parse state parameter: {ex.Message}");
         }
-        
+
         return "/";
     }
 
@@ -1132,7 +1149,7 @@ public class AuthenticationService : IAuthenticationService
             timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             nonce = Guid.NewGuid().ToString("N")[..8]
         };
-        
+
         var json = System.Text.Json.JsonSerializer.Serialize(stateData);
         return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(json));
     }
@@ -1146,7 +1163,7 @@ public class AuthenticationService : IAuthenticationService
         try
         {
             var loginUrl = GenerateEntraIdLoginUrl(returnUrl ?? "/dashboard");
-            
+
             if (string.IsNullOrEmpty(loginUrl))
             {
                 var response = new AuthUrlResponseDto
@@ -1165,7 +1182,7 @@ public class AuthenticationService : IAuthenticationService
                 AuthType = "B2B",
                 Message = "Redirect to Entra ID for authentication"
             };
-            
+
             return ServiceResult<AuthUrlResponseDto>.Success(entraResponse);
         }
         catch (Exception ex)
@@ -1180,7 +1197,7 @@ public class AuthenticationService : IAuthenticationService
         try
         {
             var signupUrl = GenerateEntraIdSignUpUrl(returnUrl ?? "/profile");
-            
+
             if (string.IsNullOrEmpty(signupUrl))
             {
                 var response = new AuthUrlResponseDto
@@ -1199,7 +1216,7 @@ public class AuthenticationService : IAuthenticationService
                 AuthType = "B2C",
                 Message = "Redirect to Entra ID for registration"
             };
-            
+
             return ServiceResult<AuthUrlResponseDto>.Success(entraResponse);
         }
         catch (Exception ex)
@@ -1225,25 +1242,26 @@ public class AuthenticationService : IAuthenticationService
                 var userType = existingUser.OrganizationId.HasValue ? "organizational" : "candidate";
                 var authType = existingUser.OrganizationId.HasValue ? "B2B" : "B2C";
                 var endpoint = existingUser.OrganizationId.HasValue ? "/api/auth/login-url" : "/api/auth/signup-url";
-                
+
                 var response = new UserTypeResponseDto
                 {
                     Email = email,
                     UserType = userType,
                     RecommendedAuth = authType,
                     AuthEndpoint = endpoint,
-                    Message = userType == "organizational" 
-                        ? "Use organizational account for authentication" 
+                    Message = userType == "organizational"
+                        ? "Use organizational account for authentication"
                         : "Use candidate authentication"
                 };
-                
+
                 return ServiceResult<UserTypeResponseDto>.Success(response);
             }
 
             // For new users, determine type based on email domain
             var domain = email.Split('@').LastOrDefault();
-            var isOrganizationalDomain = !string.IsNullOrEmpty(domain) && 
-                                       !new[] { "gmail.com", "yahoo.com", "hotmail.com", "outlook.com" }.Contains(domain.ToLower());
+            var isOrganizationalDomain = !string.IsNullOrEmpty(domain) &&
+                                         !new[] { "gmail.com", "yahoo.com", "hotmail.com", "outlook.com" }.Contains(
+                                             domain.ToLower());
 
             var newUserResponse = new UserTypeResponseDto
             {
@@ -1251,11 +1269,11 @@ public class AuthenticationService : IAuthenticationService
                 UserType = isOrganizationalDomain ? "organizational" : "candidate",
                 RecommendedAuth = isOrganizationalDomain ? "B2B" : "B2C",
                 AuthEndpoint = isOrganizationalDomain ? "/api/auth/login-url" : "/api/auth/signup-url",
-                Message = isOrganizationalDomain 
-                    ? "Use organizational account for authentication" 
+                Message = isOrganizationalDomain
+                    ? "Use organizational account for authentication"
                     : "Use candidate registration or authentication"
             };
-            
+
             return ServiceResult<UserTypeResponseDto>.Success(newUserResponse);
         }
         catch (Exception ex)

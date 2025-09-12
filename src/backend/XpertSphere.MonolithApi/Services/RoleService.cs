@@ -23,7 +23,7 @@ public class RoleService : IRoleService
     private readonly ICurrentUserService _currentUserService;
 
     public RoleService(
-        XpertSphereDbContext context, 
+        XpertSphereDbContext context,
         IMapper mapper,
         IValidator<CreateRoleDto> createRoleValidator,
         IValidator<UpdateRoleDto> updateRoleValidator,
@@ -52,9 +52,9 @@ public class RoleService : IRoleService
             // Check if current user is an organization user (not platform admin)
             if (_currentUserService.User?.Identity?.IsAuthenticated == true)
             {
-                var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) || 
-                                    _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name);
-                
+                var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) ||
+                                     _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name);
+
                 if (!isPlatformUser)
                 {
                     // Filter out platform roles for organization users
@@ -73,7 +73,7 @@ public class RoleService : IRoleService
         }
     }
 
-    
+
     public async Task<PaginatedResult<RoleDto>> GetAllPaginatedRolesAsync(RoleFilterDto filter)
     {
         try
@@ -86,12 +86,12 @@ public class RoleService : IRoleService
             }
 
             var query = BuildRoleQuery(filter);
-            
+
             var pageNumber = int.TryParse(filter.PageNumber, out var pn) ? pn : 1;
             var pageSize = int.TryParse(filter.PageSize, out var ps) ? ps : 10;
 
             var paginatedResult = await query.ToPaginatedResultAsync(pageNumber, pageSize);
-            
+
             return paginatedResult.Map(role => _mapper.Map<RoleDto>(role));
         }
         catch (Exception ex)
@@ -115,7 +115,7 @@ public class RoleService : IRoleService
             {
                 return ServiceResult<RoleDto>.NotFound($"Role with ID {id} not found");
             }
-            
+
             var roleDto = _mapper.Map<RoleDto>(role);
             return ServiceResult<RoleDto>.Success(roleDto);
         }
@@ -140,7 +140,7 @@ public class RoleService : IRoleService
             {
                 return ServiceResult<RoleDto>.NotFound($"Role with name '{name}' not found");
             }
-            
+
             var roleDto = _mapper.Map<RoleDto>(role);
             return ServiceResult<RoleDto>.Success(roleDto);
         }
@@ -246,14 +246,14 @@ public class RoleService : IRoleService
             var rolePermissions = await _context.RolePermissions
                 .Where(rp => rp.RoleId == id)
                 .ToListAsync();
-            
+
             _context.RolePermissions.RemoveRange(rolePermissions);
 
             // Remove user roles
             var userRoles = await _context.UserRoles
                 .Where(ur => ur.RoleId == id)
                 .ToListAsync();
-            
+
             _context.UserRoles.RemoveRange(userRoles);
 
             // Remove role
@@ -346,7 +346,7 @@ public class RoleService : IRoleService
         {
             var hasActiveUsers = await _context.UserRoles
                 .AnyAsync(ur => ur.RoleId == id && ur.IsActive);
-            
+
             return ServiceResult<bool>.Success(!hasActiveUsers);
         }
         catch (Exception ex)
@@ -355,7 +355,7 @@ public class RoleService : IRoleService
             return ServiceResult<bool>.InternalError("An error occurred while checking if role can be deleted");
         }
     }
-    
+
     private IQueryable<Role> BuildRoleQuery(RoleFilterDto filter)
     {
         var query = _context.Roles
@@ -366,36 +366,36 @@ public class RoleService : IRoleService
         // Check if current user is an organization user (not platform admin)
         if (_currentUserService.User?.Identity?.IsAuthenticated == true)
         {
-            var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) || 
-                                _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name);
-            
+            var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) ||
+                                 _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name);
+
             if (!isPlatformUser)
             {
                 // Filter out platform roles for organization users
                 query = query.Where(r => !Roles.PlatformRoles.Contains(r.Name));
             }
         }
-        
+
         // Apply filters
         if (filter.IsActive.HasValue)
         {
             query = query.Where(r => r.IsActive == filter.IsActive);
         }
-        
+
         if (filter.UserId.HasValue)
         {
             query = query.Where(r => r.UserRoles.Any(ur => ur.User.Id == filter.UserId));
         }
-        
+
         // Search terms
         if (!string.IsNullOrEmpty(filter.SearchTerms))
         {
             var searchTerms = filter.SearchTerms.ToLower();
-            query = query.Where(r => 
+            query = query.Where(r =>
                 r.Name.ToLower().Contains(searchTerms) ||
                 r.DisplayName.ToLower().Contains(searchTerms) ||
                 r.Description!.ToLower().Contains(searchTerms)
-                );
+            );
         }
 
         // Apply sorting
@@ -412,23 +412,23 @@ public class RoleService : IRoleService
 
         return query;
     }
-    
+
     private static IQueryable<Role> ApplySorting(IQueryable<Role> query, string sortBy, SortDirection sortDirection)
     {
         return sortBy.ToLower() switch
         {
-            "name" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(r => r.Name) 
+            "name" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(r => r.Name)
                 : query.OrderByDescending(r => r.Name),
-            "displayname" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(r => r.DisplayName) 
+            "displayname" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(r => r.DisplayName)
                 : query.OrderByDescending(r => r.DisplayName),
-            "createdat" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(r => r.CreatedAt) 
+            "createdat" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(r => r.CreatedAt)
                 : query.OrderByDescending(r => r.CreatedAt),
-            _ => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(r => r.CreatedAt) 
+            _ => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(r => r.CreatedAt)
                 : query.OrderByDescending(u => u.CreatedAt)
-            };
+        };
     }
 }

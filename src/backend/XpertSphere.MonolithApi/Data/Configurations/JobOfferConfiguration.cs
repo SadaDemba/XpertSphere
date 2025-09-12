@@ -60,7 +60,7 @@ public class JobOfferConfiguration : AuditableEntityConfiguration<JobOffer>
         // Composite indexes for common queries
         builder.HasIndex(jo => new { jo.Status, jo.PublishedAt })
             .HasDatabaseName("IX_JobOffers_Status_PublishedAt");
-        
+
         builder.HasIndex(jo => new { jo.OrganizationId, jo.Status })
             .HasDatabaseName("IX_JobOffers_OrganizationId_Status");
 

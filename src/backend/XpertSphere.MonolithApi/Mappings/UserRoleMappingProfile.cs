@@ -18,11 +18,12 @@ public class UserRoleMappingProfile : Profile
     {
         // UserRole -> UserRoleDto
         CreateMap<UserRole, UserRoleDto>()
-            .ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => $"{src.User.FirstName} {src.User.LastName}"))
+            .ForMember(dest => dest.UserFullName,
+                opt => opt.MapFrom(src => $"{src.User.FirstName} {src.User.LastName}"))
             .ForMember(dest => dest.UserEmail, opt => opt.MapFrom(src => src.User.Email))
             .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.Name))
             .ForMember(dest => dest.RoleDisplayName, opt => opt.MapFrom(src => src.Role.DisplayName))
-            .ForMember(dest => dest.AssignedByName, opt => opt.MapFrom(src => 
+            .ForMember(dest => dest.AssignedByName, opt => opt.MapFrom(src =>
                 src.AssignedByUser != null ? $"{src.AssignedByUser.FirstName} {src.AssignedByUser.LastName}" : null));
 
         // AssignRoleDto -> UserRole

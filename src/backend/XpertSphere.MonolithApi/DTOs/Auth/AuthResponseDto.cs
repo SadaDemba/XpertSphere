@@ -11,7 +11,7 @@ public record AuthResponseDto
     public string? EmailConfirmationToken { get; init; }
     public string? RedirectUrl { get; set; }
     public List<string> Errors { get; init; } = [];
-    
+
     // Entra ID specific fields
     public bool RequiresEntraId { get; init; } = false;
     public string? EntraIdAuthUrl { get; init; }

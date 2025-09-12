@@ -13,21 +13,21 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IExperienceService, ExperienceService>();
         services.AddScoped<ITrainingService, TrainingService>();
-        
+
         // Job Management Services
         services.AddScoped<IJobOfferService, JobOfferService>();
         services.AddScoped<IApplicationService, ApplicationService>();
         services.AddScoped<IApplicationStatusHistoryService, ApplicationStatusHistoryService>();
-        
+
         // RBAC Services
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IUserRoleService, UserRoleService>();
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IRolePermissionService, RolePermissionService>();
-        
+
         // Infrastructure Services
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-        
+
         // File Management Services
         services.AddScoped<IResumeService, ResumeService>();
 

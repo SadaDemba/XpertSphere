@@ -29,13 +29,14 @@ public class PermissionsController : ControllerBase
         var result = await _permissionService.GetAllPermissionsAsync();
         return this.ToActionResult(result);
     }
-    
+
     /// <summary>
     /// Get all paginated permissions
     /// </summary>
     [HttpGet("paginated")]
     [Authorize(Policy = "RequirePlatformRole")]
-    public async Task<ActionResult<PaginatedResult<PermissionDto>>> GetAllPermissions([FromQuery] PermissionFilterDto filter)
+    public async Task<ActionResult<PaginatedResult<PermissionDto>>> GetAllPermissions(
+        [FromQuery] PermissionFilterDto filter)
     {
         var result = await _permissionService.GetAllPaginatedPermissionsAsync(filter);
         return this.ToPaginatedActionResult(result);
