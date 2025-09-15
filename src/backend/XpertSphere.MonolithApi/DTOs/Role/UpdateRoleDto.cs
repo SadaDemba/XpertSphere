@@ -4,12 +4,9 @@ namespace XpertSphere.MonolithApi.DTOs.Role;
 
 public class UpdateRoleDto
 {
-    [Required]
-    [MaxLength(150)]
-    public required string DisplayName { get; set; }
+    [Required] [MaxLength(150)] public required string DisplayName { get; set; }
 
-    [MaxLength(500)]
-    public string? Description { get; set; }
+    [MaxLength(500)] public string? Description { get; set; }
 
     public bool IsActive { get; set; } = true;
 }

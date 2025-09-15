@@ -36,7 +36,7 @@ public class ExperiencesController(IExperienceService experienceService) : Contr
     /// </summary>
     [HttpPut("user/{userId:guid}/replace")]
     public async Task<ActionResult<IEnumerable<ExperienceDto>>> ReplaceUserExperiences(
-        Guid userId, 
+        Guid userId,
         [FromBody] List<CreateExperienceDto> experiences)
     {
         var result = await experienceService.ReplaceUserExperiencesAsync(userId, experiences);

@@ -8,6 +8,7 @@ public class JobOfferDto
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Requirements { get; set; } = string.Empty;
+    public string Benefits { get; set; } = string.Empty;
     public string? Location { get; set; }
     public WorkMode WorkMode { get; set; }
     public ContractType ContractType { get; set; }
@@ -25,4 +26,5 @@ public class JobOfferDto
     public string CreatedByUserName { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public bool IsExpired { get; set; }
+    public int ApplicationsCount { get; set; }
 }

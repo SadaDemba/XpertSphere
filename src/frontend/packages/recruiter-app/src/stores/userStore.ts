@@ -58,7 +58,7 @@ export const useUserStore = defineStore('user', () => {
         currentPage.value = response!.pagination.currentPage;
         pageSize.value = response!.pagination.pageSize;
         totalPages.value = response!.pagination.totalPages;
-        notification.showSuccessNotification('Utilisateurs chargés avce succès');
+        notification.showSuccessNotification('Utilisateurs chargés avec succès');
       } else {
         setError(response?.message || 'Erreur lors de la chargement des utilisateurs');
         notification.showSuccessNotification(
@@ -84,7 +84,7 @@ export const useUserStore = defineStore('user', () => {
       const response = await service.getUserById(id);
       if (response?.isSuccess && response.data) {
         currentUser.value = response!.data;
-        notification.showSuccessNotification('Utilisateurs chargés avce succès');
+        notification.showSuccessNotification('Utilisateurs chargés avec succès');
       } else {
         setError(response?.message || "Erreur lors de la chargement de l'utilisateur");
         notification.showSuccessNotification(
@@ -113,7 +113,7 @@ export const useUserStore = defineStore('user', () => {
       const response = await service.getUserProfile(id);
       if (response?.isSuccess && response.data) {
         currentUser.value = response!.data;
-        notification.showSuccessNotification('Utilisateurs chargés avce succès');
+        notification.showSuccessNotification('Utilisateurs chargés avec succès');
       } else {
         setError(response?.message || "Erreur lors de la chargement de l'utilisateur");
         notification.showSuccessNotification(
@@ -142,7 +142,7 @@ export const useUserStore = defineStore('user', () => {
       if (response?.isSuccess && response.data) {
         users.value.unshift(convertUserDtoToUserSearchResultDto(response.data));
         totalCount.value++;
-        notification.showSuccessNotification('Utilisateurs créé avec succès');
+        notification.showSuccessNotification('Utilisateur créé avec succès');
       } else {
         setError(response?.message || "Erreur lors de la création de l'utilisateur");
         notification.showSuccessNotification(
@@ -301,7 +301,7 @@ export const useUserStore = defineStore('user', () => {
           currentUser.value.isActive = true;
         }
 
-        notification.showSuccessNotification("Succès de l'opération");
+        notification.showSuccessNotification('Utilisateur activé avec succès');
       } else {
         setError(response?.message || "Erreur lors de l'activation");
         notification.showSuccessNotification(
@@ -340,7 +340,7 @@ export const useUserStore = defineStore('user', () => {
         if (currentUser.value?.id === id) {
           currentUser.value.isActive = false;
         }
-        notification.showSuccessNotification("Succès de l'opération");
+        notification.showSuccessNotification('Utilisateur désactivé avec succès');
       } else {
         setError(response?.message || 'Erreur lors de la désactivation');
         notification.showSuccessNotification(

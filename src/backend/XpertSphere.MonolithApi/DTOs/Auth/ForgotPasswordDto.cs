@@ -4,7 +4,5 @@ namespace XpertSphere.MonolithApi.DTOs.Auth;
 
 public record ForgotPasswordDto
 {
-    [Required]
-    [EmailAddress]
-    public required string Email { get; init; }
+    [Required] [EmailAddress] public required string Email { get; init; }
 }

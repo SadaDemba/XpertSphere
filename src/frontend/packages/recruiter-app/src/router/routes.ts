@@ -44,6 +44,12 @@ const routes: RouteRecordRaw[] = [
         beforeEnter: organizationRoleGuard,
       },
       {
+        path: 'jobs/:id',
+        component: () => import('pages/jobs/JobOfferDetailPage.vue'),
+        meta: { title: "Détail de l'offre" },
+        beforeEnter: organizationRoleGuard,
+      },
+      {
         path: 'candidates',
         component: () => import('pages/candidates/CandidatesPage.vue'),
         meta: { title: 'Candidats' },
@@ -53,6 +59,12 @@ const routes: RouteRecordRaw[] = [
         path: 'candidates/:id',
         component: () => import('pages/candidates/CandidateDetailPage.vue'),
         meta: { title: 'Détail candidat' },
+        beforeEnter: organizationRoleGuard,
+      },
+      {
+        path: 'candidates/:id/cv',
+        component: () => import('pages/candidates/CvViewPage.vue'),
+        meta: { title: 'CV Candidat' },
         beforeEnter: organizationRoleGuard,
       },
       {

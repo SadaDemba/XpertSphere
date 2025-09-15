@@ -18,7 +18,8 @@ public class ExperienceMappingProfile : Profile
     {
         // Experience -> ExperienceDto
         CreateMap<Experience, ExperienceDto>()
-            .ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.User != null ? src.User.FullName : null))
+            .ForMember(dest => dest.UserFullName,
+                opt => opt.MapFrom(src => src.User != null ? src.User.FullName : null))
             .ForMember(dest => dest.UserEmail, opt => opt.MapFrom(src => src.User != null ? src.User.Email : null));
 
         // CreateExperienceDto -> Experience

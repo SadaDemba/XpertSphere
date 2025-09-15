@@ -7,6 +7,7 @@ export interface JobOffer {
   title: string;
   description: string;
   requirements: string;
+  benefits: string;
   location?: string;
   workMode: WorkMode;
   contractType: ContractType;
@@ -24,6 +25,7 @@ export interface JobOffer {
   createdByUserName: string;
   isActive: boolean;
   isExpired: boolean;
+  applicationsCount: number;
 }
 
 export interface JobOfferDto {
@@ -31,6 +33,7 @@ export interface JobOfferDto {
   title: string;
   description: string;
   requirements: string;
+  benefits: string;
   location?: string;
   workMode: WorkMode;
   contractType: ContractType;
@@ -48,12 +51,14 @@ export interface JobOfferDto {
   createdByUserName: string;
   isActive: boolean;
   isExpired: boolean;
+  applicationsCount: number;
 }
 
 export interface CreateJobOfferDto {
   title: string;
   description: string;
   requirements: string;
+  benefits: string;
   location?: string | undefined;
   workMode: WorkMode;
   contractType: ContractType;
@@ -67,6 +72,7 @@ export interface UpdateJobOfferDto {
   title?: string | undefined;
   description?: string | undefined;
   requirements?: string | undefined;
+  benefits?: string | undefined;
   location?: string | undefined;
   workMode?: WorkMode | undefined;
   contractType?: ContractType | undefined;
@@ -104,21 +110,6 @@ export interface JobOfferFilter
   > {
   page?: number;
   pageSize?: number;
-}
-
-export interface PaginatedJobOffers {
-  items: JobOffer[];
-  pagination: {
-    currentPage: number;
-    pageSize: number;
-    totalItems: number;
-    totalPages: number;
-    hasPrevious: boolean;
-    hasNext: boolean;
-  };
-  isSuccess: boolean;
-  message: string;
-  errors: string[];
 }
 
 export interface JobOfferStatusConfig {

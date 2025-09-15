@@ -57,13 +57,15 @@ export const useUserRoleStore = defineStore('userRole', () => {
         userRoles.value = response.data!;
         currentUserRoles.value = response.data!;
       } else {
-        setError('Error loading user roles');
-        notification.showErrorNotification('Error loading user roles');
+        setError('Erreur lors du chargement des rôles utilisateur');
+        notification.showErrorNotification('Erreur lors du chargement des rôles utilisateur');
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error loading user roles');
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des rôles utilisateur',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error loading user roles',
+        error instanceof Error ? error.message : 'Erreur lors du chargement des rôles utilisateur',
       );
     } finally {
       setLoading(false);
@@ -81,13 +83,19 @@ export const useUserRoleStore = defineStore('userRole', () => {
       if (response?.isSuccess) {
         roleUsers.value = response.data!;
       } else {
-        setError('Error loading role users');
-        notification.showErrorNotification('Error loading role users');
+        setError('Erreur lors du chargement des utilisateurs du rôle');
+        notification.showErrorNotification('Erreur lors du chargement des utilisateurs du rôle');
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error loading role users');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Erreur lors du chargement des utilisateurs du rôle',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error loading role users',
+        error instanceof Error
+          ? error.message
+          : 'Erreur lors du chargement des utilisateurs du rôle',
       );
     } finally {
       setLoading(false);
@@ -102,22 +110,25 @@ export const useUserRoleStore = defineStore('userRole', () => {
       setLoading(true);
       clearError();
       const response = await userRoleService.assignRoleToUser(assignRoleDto);
-      if (response?.isSuccess) {
+      console.log(response);
+      if (response?.isSuccess && response) {
         const newUserRole = response.data!;
         userRoles.value.push(newUserRole);
         if (currentUserRoles.value.some((ur) => ur.userId === assignRoleDto.userId)) {
           currentUserRoles.value.push(newUserRole);
         }
-        notification.showSuccessNotification('Role assigned successfully');
+        notification.showSuccessNotification('Rôle assigné avec succès');
       } else {
-        setError(response?.message || 'Error assigning role');
-        notification.showErrorNotification(response?.message || 'Error assigning role');
+        setError(response?.message || "Erreur lors de l'assignation du rôle");
+        notification.showErrorNotification(
+          response?.message || "Erreur lors de l'assignation du rôle",
+        );
       }
       return response?.data;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error assigning role');
+      setError(error instanceof Error ? error.message : "Erreur lors de l'assignation du rôle");
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error assigning role',
+        error instanceof Error ? error.message : "Erreur lors de l'assignation du rôle",
       );
       return null;
     } finally {
@@ -138,17 +149,20 @@ export const useUserRoleStore = defineStore('userRole', () => {
         userRoles.value = userRoles.value.filter((ur) => ur.id !== userRoleId);
         currentUserRoles.value = currentUserRoles.value.filter((ur) => ur.id !== userRoleId);
         roleUsers.value = roleUsers.value.filter((ur) => ur.id !== userRoleId);
-        notification.showSuccessNotification('Role removed successfully');
+
+        notification.showSuccessNotification('Rôle retiré avec succès');
       } else {
-        setError(response?.message || 'Error removing role');
-        notification.showErrorNotification(response?.message || 'Error removing role');
+        setError(response?.message || 'Erreur lors de la suppression du rôle');
+        notification.showErrorNotification(
+          response?.message || 'Erreur lors de la suppression du rôle',
+        );
       }
 
       return response?.isSuccess;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error removing role');
+      setError(error instanceof Error ? error.message : 'Erreur lors de la suppression du rôle');
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error removing role',
+        error instanceof Error ? error.message : 'Erreur lors de la suppression du rôle',
       );
       return false;
     } finally {
@@ -178,18 +192,24 @@ export const useUserRoleStore = defineStore('userRole', () => {
         updateRole(roleUsers.value);
 
         notification.showSuccessNotification(
-          isActive ? 'User role activated successfully' : 'User role deactivated successfully',
+          isActive
+            ? 'Rôle utilisateur activé avec succès'
+            : 'Rôle utilisateur désactivé avec succès',
         );
       } else {
-        setError(response?.message || 'Error updating role status');
-        notification.showErrorNotification(response?.message || 'Error updating role status');
+        setError(response?.message || 'Erreur lors de la mise à jour du statut du rôle');
+        notification.showErrorNotification(
+          response?.message || 'Erreur lors de la mise à jour du statut du rôle',
+        );
       }
 
       return response?.isSuccess;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error updating role status');
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors de la mise à jour du statut du rôle',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error updating role status',
+        error instanceof Error ? error.message : 'Erreur lors de la mise à jour du statut du rôle',
       );
       return false;
     } finally {
@@ -218,17 +238,19 @@ export const useUserRoleStore = defineStore('userRole', () => {
         updateRole(currentUserRoles.value);
         updateRole(roleUsers.value);
 
-        notification.showSuccessNotification('User role extended successfully');
+        notification.showSuccessNotification('Rôle utilisateur prolongé avec succès');
       } else {
-        setError(response?.message || 'Error extending role');
-        notification.showErrorNotification(response?.message || 'Error extending role');
+        setError(response?.message || 'Erreur lors de la prolongation du rôle');
+        notification.showErrorNotification(
+          response?.message || 'Erreur lors de la prolongation du rôle',
+        );
       }
 
       return response?.isSuccess;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error extending role');
+      setError(error instanceof Error ? error.message : 'Erreur lors de la prolongation du rôle');
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error extending role',
+        error instanceof Error ? error.message : 'Erreur lors de la prolongation du rôle',
       );
       return false;
     } finally {
@@ -243,11 +265,11 @@ export const useUserRoleStore = defineStore('userRole', () => {
     try {
       const response = await userRoleService.checkUserHasRole(userId, roleName);
       if (!response?.isSuccess) {
-        setError(response?.message || 'Error checking user role');
+        setError(response?.message || 'Erreur lors de la vérification du rôle utilisateur');
       }
       return response?.data;
     } catch (err) {
-      setError(`Error checking user role: ${err}`);
+      setError(`Erreur lors de la vérification du rôle utilisateur: ${err}`);
       return false;
     }
   };
@@ -259,11 +281,11 @@ export const useUserRoleStore = defineStore('userRole', () => {
     try {
       const response = await userRoleService.checkUserHasActiveRole(userId, roleName);
       if (!response?.isSuccess) {
-        setError(response?.message || 'Error checking active role');
+        setError(response?.message || 'Erreur lors de la vérification du rôle actif');
       }
       return response?.data;
     } catch (err) {
-      setError(`Error checking active role: ${err}`);
+      setError(`Erreur lors de la vérification du rôle actif: ${err}`);
       return false;
     }
   };
@@ -275,11 +297,11 @@ export const useUserRoleStore = defineStore('userRole', () => {
     try {
       const response = await userRoleService.getUserRoleNames(userId);
       if (!response?.isSuccess) {
-        setError(response?.message || 'Error loading role names');
+        setError(response?.message || 'Erreur lors du chargement des noms de rôles');
       }
       return response?.data || [];
     } catch (err) {
-      setError(`Error loading role names: ${err}`);
+      setError(`Erreur lors du chargement des noms de rôles: ${err}`);
       return [];
     }
   };

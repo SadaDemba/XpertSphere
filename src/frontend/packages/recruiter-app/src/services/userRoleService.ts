@@ -29,7 +29,7 @@ export class UserRoleService extends BaseClient {
     userRoleId: string,
     isActive: boolean,
   ): Promise<VoidResponseResult | null> {
-    return this.patch<VoidResponseResult>(`/${userRoleId}/status`, isActive);
+    return this.put<VoidResponseResult>(`/${userRoleId}/status`, isActive);
   }
 
   async extendUserRole(

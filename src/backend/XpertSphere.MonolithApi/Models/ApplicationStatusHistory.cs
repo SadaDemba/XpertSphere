@@ -7,27 +7,19 @@ namespace XpertSphere.MonolithApi.Models;
 
 public class ApplicationStatusHistory
 {
-    [Key]
-    public Guid Id { get; set; }
+    [Key] public Guid Id { get; set; }
 
-    [Required]
-    public Guid ApplicationId { get; set; }
+    [Required] public Guid ApplicationId { get; set; }
 
-    [Required]
-    public ApplicationStatus Status { get; set; }
+    [Required] public ApplicationStatus Status { get; set; }
 
-    [Required]
-    [MaxLength(1000)]
-    public required string Comment { get; set; }
+    [Required] [MaxLength(1000)] public required string Comment { get; set; }
 
-    [Range(1, 5)]
-    public int? Rating { get; set; }
+    [Range(1, 5)] public int? Rating { get; set; }
 
-    [Required]
-    public Guid UpdatedByUserId { get; set; }
+    [Required] public Guid UpdatedByUserId { get; set; }
 
-    [Required]
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    [Required] public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
     [ForeignKey("ApplicationId")]
@@ -55,8 +47,7 @@ public class ApplicationStatusHistory
         _ => Status.ToString()
     };
 
-    [NotMapped]
-    public bool HasRating => Rating.HasValue;
+    [NotMapped] public bool HasRating => Rating.HasValue;
 
     [NotMapped]
     public string RatingDescription => Rating switch

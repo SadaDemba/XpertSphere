@@ -17,12 +17,12 @@ public static class AutoMapperHelper
     {
         // Return a simple mock mapper for tests
         var mockMapper = new Mock<IMapper>();
-        
+
         // Setup basic mappings that tests expect
         mockMapper.Setup(m => m.Map<User>(It.IsAny<RegisterDto>()))
-            .Returns((RegisterDto dto) => new User 
-            { 
-                Email = dto.Email, 
+            .Returns((RegisterDto dto) => new User
+            {
+                Email = dto.Email,
                 UserName = dto.Email,
                 FirstName = dto.FirstName,
                 LastName = dto.LastName
@@ -231,7 +231,7 @@ public static class AutoMapperHelper
                 UpdatedAt = org.UpdatedAt,
                 UsersCount = 0
             }));
-            
+
         return mockMapper.Object;
     }
 }

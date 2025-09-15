@@ -1,9 +1,9 @@
 export enum ApplicationSource {
-  Website = 0,
-  LinkedIn = 1,
-  Email = 2,
-  Referral = 3,
-  Direct = 4,
+  Website,
+  LinkedIn,
+  Email,
+  Referral,
+  Direct,
 }
 
 export const sourceLabels = {

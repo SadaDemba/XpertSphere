@@ -203,5 +203,6 @@ export const useAuthStore = defineStore('auth', () => {
     analyzeResume,
     logout,
     initialize,
+    loadCurrentUser,
   };
 });

@@ -16,7 +16,7 @@ public static class PaginationExtensions
         int pageSize)
     {
         var totalItems = await query.CountAsync();
-        
+
         if (totalItems == 0)
         {
             return PaginatedResult<T>.Empty(pageNumber, pageSize);
@@ -39,7 +39,7 @@ public static class PaginationExtensions
         int pageSize)
     {
         var totalItems = list.Count;
-        
+
         if (totalItems == 0)
         {
             return PaginatedResult<T>.Empty(pageNumber, pageSize);

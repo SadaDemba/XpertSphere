@@ -21,13 +21,17 @@ public class ApplicationMappingProfile : Profile
             .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.JobOffer.Organization.Name))
             .ForMember(dest => dest.CandidateName, opt => opt.MapFrom(src => src.Candidate.FullName))
             .ForMember(dest => dest.CandidateEmail, opt => opt.MapFrom(src => src.Candidate.Email))
-            .ForMember(dest => dest.AssignedTechnicalEvaluatorName, opt => opt.MapFrom(src => src.AssignedTechnicalEvaluator != null ? src.AssignedTechnicalEvaluator.FullName : null))
-            .ForMember(dest => dest.AssignedManagerName, opt => opt.MapFrom(src => src.AssignedManager != null ? src.AssignedManager.FullName : null))
+            .ForMember(dest => dest.AssignedTechnicalEvaluatorName,
+                opt => opt.MapFrom(src =>
+                    src.AssignedTechnicalEvaluator != null ? src.AssignedTechnicalEvaluator.FullName : null))
+            .ForMember(dest => dest.AssignedManagerName,
+                opt => opt.MapFrom(src => src.AssignedManager != null ? src.AssignedManager.FullName : null))
             .ForMember(dest => dest.StatusDisplayName, opt => opt.MapFrom(src => src.StatusDisplayName))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
             .ForMember(dest => dest.IsCompleted, opt => opt.MapFrom(src => src.IsCompleted))
             .ForMember(dest => dest.IsInProgress, opt => opt.MapFrom(src => src.IsInProgress))
-            .ForMember(dest => dest.StatusHistory, opt => opt.MapFrom(src => src.StatusHistory.OrderBy(h => h.UpdatedAt)));
+            .ForMember(dest => dest.StatusHistory,
+                opt => opt.MapFrom(src => src.StatusHistory.OrderBy(h => h.UpdatedAt)));
 
         // CreateApplicationDto -> Application
         CreateMap<CreateApplicationDto, Application>()

@@ -13,7 +13,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.ToTable("Users", t =>
         {
-
             t.HasCheckConstraint(
                 "CK_User_YearsOfExperience",
                 "[YearsOfExperience] IS NULL OR [YearsOfExperience] >= 0");
@@ -22,7 +21,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                 "CK_User_DesiredSalary",
                 "[DesiredSalary] IS NULL OR [DesiredSalary] > 0");
         });
-        
+
         // Configure Address as owned entity (ComplexType)
         builder.OwnsOne(
             u => u.Address,
@@ -69,21 +68,20 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithOne(ur => ur.User)
             .HasForeignKey(ur => ur.UserId)
             .OnDelete(DeleteBehavior.Restrict);
-        
+
         builder
             .HasMany(u => u.Experiences)
             .WithOne(e => e.User)
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Restrict);
-        
+
         builder
             .HasMany(u => u.Trainings)
             .WithOne(t => t.User)
             .HasForeignKey(t => t.UserId)
             .OnDelete(DeleteBehavior.Restrict);
-        
-        ConfigureAuditProperties(builder);
 
+        ConfigureAuditProperties(builder);
     }
 
     private static void ConfigureAuditProperties(EntityTypeBuilder<User> builder)

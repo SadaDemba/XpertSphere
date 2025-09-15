@@ -52,12 +52,12 @@ public class ApplicationService : IApplicationService
         {
             var applications = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
                 .Include(a => a.StatusHistory)
-                    .ThenInclude(h => h.UpdatedByUser)
+                .ThenInclude(h => h.UpdatedByUser)
                 .OrderByDescending(a => a.AppliedAt)
                 .ToListAsync();
 
@@ -67,7 +67,8 @@ public class ApplicationService : IApplicationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving all applications");
-            return ServiceResult<IEnumerable<ApplicationDto>>.InternalError("An error occurred while retrieving applications");
+            return ServiceResult<IEnumerable<ApplicationDto>>.InternalError(
+                "An error occurred while retrieving applications");
         }
     }
 
@@ -104,13 +105,13 @@ public class ApplicationService : IApplicationService
         {
             var application = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(jo => jo.StatusHistory)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
                 .Include(a => a.StatusHistory)
-                    .ThenInclude(h => h.UpdatedByUser)
+                .ThenInclude(h => h.UpdatedByUser)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (application == null)
@@ -128,7 +129,8 @@ public class ApplicationService : IApplicationService
         }
     }
 
-    public async Task<ServiceResult<ApplicationDto>> CreateApplicationAsync(CreateApplicationDto createApplicationDto, Guid candidateId)
+    public async Task<ServiceResult<ApplicationDto>> CreateApplicationAsync(CreateApplicationDto createApplicationDto,
+        Guid candidateId)
     {
         try
         {
@@ -146,7 +148,8 @@ public class ApplicationService : IApplicationService
 
             if (jobOffer == null)
             {
-                return ServiceResult<ApplicationDto>.NotFound($"Job offer with ID {createApplicationDto.JobOfferId} not found");
+                return ServiceResult<ApplicationDto>.NotFound(
+                    $"Job offer with ID {createApplicationDto.JobOfferId} not found");
             }
 
             if (jobOffer.Status != JobOfferStatus.Published)
@@ -168,7 +171,8 @@ public class ApplicationService : IApplicationService
 
             // Check if candidate has already applied to this job offer
             var existingApplication = await _context.Applications
-                .FirstOrDefaultAsync(a => a.JobOfferId == createApplicationDto.JobOfferId && a.CandidateId == candidateId);
+                .FirstOrDefaultAsync(a =>
+                    a.JobOfferId == createApplicationDto.JobOfferId && a.CandidateId == candidateId);
 
             if (existingApplication != null)
             {
@@ -196,18 +200,18 @@ public class ApplicationService : IApplicationService
 
             await _statusHistoryService.AddStatusChangeAsync(addStatusChangeDto);
 
-            _logger.LogInformation("Created new application with ID {ApplicationId} for job offer {JobOfferId}", 
+            _logger.LogInformation("Created new application with ID {ApplicationId} for job offer {JobOfferId}",
                 application.Id, createApplicationDto.JobOfferId);
 
             // Reload with includes for proper mapping
             application = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
                 .Include(a => a.StatusHistory)
-                    .ThenInclude(h => h.UpdatedByUser)
+                .ThenInclude(h => h.UpdatedByUser)
                 .FirstAsync(a => a.Id == application.Id);
 
             var applicationDto = _mapper.Map<ApplicationDto>(application);
@@ -215,12 +219,14 @@ public class ApplicationService : IApplicationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating application for job offer {JobOfferId}", createApplicationDto.JobOfferId);
+            _logger.LogError(ex, "Error creating application for job offer {JobOfferId}",
+                createApplicationDto.JobOfferId);
             return ServiceResult<ApplicationDto>.InternalError("An error occurred while creating the application");
         }
     }
 
-    public async Task<ServiceResult<ApplicationDto>> UpdateApplicationAsync(Guid id, UpdateApplicationDto updateApplicationDto, Guid userId)
+    public async Task<ServiceResult<ApplicationDto>> UpdateApplicationAsync(Guid id,
+        UpdateApplicationDto updateApplicationDto, Guid userId)
     {
         try
         {
@@ -233,12 +239,12 @@ public class ApplicationService : IApplicationService
 
             var application = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
                 .Include(a => a.StatusHistory)
-                    .ThenInclude(h => h.UpdatedByUser)
+                .ThenInclude(h => h.UpdatedByUser)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (application == null)
@@ -307,7 +313,8 @@ public class ApplicationService : IApplicationService
         }
     }
 
-    public async Task<ServiceResult<ApplicationDto>> UpdateApplicationStatusAsync(Guid id, UpdateApplicationStatusDto updateStatusDto, Guid userId)
+    public async Task<ServiceResult<ApplicationDto>> UpdateApplicationStatusAsync(Guid id,
+        UpdateApplicationStatusDto updateStatusDto, Guid userId)
     {
         try
         {
@@ -320,12 +327,12 @@ public class ApplicationService : IApplicationService
 
             var application = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
                 .Include(a => a.StatusHistory)
-                    .ThenInclude(h => h.UpdatedByUser)
+                .ThenInclude(h => h.UpdatedByUser)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (application == null)
@@ -376,17 +383,18 @@ public class ApplicationService : IApplicationService
 
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Updated status for application {ApplicationId} to {Status}", id, updateStatusDto.Status);
+            _logger.LogInformation("Updated status for application {ApplicationId} to {Status}", id,
+                updateStatusDto.Status);
 
             // Reload to get updated status history
             application = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
                 .Include(a => a.StatusHistory)
-                    .ThenInclude(h => h.UpdatedByUser)
+                .ThenInclude(h => h.UpdatedByUser)
                 .FirstAsync(a => a.Id == id);
 
             var applicationDto = _mapper.Map<ApplicationDto>(application);
@@ -452,12 +460,12 @@ public class ApplicationService : IApplicationService
         {
             var applications = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
                 .Include(a => a.StatusHistory)
-                    .ThenInclude(h => h.UpdatedByUser)
+                .ThenInclude(h => h.UpdatedByUser)
                 .Where(a => a.JobOfferId == jobOfferId)
                 .OrderByDescending(a => a.AppliedAt)
                 .ToListAsync();
@@ -468,7 +476,8 @@ public class ApplicationService : IApplicationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving applications for job offer {JobOfferId}", jobOfferId);
-            return ServiceResult<IEnumerable<ApplicationDto>>.InternalError("An error occurred while retrieving applications");
+            return ServiceResult<IEnumerable<ApplicationDto>>.InternalError(
+                "An error occurred while retrieving applications");
         }
     }
 
@@ -478,12 +487,12 @@ public class ApplicationService : IApplicationService
         {
             var applications = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
                 .Include(a => a.StatusHistory)
-                    .ThenInclude(h => h.UpdatedByUser)
+                .ThenInclude(h => h.UpdatedByUser)
                 .Where(a => a.CandidateId == candidateId)
                 .OrderByDescending(a => a.AppliedAt)
                 .ToListAsync();
@@ -494,22 +503,24 @@ public class ApplicationService : IApplicationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving applications for candidate {CandidateId}", candidateId);
-            return ServiceResult<IEnumerable<ApplicationDto>>.InternalError("An error occurred while retrieving applications");
+            return ServiceResult<IEnumerable<ApplicationDto>>.InternalError(
+                "An error occurred while retrieving applications");
         }
     }
 
-    public async Task<ServiceResult<IEnumerable<ApplicationDto>>> GetApplicationsByOrganizationAsync(Guid organizationId)
+    public async Task<ServiceResult<IEnumerable<ApplicationDto>>> GetApplicationsByOrganizationAsync(
+        Guid organizationId)
     {
         try
         {
             var applications = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
                 .Include(a => a.StatusHistory)
-                    .ThenInclude(h => h.UpdatedByUser)
+                .ThenInclude(h => h.UpdatedByUser)
                 .Where(a => a.JobOffer.OrganizationId == organizationId)
                 .OrderByDescending(a => a.AppliedAt)
                 .ToListAsync();
@@ -520,18 +531,21 @@ public class ApplicationService : IApplicationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving applications for organization {OrganizationId}", organizationId);
-            return ServiceResult<IEnumerable<ApplicationDto>>.InternalError("An error occurred while retrieving applications");
+            return ServiceResult<IEnumerable<ApplicationDto>>.InternalError(
+                "An error occurred while retrieving applications");
         }
     }
 
-    public async Task<ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>> GetApplicationStatusHistoryAsync(Guid applicationId)
+    public async Task<ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>> GetApplicationStatusHistoryAsync(
+        Guid applicationId)
     {
         try
         {
             var application = await _context.Applications.FirstOrDefaultAsync(a => a.Id == applicationId);
             if (application == null)
             {
-                return ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>.NotFound($"Application with ID {applicationId} not found");
+                return ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>.NotFound(
+                    $"Application with ID {applicationId} not found");
             }
 
             return await _statusHistoryService.GetByApplicationIdAsync(applicationId);
@@ -539,7 +553,8 @@ public class ApplicationService : IApplicationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving status history for application {ApplicationId}", applicationId);
-            return ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>.InternalError("An error occurred while retrieving status history");
+            return ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>.InternalError(
+                "An error occurred while retrieving status history");
         }
     }
 
@@ -601,12 +616,12 @@ public class ApplicationService : IApplicationService
     {
         var query = _context.Applications
             .Include(a => a.JobOffer)
-                .ThenInclude(jo => jo.Organization)
+            .ThenInclude(jo => jo.Organization)
             .Include(a => a.Candidate)
             .Include(a => a.AssignedTechnicalEvaluator)
             .Include(a => a.AssignedManager)
             .Include(a => a.StatusHistory)
-                .ThenInclude(h => h.UpdatedByUser)
+            .ThenInclude(h => h.UpdatedByUser)
             .AsQueryable();
 
         if (filter.JobOfferId.HasValue)
@@ -643,15 +658,15 @@ public class ApplicationService : IApplicationService
         {
             if (filter.IsActive.Value)
             {
-                query = query.Where(a => a.CurrentStatus != ApplicationStatus.Rejected && 
-                                        a.CurrentStatus != ApplicationStatus.Withdrawn && 
-                                        a.CurrentStatus != ApplicationStatus.Accepted);
+                query = query.Where(a => a.CurrentStatus != ApplicationStatus.Rejected &&
+                                         a.CurrentStatus != ApplicationStatus.Withdrawn &&
+                                         a.CurrentStatus != ApplicationStatus.Accepted);
             }
             else
             {
-                query = query.Where(a => a.CurrentStatus == ApplicationStatus.Rejected || 
-                                        a.CurrentStatus == ApplicationStatus.Withdrawn || 
-                                        a.CurrentStatus == ApplicationStatus.Accepted);
+                query = query.Where(a => a.CurrentStatus == ApplicationStatus.Rejected ||
+                                         a.CurrentStatus == ApplicationStatus.Withdrawn ||
+                                         a.CurrentStatus == ApplicationStatus.Accepted);
             }
         }
 
@@ -659,15 +674,15 @@ public class ApplicationService : IApplicationService
         {
             if (filter.IsCompleted.Value)
             {
-                query = query.Where(a => a.CurrentStatus == ApplicationStatus.Accepted || 
-                                        a.CurrentStatus == ApplicationStatus.Rejected || 
-                                        a.CurrentStatus == ApplicationStatus.Withdrawn);
+                query = query.Where(a => a.CurrentStatus == ApplicationStatus.Accepted ||
+                                         a.CurrentStatus == ApplicationStatus.Rejected ||
+                                         a.CurrentStatus == ApplicationStatus.Withdrawn);
             }
             else
             {
-                query = query.Where(a => a.CurrentStatus != ApplicationStatus.Accepted && 
-                                        a.CurrentStatus != ApplicationStatus.Rejected && 
-                                        a.CurrentStatus != ApplicationStatus.Withdrawn);
+                query = query.Where(a => a.CurrentStatus != ApplicationStatus.Accepted &&
+                                         a.CurrentStatus != ApplicationStatus.Rejected &&
+                                         a.CurrentStatus != ApplicationStatus.Withdrawn);
             }
         }
 
@@ -675,17 +690,17 @@ public class ApplicationService : IApplicationService
         {
             if (filter.IsInProgress.Value)
             {
-                query = query.Where(a => a.CurrentStatus != ApplicationStatus.Applied && 
-                                        a.CurrentStatus != ApplicationStatus.Rejected && 
-                                        a.CurrentStatus != ApplicationStatus.Withdrawn && 
-                                        a.CurrentStatus != ApplicationStatus.Accepted);
+                query = query.Where(a => a.CurrentStatus != ApplicationStatus.Applied &&
+                                         a.CurrentStatus != ApplicationStatus.Rejected &&
+                                         a.CurrentStatus != ApplicationStatus.Withdrawn &&
+                                         a.CurrentStatus != ApplicationStatus.Accepted);
             }
             else
             {
-                query = query.Where(a => a.CurrentStatus == ApplicationStatus.Applied || 
-                                        a.CurrentStatus == ApplicationStatus.Rejected || 
-                                        a.CurrentStatus == ApplicationStatus.Withdrawn || 
-                                        a.CurrentStatus == ApplicationStatus.Accepted);
+                query = query.Where(a => a.CurrentStatus == ApplicationStatus.Applied ||
+                                         a.CurrentStatus == ApplicationStatus.Rejected ||
+                                         a.CurrentStatus == ApplicationStatus.Withdrawn ||
+                                         a.CurrentStatus == ApplicationStatus.Accepted);
             }
         }
 
@@ -745,7 +760,8 @@ public class ApplicationService : IApplicationService
         return query;
     }
 
-    private static IQueryable<Application> ApplySorting(IQueryable<Application> query, string sortBy, SortDirection sortDirection)
+    private static IQueryable<Application> ApplySorting(IQueryable<Application> query, string sortBy,
+        SortDirection sortDirection)
     {
         return sortBy.ToLower() switch
         {
@@ -789,7 +805,7 @@ public class ApplicationService : IApplicationService
 
             var application = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
@@ -797,7 +813,8 @@ public class ApplicationService : IApplicationService
 
             if (application == null)
             {
-                return ServiceResult<ApplicationDto>.NotFound($"Application with ID {assignUserDto.ApplicationId} not found");
+                return ServiceResult<ApplicationDto>.NotFound(
+                    $"Application with ID {assignUserDto.ApplicationId} not found");
             }
 
             // Check if user can manage this application (recruiter of the organization)
@@ -818,7 +835,8 @@ public class ApplicationService : IApplicationService
 
             if (user.OrganizationId != application.JobOffer.OrganizationId)
             {
-                return ServiceResult<ApplicationDto>.Failure("User must belong to the same organization as the job offer");
+                return ServiceResult<ApplicationDto>.Failure(
+                    "User must belong to the same organization as the job offer");
             }
 
             // Assign based on the assignment type
@@ -834,29 +852,32 @@ public class ApplicationService : IApplicationService
             application.LastUpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Assigned {AssignmentType} to application {ApplicationId} by user {UserId}", 
+            _logger.LogInformation("Assigned {AssignmentType} to application {ApplicationId} by user {UserId}",
                 assignUserDto.AssignmentType, assignUserDto.ApplicationId, assignedByUserId);
 
             // Reload to get updated navigation properties
             application = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
                 .FirstAsync(a => a.Id == assignUserDto.ApplicationId);
 
             var applicationDto = _mapper.Map<ApplicationDto>(application);
-            return ServiceResult<ApplicationDto>.Success(applicationDto, $"{assignUserDto.AssignmentType} assigned successfully");
+            return ServiceResult<ApplicationDto>.Success(applicationDto,
+                $"{assignUserDto.AssignmentType} assigned successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error assigning {AssignmentType} to application {ApplicationId}", assignUserDto.AssignmentType, assignUserDto.ApplicationId);
+            _logger.LogError(ex, "Error assigning {AssignmentType} to application {ApplicationId}",
+                assignUserDto.AssignmentType, assignUserDto.ApplicationId);
             return ServiceResult<ApplicationDto>.InternalError("An error occurred while assigning user");
         }
     }
 
-    public async Task<ServiceResult<ApplicationDto>> UnassignUserAsync(AssignUserDto unassignUserDto, Guid assignedByUserId)
+    public async Task<ServiceResult<ApplicationDto>> UnassignUserAsync(AssignUserDto unassignUserDto,
+        Guid assignedByUserId)
     {
         try
         {
@@ -869,7 +890,7 @@ public class ApplicationService : IApplicationService
 
             var application = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
@@ -877,7 +898,8 @@ public class ApplicationService : IApplicationService
 
             if (application == null)
             {
-                return ServiceResult<ApplicationDto>.NotFound($"Application with ID {unassignUserDto.ApplicationId} not found");
+                return ServiceResult<ApplicationDto>.NotFound(
+                    $"Application with ID {unassignUserDto.ApplicationId} not found");
             }
 
             // Check if user can manage this application (recruiter of the organization)
@@ -894,6 +916,7 @@ public class ApplicationService : IApplicationService
                 {
                     return ServiceResult<ApplicationDto>.Failure("No technical evaluator assigned to this application");
                 }
+
                 application.AssignedTechnicalEvaluatorId = null;
             }
             else if (unassignUserDto.AssignmentType == AssignmentType.Manager)
@@ -902,30 +925,33 @@ public class ApplicationService : IApplicationService
                 {
                     return ServiceResult<ApplicationDto>.Failure("No manager assigned to this application");
                 }
+
                 application.AssignedManagerId = null;
             }
 
             application.LastUpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Unassigned {AssignmentType} from application {ApplicationId} by user {UserId}", 
+            _logger.LogInformation("Unassigned {AssignmentType} from application {ApplicationId} by user {UserId}",
                 unassignUserDto.AssignmentType, unassignUserDto.ApplicationId, assignedByUserId);
 
             // Reload to get updated navigation properties
             application = await _context.Applications
                 .Include(a => a.JobOffer)
-                    .ThenInclude(jo => jo.Organization)
+                .ThenInclude(jo => jo.Organization)
                 .Include(a => a.Candidate)
                 .Include(a => a.AssignedTechnicalEvaluator)
                 .Include(a => a.AssignedManager)
                 .FirstAsync(a => a.Id == unassignUserDto.ApplicationId);
 
             var applicationDto = _mapper.Map<ApplicationDto>(application);
-            return ServiceResult<ApplicationDto>.Success(applicationDto, $"{unassignUserDto.AssignmentType} unassigned successfully");
+            return ServiceResult<ApplicationDto>.Success(applicationDto,
+                $"{unassignUserDto.AssignmentType} unassigned successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error unassigning {AssignmentType} from application {ApplicationId}", unassignUserDto.AssignmentType, unassignUserDto.ApplicationId);
+            _logger.LogError(ex, "Error unassigning {AssignmentType} from application {ApplicationId}",
+                unassignUserDto.AssignmentType, unassignUserDto.ApplicationId);
             return ServiceResult<ApplicationDto>.InternalError("An error occurred while unassigning user");
         }
     }

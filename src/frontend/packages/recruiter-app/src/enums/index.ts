@@ -1,4 +1,5 @@
 export { JobOfferStatus } from './JobOfferStatus';
+export { getJobOfferStatusName } from './JobOfferStatus';
 export { WorkMode } from './WorkMode';
 export { ContractType } from './ContractType';
 export { ApplicationStatus } from './ApplicationStatus';

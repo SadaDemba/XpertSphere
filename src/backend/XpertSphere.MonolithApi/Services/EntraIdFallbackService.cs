@@ -8,9 +8,15 @@ namespace XpertSphere.MonolithApi.Services;
 
 public interface IEntraIdFallbackService
 {
-    Task<AuthResult> HandleAuthenticationWithFallback(LoginDto loginDto, Func<Task<AuthResult>> entraIdAuth, Func<Task<AuthResult>> localAuth);
-    Task<AuthResult> HandleRegistrationWithFallback(RegisterDto registerDto, Func<Task<AuthResult>> entraIdReg, Func<Task<AuthResult>> localReg);
-   ServiceResult<AuthUrlResponseDto> GetAuthUrlWithFallback(string? email, string? returnUrl, Func<ServiceResult<AuthUrlResponseDto>> entraIdUrl);
+    Task<AuthResult> HandleAuthenticationWithFallback(LoginDto loginDto, Func<Task<AuthResult>> entraIdAuth,
+        Func<Task<AuthResult>> localAuth);
+
+    Task<AuthResult> HandleRegistrationWithFallback(RegisterDto registerDto, Func<Task<AuthResult>> entraIdReg,
+        Func<Task<AuthResult>> localReg);
+
+    ServiceResult<AuthUrlResponseDto> GetAuthUrlWithFallback(string? email, string? returnUrl,
+        Func<ServiceResult<AuthUrlResponseDto>> entraIdUrl);
+
     bool ShouldUseEntraId(string? email = null);
     AuthResult CreateFallbackResponse(string operation, string reason, string? redirectEndpoint = null);
 }
@@ -22,7 +28,7 @@ public class EntraIdFallbackService : IEntraIdFallbackService
     private readonly IEntraIdErrorHandler _errorHandler;
     private readonly IWebHostEnvironment _environment;
     private readonly EntraIdSettings _entraIdSettings;
-    
+
     private static readonly Dictionary<string, DateTime> _failureTimestamps = new();
     private static readonly Dictionary<string, int> _failureCounts = new();
     private static readonly TimeSpan CircuitBreakerTimeout = TimeSpan.FromMinutes(10);
@@ -43,8 +49,8 @@ public class EntraIdFallbackService : IEntraIdFallbackService
     }
 
     public async Task<AuthResult> HandleAuthenticationWithFallback(
-        LoginDto loginDto, 
-        Func<Task<AuthResult>> entraIdAuth, 
+        LoginDto loginDto,
+        Func<Task<AuthResult>> entraIdAuth,
         Func<Task<AuthResult>> localAuth)
     {
         var startTime = DateTime.UtcNow;
@@ -67,7 +73,7 @@ public class EntraIdFallbackService : IEntraIdFallbackService
         try
         {
             var entraResult = await ExecuteWithTimeout(() => entraIdAuth(), TimeSpan.FromSeconds(15));
-            
+
             if (entraResult.IsSuccess)
             {
                 ResetFailureCount("authentication");
@@ -99,8 +105,8 @@ public class EntraIdFallbackService : IEntraIdFallbackService
     }
 
     public async Task<AuthResult> HandleRegistrationWithFallback(
-        RegisterDto registerDto, 
-        Func<Task<AuthResult>> entraIdReg, 
+        RegisterDto registerDto,
+        Func<Task<AuthResult>> entraIdReg,
         Func<Task<AuthResult>> localReg)
     {
         var startTime = DateTime.UtcNow;
@@ -123,7 +129,7 @@ public class EntraIdFallbackService : IEntraIdFallbackService
         try
         {
             var entraResult = await ExecuteWithTimeout(() => entraIdReg(), TimeSpan.FromSeconds(20));
-            
+
             if (entraResult.IsSuccess)
             {
                 ResetFailureCount("registration");
@@ -150,8 +156,8 @@ public class EntraIdFallbackService : IEntraIdFallbackService
     }
 
     public ServiceResult<AuthUrlResponseDto> GetAuthUrlWithFallback(
-        string? email, 
-        string? returnUrl, 
+        string? email,
+        string? returnUrl,
         Func<ServiceResult<AuthUrlResponseDto>> entraIdUrl)
     {
         if (!ShouldUseEntraId(email))
@@ -167,7 +173,7 @@ public class EntraIdFallbackService : IEntraIdFallbackService
         try
         {
             var result = entraIdUrl();
-            
+
             if (result.IsSuccess)
             {
                 ResetFailureCount("url_generation");
@@ -186,7 +192,7 @@ public class EntraIdFallbackService : IEntraIdFallbackService
         {
             RecordFailure("url_generation");
             _logger.LogError(ex, "Error generating Entra ID URL for {Email}", email);
-            
+
             return ServiceResult<AuthUrlResponseDto>.Success(new AuthUrlResponseDto
             {
                 UseLocalAuth = true,
@@ -222,7 +228,7 @@ public class EntraIdFallbackService : IEntraIdFallbackService
     public AuthResult CreateFallbackResponse(string operation, string reason, string? redirectEndpoint = null)
     {
         var message = $"External authentication unavailable for {operation}. {reason}";
-        
+
         if (!string.IsNullOrEmpty(redirectEndpoint))
         {
             message += $" Please use {redirectEndpoint}";
@@ -245,9 +251,9 @@ public class EntraIdFallbackService : IEntraIdFallbackService
     }
 
     private async Task<AuthResult> ExecuteWithLogging(
-        Func<Task<AuthResult>> operation, 
-        string authType, 
-        string email, 
+        Func<Task<AuthResult>> operation,
+        string authType,
+        string email,
         DateTime startTime)
     {
         try
@@ -257,7 +263,8 @@ public class EntraIdFallbackService : IEntraIdFallbackService
 
             if (result.IsSuccess)
             {
-                _authLogger.LogAuthenticationSuccess(email, authType, result.Data?.User?.Id.ToString() ?? "Unknown", duration);
+                _authLogger.LogAuthenticationSuccess(email, authType, result.Data?.User?.Id.ToString() ?? "Unknown",
+                    duration);
             }
             else
             {
@@ -278,7 +285,7 @@ public class EntraIdFallbackService : IEntraIdFallbackService
     {
         // Don't fall back for user errors (they should retry with Entra ID)
         var noFallbackErrors = new[] { "ACCESS_DENIED", "INVALID_REQUEST", "INVALID_SCOPE" };
-        
+
         if (entraResult.Errors?.Any(e => noFallbackErrors.Contains(e)) == true)
         {
             return false;
@@ -293,9 +300,9 @@ public class EntraIdFallbackService : IEntraIdFallbackService
         var key = $"entra_id_{operation}";
         _failureTimestamps[key] = DateTime.UtcNow;
         _failureCounts[key] = _failureCounts.GetValueOrDefault(key, 0) + 1;
-        
+
         _logger.LogWarning(
-            "Entra ID failure recorded for {Operation}. Count: {Count}", 
+            "Entra ID failure recorded for {Operation}. Count: {Count}",
             operation, _failureCounts[key]);
     }
 
@@ -313,12 +320,12 @@ public class EntraIdFallbackService : IEntraIdFallbackService
     private bool IsCircuitBreakerOpen()
     {
         var now = DateTime.UtcNow;
-        
+
         foreach (var kvp in _failureTimestamps.ToList())
         {
             var operation = kvp.Key;
             var timestamp = kvp.Value;
-            
+
             // Reset old failures
             if (now - timestamp > CircuitBreakerTimeout)
             {
@@ -326,17 +333,17 @@ public class EntraIdFallbackService : IEntraIdFallbackService
                 _failureTimestamps.Remove(operation);
                 continue;
             }
-            
+
             // Check if circuit breaker should be open
             if (_failureCounts.GetValueOrDefault(operation, 0) >= MaxFailures)
             {
                 _logger.LogWarning(
-                    "Circuit breaker open for {Operation} due to {Count} failures", 
+                    "Circuit breaker open for {Operation} due to {Count} failures",
                     operation, _failureCounts[operation]);
                 return true;
             }
         }
-        
+
         return false;
     }
 }

@@ -5,14 +5,12 @@ namespace XpertSphere.MonolithApi.Config;
 public class EntraIdB2BSettings
 {
     public string ClientId { get; set; } = string.Empty;
-    
+
     public string ClientSecret { get; set; } = string.Empty;
 
-    [Required]
-    public string Authority { get; set; } = string.Empty;
+    [Required] public string Authority { get; set; } = string.Empty;
 
-    [Required]
-    public List<string> Scopes { get; set; } = new();
+    [Required] public List<string> Scopes { get; set; } = new();
 
     public List<string> GraphScopes { get; set; } = new()
     {

@@ -29,8 +29,16 @@ public class OrganizationControllerTests
         var filter = new OrganizationFilterDto();
         var organizations = new List<OrganizationDto>
         {
-            new() { Id = Guid.NewGuid(), Name = "Org1", Code = "ORG1", Size = OrganizationSize.Small, Address = new Address() },
-            new() { Id = Guid.NewGuid(), Name = "Org2", Code = "ORG2", Size = OrganizationSize.Medium, Address = new Address() }
+            new()
+            {
+                Id = Guid.NewGuid(), Name = "Org1", Code = "ORG1", Size = OrganizationSize.Small,
+                Address = new Address()
+            },
+            new()
+            {
+                Id = Guid.NewGuid(), Name = "Org2", Code = "ORG2", Size = OrganizationSize.Medium,
+                Address = new Address()
+            }
         };
 
         var paginatedResult = PaginatedResult<OrganizationDto>.Success(organizations, 1, 10, 2);
@@ -39,11 +47,11 @@ public class OrganizationControllerTests
 
         // Act & Assert - Just verify the service is called
         _mockOrganizationService.Verify(x => x.GetAllAsync(It.IsAny<OrganizationFilterDto>()), Times.Never);
-        
+
         // Verify service method exists and is mockable
         _mockOrganizationService.Setup(x => x.GetAllAsync(It.IsAny<OrganizationFilterDto>()))
             .Returns(Task.FromResult(paginatedResult));
-        
+
         var setupResult = await _mockOrganizationService.Object.GetAllAsync(filter);
         setupResult.Should().NotBeNull();
         setupResult.IsSuccess.Should().BeTrue();
@@ -55,8 +63,16 @@ public class OrganizationControllerTests
         // Arrange
         var organizations = new List<OrganizationDto>
         {
-            new() { Id = Guid.NewGuid(), Name = "Org1", Code = "ORG1", Size = OrganizationSize.Small, Address = new Address() },
-            new() { Id = Guid.NewGuid(), Name = "Org2", Code = "ORG2", Size = OrganizationSize.Medium, Address = new Address() }
+            new()
+            {
+                Id = Guid.NewGuid(), Name = "Org1", Code = "ORG1", Size = OrganizationSize.Small,
+                Address = new Address()
+            },
+            new()
+            {
+                Id = Guid.NewGuid(), Name = "Org2", Code = "ORG2", Size = OrganizationSize.Medium,
+                Address = new Address()
+            }
         };
 
         var serviceResult = ServiceResult<IEnumerable<OrganizationDto>>.Success(organizations);
@@ -70,7 +86,7 @@ public class OrganizationControllerTests
         result.Should().NotBeNull();
         var actionResult = result.Result;
         actionResult.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = actionResult as OkObjectResult;
         var response = okResult!.Value as ServiceResult<IEnumerable<OrganizationDto>>;
         response!.IsSuccess.Should().BeTrue();
@@ -82,11 +98,11 @@ public class OrganizationControllerTests
     {
         // Arrange
         var organizationId = Guid.NewGuid();
-        var organization = new OrganizationDto 
-        { 
-            Id = organizationId, 
-            Name = "Test Org", 
-            Code = "TESTORG", 
+        var organization = new OrganizationDto
+        {
+            Id = organizationId,
+            Name = "Test Org",
+            Code = "TESTORG",
             Size = OrganizationSize.Large,
             Address = new Address()
         };
@@ -102,7 +118,7 @@ public class OrganizationControllerTests
         result.Should().NotBeNull();
         var actionResult = result.Result;
         actionResult.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = actionResult as OkObjectResult;
         var response = okResult!.Value as ServiceResult<OrganizationDto>;
         response!.IsSuccess.Should().BeTrue();
@@ -148,7 +164,8 @@ public class OrganizationControllerTests
             Address = createOrganizationDto.Address
         };
 
-        var serviceResult = ServiceResult<OrganizationDto>.Success(createdOrganization, "Organization created successfully");
+        var serviceResult =
+            ServiceResult<OrganizationDto>.Success(createdOrganization, "Organization created successfully");
         _mockOrganizationService.Setup(x => x.CreateAsync(createOrganizationDto))
             .ReturnsAsync(serviceResult);
 
@@ -159,7 +176,7 @@ public class OrganizationControllerTests
         result.Should().NotBeNull();
         var actionResult = result.Result;
         actionResult.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = actionResult as OkObjectResult;
         var response = okResult!.Value as ServiceResult<OrganizationDto>;
         response!.IsSuccess.Should().BeTrue();
@@ -178,7 +195,8 @@ public class OrganizationControllerTests
             Address = new Address()
         };
 
-        var serviceResult = ServiceResult<OrganizationDto>.ValidationError(new List<string> { "Name is required", "Code is required" });
+        var serviceResult =
+            ServiceResult<OrganizationDto>.ValidationError(new List<string> { "Name is required", "Code is required" });
         _mockOrganizationService.Setup(x => x.CreateAsync(createOrganizationDto))
             .ReturnsAsync(serviceResult);
 
@@ -205,7 +223,7 @@ public class OrganizationControllerTests
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = result as OkObjectResult;
         // The extension returns a complex object, not just the message
         okResult!.Value.Should().NotBeNull();
@@ -241,7 +259,7 @@ public class OrganizationControllerTests
 
         // Assert
         result.Should().BeOfType<BadRequestObjectResult>();
-        
+
         var badRequestResult = result as BadRequestObjectResult;
         // The extension returns a complex error object, not just the message
         badRequestResult!.Value.Should().NotBeNull();

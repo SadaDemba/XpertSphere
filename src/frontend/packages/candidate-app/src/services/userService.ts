@@ -27,6 +27,18 @@ export interface UpdateUserProfileDto {
   linkedInProfile?: string;
 }
 
+export interface UploadCvDto {
+  cvFile: File;
+}
+
+export interface UploadCvResponseDto {
+  success: boolean;
+  message: string;
+  fileName?: string;
+  fileSize?: number;
+  uploadDate?: string;
+}
+
 export class UserService extends BaseClient {
   constructor() {
     super('/Users');
@@ -51,6 +63,20 @@ export class UserService extends BaseClient {
       `/${userId}/profile`,
       profileDto,
       'Erreur lors de la mise à jour du profil',
+    );
+  }
+
+  async uploadCv(
+    userId: string,
+    cvFile: File,
+  ): Promise<ResponseResult<UploadCvResponseDto> | null> {
+    const formData = new FormData();
+    formData.append('cvFile', cvFile);
+
+    return this.postFormData<ResponseResult<UploadCvResponseDto>>(
+      `/${userId}/cv`,
+      formData,
+      "Erreur lors de l'upload du CV",
     );
   }
 }

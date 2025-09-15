@@ -9,7 +9,7 @@ public class UserRoleConfiguration : AuditableEntityConfiguration<UserRole>
 {
     protected override void ConfigureEntity(EntityTypeBuilder<UserRole> builder)
     {
-        builder.ToTable("UserRoles", ur => 
+        builder.ToTable("UserRoles", ur =>
             ur.HasCheckConstraint("CK_UserRole_ExpiresAt",
                 "[ExpiresAt] IS NULL OR [ExpiresAt] > [AssignedAt]"));
 

@@ -44,7 +44,8 @@ public class PaginatedResult<T>
     /// <summary>
     /// Create an empty successful paginated result
     /// </summary>
-    public static PaginatedResult<T> Empty(int pageNumber = 1, int pageSize = 10, string message = Constants.DATA_NOT_FOUND)
+    public static PaginatedResult<T> Empty(int pageNumber = 1, int pageSize = 10,
+        string message = Constants.DATA_NOT_FOUND)
     {
         return Success([], 0, pageNumber, pageSize, message);
     }

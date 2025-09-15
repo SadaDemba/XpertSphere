@@ -26,8 +26,14 @@ public class RolesControllerTests
         // Arrange
         var roles = new List<RoleDto>
         {
-            new() { Id = Guid.NewGuid(), Name = "Admin", DisplayName = "Administrator", Description = "Administrator role" },
-            new() { Id = Guid.NewGuid(), Name = "User", DisplayName = "Regular User", Description = "Regular user role" }
+            new()
+            {
+                Id = Guid.NewGuid(), Name = "Admin", DisplayName = "Administrator", Description = "Administrator role"
+            },
+            new()
+            {
+                Id = Guid.NewGuid(), Name = "User", DisplayName = "Regular User", Description = "Regular user role"
+            }
         };
 
         var serviceResult = ServiceResult<IEnumerable<RoleDto>>.Success(roles);
@@ -41,7 +47,7 @@ public class RolesControllerTests
         result.Should().NotBeNull();
         var actionResult = result.Result;
         actionResult.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = actionResult as OkObjectResult;
         var response = okResult!.Value as ServiceResult<IEnumerable<RoleDto>>;
         response!.IsSuccess.Should().BeTrue();
@@ -55,7 +61,10 @@ public class RolesControllerTests
         var filter = new RoleFilterDto();
         var roles = new List<RoleDto>
         {
-            new() { Id = Guid.NewGuid(), Name = "Admin", DisplayName = "Administrator", Description = "Administrator role" }
+            new()
+            {
+                Id = Guid.NewGuid(), Name = "Admin", DisplayName = "Administrator", Description = "Administrator role"
+            }
         };
 
         var paginatedResult = PaginatedResult<RoleDto>.Success(roles, 1, 10, 1);
@@ -64,7 +73,7 @@ public class RolesControllerTests
 
         // Act & Assert - Just verify the service is called
         _mockRoleService.Verify(x => x.GetAllPaginatedRolesAsync(It.IsAny<RoleFilterDto>()), Times.Never);
-        
+
         var setupResult = await _mockRoleService.Object.GetAllPaginatedRolesAsync(filter);
         setupResult.Should().NotBeNull();
         setupResult.IsSuccess.Should().BeTrue();
@@ -75,12 +84,12 @@ public class RolesControllerTests
     {
         // Arrange
         var roleId = Guid.NewGuid();
-        var role = new RoleDto 
-        { 
-            Id = roleId, 
-            Name = "Test Role", 
+        var role = new RoleDto
+        {
+            Id = roleId,
+            Name = "Test Role",
             DisplayName = "Test Role Display",
-            Description = "Test role description" 
+            Description = "Test role description"
         };
 
         var response = ServiceResult<RoleDto>.Success(role);
@@ -94,7 +103,7 @@ public class RolesControllerTests
         result.Should().NotBeNull();
         var actionResult = result.Result;
         actionResult.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = actionResult as OkObjectResult;
         var serviceResult = okResult!.Value as ServiceResult<RoleDto>;
         serviceResult!.IsSuccess.Should().BeTrue();
@@ -124,12 +133,12 @@ public class RolesControllerTests
     {
         // Arrange
         var roleName = "Admin";
-        var role = new RoleDto 
-        { 
-            Id = Guid.NewGuid(), 
-            Name = roleName, 
+        var role = new RoleDto
+        {
+            Id = Guid.NewGuid(),
+            Name = roleName,
             DisplayName = "Administrator",
-            Description = "Administrator role" 
+            Description = "Administrator role"
         };
 
         var response = ServiceResult<RoleDto>.Success(role);
@@ -143,7 +152,7 @@ public class RolesControllerTests
         result.Should().NotBeNull();
         var actionResult = result.Result;
         actionResult.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = actionResult as OkObjectResult;
         var serviceResult = okResult!.Value as ServiceResult<RoleDto>;
         serviceResult!.IsSuccess.Should().BeTrue();
@@ -180,7 +189,7 @@ public class RolesControllerTests
         result.Should().NotBeNull();
         var actionResult = result.Result;
         actionResult.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = actionResult as OkObjectResult;
         var serviceResult = okResult!.Value as ServiceResult<RoleDto>;
         serviceResult!.IsSuccess.Should().BeTrue();
@@ -241,7 +250,7 @@ public class RolesControllerTests
         result.Should().NotBeNull();
         var actionResult = result.Result;
         actionResult.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = actionResult as OkObjectResult;
         var serviceResult = okResult!.Value as ServiceResult<RoleDto>;
         serviceResult!.IsSuccess.Should().BeTrue();
@@ -262,7 +271,7 @@ public class RolesControllerTests
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = result as OkObjectResult;
         okResult!.Value.Should().NotBeNull();
     }
@@ -297,7 +306,7 @@ public class RolesControllerTests
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = result as OkObjectResult;
         okResult!.Value.Should().NotBeNull();
     }
@@ -316,7 +325,7 @@ public class RolesControllerTests
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = result as OkObjectResult;
         okResult!.Value.Should().NotBeNull();
     }
@@ -337,7 +346,7 @@ public class RolesControllerTests
         result.Should().NotBeNull();
         var actionResult = result.Result;
         actionResult.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = actionResult as OkObjectResult;
         var serviceResult = okResult!.Value as ServiceResult<bool>;
         serviceResult!.IsSuccess.Should().BeTrue();
@@ -360,7 +369,7 @@ public class RolesControllerTests
         result.Should().NotBeNull();
         var actionResult = result.Result;
         actionResult.Should().BeOfType<OkObjectResult>();
-        
+
         var okResult = actionResult as OkObjectResult;
         var serviceResult = okResult!.Value as ServiceResult<bool>;
         serviceResult!.IsSuccess.Should().BeTrue();

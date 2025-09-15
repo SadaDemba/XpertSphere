@@ -50,7 +50,8 @@ public class PermissionService : IPermissionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving all permissions");
-            return ServiceResult<IEnumerable<PermissionDto>>.InternalError("An error occurred while retrieving permissions");
+            return ServiceResult<IEnumerable<PermissionDto>>.InternalError(
+                "An error occurred while retrieving permissions");
         }
     }
 
@@ -66,12 +67,12 @@ public class PermissionService : IPermissionService
             }
 
             var query = BuildPermissionQuery(filter);
-            
+
             var pageNumber = int.TryParse(filter.PageNumber, out var pn) ? pn : 1;
             var pageSize = int.TryParse(filter.PageSize, out var ps) ? ps : 10;
 
             var paginatedResult = await query.ToPaginatedResultAsync(pageNumber, pageSize);
-            
+
             return paginatedResult.Map(permission => _mapper.Map<PermissionDto>(permission));
         }
         catch (Exception ex)
@@ -122,7 +123,8 @@ public class PermissionService : IPermissionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving permissions by resource {Resource}", resource);
-            return ServiceResult<IEnumerable<PermissionDto>>.InternalError("An error occurred while retrieving permissions by resource");
+            return ServiceResult<IEnumerable<PermissionDto>>.InternalError(
+                "An error occurred while retrieving permissions by resource");
         }
     }
 
@@ -143,7 +145,8 @@ public class PermissionService : IPermissionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving permissions by category {Category}", category);
-            return ServiceResult<IEnumerable<PermissionDto>>.InternalError("An error occurred while retrieving permissions by category");
+            return ServiceResult<IEnumerable<PermissionDto>>.InternalError(
+                "An error occurred while retrieving permissions by category");
         }
     }
 
@@ -164,7 +167,8 @@ public class PermissionService : IPermissionService
 
             if (existingPermission != null)
             {
-                return ServiceResult<PermissionDto>.Conflict($"A permission with name '{createPermissionDto.Name}' already exists");
+                return ServiceResult<PermissionDto>.Conflict(
+                    $"A permission with name '{createPermissionDto.Name}' already exists");
             }
 
             var permission = _mapper.Map<Permission>(createPermissionDto);
@@ -173,7 +177,8 @@ public class PermissionService : IPermissionService
             _context.Permissions.Add(permission);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Created new permission with ID {PermissionId} and name {PermissionName}", permission.Id, permission.Name);
+            _logger.LogInformation("Created new permission with ID {PermissionId} and name {PermissionName}",
+                permission.Id, permission.Name);
 
             var permissionDto = _mapper.Map<PermissionDto>(permission);
             return ServiceResult<PermissionDto>.Success(permissionDto, "Permission created successfully");
@@ -207,7 +212,8 @@ public class PermissionService : IPermissionService
             _context.Permissions.Remove(permission);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Deleted permission with ID {PermissionId} and name {PermissionName}", id, permission.Name);
+            _logger.LogInformation("Deleted permission with ID {PermissionId} and name {PermissionName}", id,
+                permission.Name);
             return ServiceResult.Success("Permission deleted successfully");
         }
         catch (Exception ex)
@@ -237,7 +243,7 @@ public class PermissionService : IPermissionService
         {
             var hasRoles = await _context.RolePermissions
                 .AnyAsync(rp => rp.PermissionId == id);
-            
+
             return ServiceResult<bool>.Success(!hasRoles);
         }
         catch (Exception ex)
@@ -252,38 +258,38 @@ public class PermissionService : IPermissionService
         var query = _context.Permissions
             .Include(p => p.RolePermissions)
             .AsQueryable();
-        
+
         // Apply filters
         if (!string.IsNullOrEmpty(filter.Resource))
         {
             query = query.Where(p => p.Resource == filter.Resource);
         }
-        
+
         if (filter.Action.HasValue)
         {
             query = query.Where(p => p.Action == filter.Action);
         }
-        
+
         if (!string.IsNullOrEmpty(filter.Category))
         {
             query = query.Where(p => p.Category == filter.Category);
         }
-        
+
         if (filter.Scope.HasValue)
         {
             query = query.Where(p => p.Scope == filter.Scope);
         }
-        
+
         // Search terms
         if (!string.IsNullOrEmpty(filter.SearchTerms))
         {
             var searchTermsLower = filter.SearchTerms.ToLower();
-            query = query.Where(p => 
+            query = query.Where(p =>
                 p.Name.ToLower().Contains(searchTermsLower) ||
                 p.Resource.ToLower().Contains(searchTermsLower) ||
                 p.Category!.ToLower().Contains(searchTermsLower) ||
                 (p.Description != null && p.Description.ToLower().Contains(searchTermsLower))
-                );
+            );
         }
 
         // Apply sorting
@@ -295,37 +301,40 @@ public class PermissionService : IPermissionService
         {
             query = filter.SortDirection == SortDirection.Ascending
                 ? query.OrderBy(p => p.Category).ThenBy(p => p.Resource).ThenBy(p => p.Action)
-                : query.OrderByDescending(p => p.Category).ThenByDescending(p => p.Resource).ThenByDescending(p => p.Action);
+                : query.OrderByDescending(p => p.Category).ThenByDescending(p => p.Resource)
+                    .ThenByDescending(p => p.Action);
         }
 
         return query;
     }
-    
-    private static IQueryable<Permission> ApplySorting(IQueryable<Permission> query, string sortBy, SortDirection sortDirection)
+
+    private static IQueryable<Permission> ApplySorting(IQueryable<Permission> query, string sortBy,
+        SortDirection sortDirection)
     {
         return sortBy.ToLower() switch
         {
-            "name" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(p => p.Name) 
+            "name" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(p => p.Name)
                 : query.OrderByDescending(p => p.Name),
-            "resource" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(p => p.Resource) 
+            "resource" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(p => p.Resource)
                 : query.OrderByDescending(p => p.Resource),
-            "action" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(p => p.Action) 
+            "action" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(p => p.Action)
                 : query.OrderByDescending(p => p.Action),
-            "category" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(p => p.Category) 
+            "category" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(p => p.Category)
                 : query.OrderByDescending(p => p.Category),
-            "scope" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(p => p.Scope) 
+            "scope" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(p => p.Scope)
                 : query.OrderByDescending(p => p.Scope),
-            "createdat" => sortDirection == SortDirection.Ascending 
-                ? query.OrderBy(p => p.CreatedAt) 
+            "createdat" => sortDirection == SortDirection.Ascending
+                ? query.OrderBy(p => p.CreatedAt)
                 : query.OrderByDescending(p => p.CreatedAt),
-            _ => sortDirection == SortDirection.Ascending 
+            _ => sortDirection == SortDirection.Ascending
                 ? query.OrderBy(p => p.Category).ThenBy(p => p.Resource).ThenBy(p => p.Action)
-                : query.OrderByDescending(p => p.Category).ThenByDescending(p => p.Resource).ThenByDescending(p => p.Action)
-            };
+                : query.OrderByDescending(p => p.Category).ThenByDescending(p => p.Resource)
+                    .ThenByDescending(p => p.Action)
+        };
     }
 }

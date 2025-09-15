@@ -4,10 +4,7 @@ namespace XpertSphere.MonolithApi.DTOs.Auth;
 
 public record ConfirmEmailDto
 {
-    [Required]
-    [EmailAddress]
-    public required string Email { get; init; }
+    [Required] [EmailAddress] public required string Email { get; init; }
 
-    [Required]
-    public required string Token { get; init; }
+    [Required] public required string Token { get; init; }
 }

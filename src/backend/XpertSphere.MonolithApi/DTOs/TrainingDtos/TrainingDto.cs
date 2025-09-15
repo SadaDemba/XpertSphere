@@ -11,7 +11,7 @@ public class TrainingDto
     public string Degree { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     // User info
     public string? UserFullName { get; set; }
     public string? UserEmail { get; set; }

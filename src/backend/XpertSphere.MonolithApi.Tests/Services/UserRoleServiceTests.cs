@@ -28,7 +28,7 @@ public class UserRoleServiceTests : IDisposable
         // Arrange
         var userId = Guid.NewGuid();
         var roleId = Guid.NewGuid();
-        
+
         var user = new User
         {
             Id = userId,

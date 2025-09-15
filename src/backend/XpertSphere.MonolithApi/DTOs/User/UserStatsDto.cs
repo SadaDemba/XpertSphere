@@ -8,31 +8,31 @@ public record UserStatsDto
     public Guid UserId { get; set; }
     public required string FullName { get; set; }
     public required string Email { get; set; }
-    
+
     // Profile statistics
     public int ProfileCompletionPercentage { get; set; }
     public DateTime? ProfileLastUpdatedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
-    
+
     // Activity statistics
     public int TotalLogins { get; set; }
     public int LoginThisMonth { get; set; }
     public TimeSpan? AverageSessionDuration { get; set; }
     public DateTime? LastPasswordChange { get; set; }
-    
+
     // For candidates - application statistics
     public CandidateStatsDto? CandidateStats { get; set; }
-    
+
     // For recruiters - recruitment statistics  
     public RecruiterStatsDto? RecruiterStats { get; set; }
-    
+
     // Security statistics
     public int FailedLoginAttempts { get; set; }
     public DateTime? LastFailedLogin { get; set; }
     public bool IsAccountLocked { get; set; }
     public DateTime? AccountLockedUntil { get; set; }
-    
+
     // GDPR compliance
     public DateTime? ConsentGivenAt { get; set; }
     public DateTime? ConsentWithdrawnAt { get; set; }
@@ -85,10 +85,10 @@ public class UserDashboardStatsDto
     public DateTime? LastLogin { get; set; }
     public int UnreadNotifications { get; set; }
     public int PendingTasks { get; set; }
-    
+
     // Recent activity summary
     public List<RecentActivityDto> RecentActivities { get; set; } = [];
-    
+
     // Quick stats based on user type
     public Dictionary<string, object> QuickStats { get; set; } = [];
 }

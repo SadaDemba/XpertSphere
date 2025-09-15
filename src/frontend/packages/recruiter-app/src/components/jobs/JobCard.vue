@@ -1,65 +1,70 @@
 <template>
   <q-card class="job-card" tabindex="0" @keydown.enter="$emit('edit', job)">
-    <q-card-section>
-      <div class="row items-start justify-between">
-        <div class="job-info flex-1">
-          <h3 class="job-title text-h6 q-mb-xs">
-            <button
-              class="title-link"
-              :aria-label="`Modifier l'offre ${job.title}`"
-              @click="$emit('edit', job)"
-            >
-              {{ job.title }}
-            </button>
-          </h3>
-          <div class="job-meta text-body2 text-grey-7 q-mb-sm">
-            <div class="meta-item">
-              <q-icon name="business" size="16px" />
-              {{ job.organizationName }}
-            </div>
-            <div class="meta-item">
-              <q-icon name="location_on" size="16px" />
-              {{ job.location }}
-            </div>
-            <div class="meta-item">
-              <q-icon name="schedule" size="16px" />
-              {{ contractTypeLabels[job.contractType] }}
-            </div>
+    <q-card-section class="job-card-header">
+      <div class="job-info">
+        <h3 class="job-title text-h6 q-mb-xs">
+          <button
+            class="title-link"
+            :aria-label="`Modifier l'offre ${job.title}`"
+            @click="$emit('edit', job)"
+          >
+            {{ job.title }}
+          </button>
+        </h3>
+        <div class="job-meta text-body2 text-grey-7 q-mb-sm">
+          <div class="meta-item">
+            <q-icon name="business" size="16px" />
+            {{ job.organizationName }}
+          </div>
+          <div class="meta-item">
+            <q-icon name="location_on" size="16px" />
+            {{ job.location }}
+          </div>
+          <div class="meta-item">
+            <q-icon name="schedule" size="16px" />
+            {{ contractTypeLabels[job.contractType] }}
           </div>
         </div>
-
-        <q-btn flat dense round icon="more_vert" :aria-label="`Actions pour l'offre ${job.title}`">
-          <q-menu>
-            <q-list style="min-width: 100px">
-              <q-item clickable @click="$emit('edit', job)">
-                <q-item-section avatar>
-                  <q-icon name="edit" />
-                </q-item-section>
-                <q-item-section>Modifier</q-item-section>
-              </q-item>
-              <q-item clickable @click="$emit('duplicate', job)">
-                <q-item-section avatar>
-                  <q-icon name="content_copy" />
-                </q-item-section>
-                <q-item-section>Dupliquer</q-item-section>
-              </q-item>
-              <q-item clickable @click="$emit('viewApplications', job)">
-                <q-item-section avatar>
-                  <q-icon name="assignment" />
-                </q-item-section>
-                <q-item-section>Candidatures</q-item-section>
-              </q-item>
-              <q-separator />
-              <q-item clickable class="text-negative" @click="$emit('delete', job)">
-                <q-item-section avatar>
-                  <q-icon name="delete" />
-                </q-item-section>
-                <q-item-section>Supprimer</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
       </div>
+
+      <q-btn
+        flat
+        dense
+        round
+        icon="more_vert"
+        class="job-card-actions"
+        :aria-label="`Actions pour l'offre ${job.title}`"
+      >
+        <q-menu>
+          <q-list style="min-width: 100px">
+            <q-item clickable @click="$emit('edit', job)">
+              <q-item-section avatar>
+                <q-icon name="visibility" />
+              </q-item-section>
+              <q-item-section>Voir détails</q-item-section>
+            </q-item>
+            <q-item clickable @click="$emit('duplicate', job)">
+              <q-item-section avatar>
+                <q-icon name="content_copy" />
+              </q-item-section>
+              <q-item-section>Dupliquer</q-item-section>
+            </q-item>
+            <q-item clickable @click="$emit('viewApplications', job)">
+              <q-item-section avatar>
+                <q-icon name="assignment" />
+              </q-item-section>
+              <q-item-section>Candidatures</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable class="text-negative" @click="$emit('delete', job)">
+              <q-item-section avatar>
+                <q-icon name="delete" />
+              </q-item-section>
+              <q-item-section>Supprimer</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-btn>
     </q-card-section>
 
     <q-card-section class="card-footer">
@@ -72,6 +77,8 @@
             borderless
             behavior="menu"
             class="status-select"
+            emit-value
+            map-options
             :aria-label="`Modifier le statut de l'offre ${job.title}`"
             @update:model-value="updateStatus"
           >
@@ -129,6 +136,7 @@ import { jobOfferStatusConfig, contractTypeLabels } from '../../models/job';
 import { JobOfferStatus } from '../../enums';
 import { formatDate } from '../../helpers';
 import { computed } from 'vue';
+import { useDialog } from '../../composables/dialog';
 
 interface Props {
   job: JobOffer;
@@ -144,6 +152,7 @@ interface Emits {
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
+const dialog = useDialog();
 
 const statusOptions = computed(() => [
   { label: 'Brouillon', value: JobOfferStatus.Draft },
@@ -151,7 +160,26 @@ const statusOptions = computed(() => [
   { label: 'Fermée', value: JobOfferStatus.Closed },
 ]);
 
-const updateStatus = (newStatus: JobOfferStatus) => {
+const updateStatus = async (newStatus: JobOfferStatus) => {
+  if (newStatus === JobOfferStatus.Published) {
+    await dialog.confirmAction('publier', props.job.title, {
+      title: 'Confirmer la publication',
+      message: `Êtes-vous sûr de vouloir publier l'offre "${props.job.title}" ?`,
+      ok: { label: 'Publier', color: 'positive' },
+    });
+  } else if (newStatus === JobOfferStatus.Draft) {
+    await dialog.confirmAction('remettre en brouillon', props.job.title, {
+      title: 'Confirmer le changement',
+      message: `Êtes-vous sûr de vouloir remettre l'offre "${props.job.title}" en brouillon ?`,
+      ok: { label: 'Confirmer', color: 'warning' },
+    });
+  } else if (newStatus === JobOfferStatus.Closed) {
+    await dialog.confirmAction('fermer', props.job.title, {
+      title: 'Confirmer la fermeture',
+      message: `Êtes-vous sûr de vouloir fermer l'offre "${props.job.title}" ?`,
+      ok: { label: 'Fermer', color: 'negative' },
+    });
+  }
   emit('updateStatus', props.job, newStatus);
 };
 </script>
@@ -171,6 +199,21 @@ const updateStatus = (newStatus: JobOfferStatus) => {
 .job-card:focus {
   outline: 2px solid var(--q-primary);
   outline-offset: 2px;
+}
+
+.job-card-header {
+  position: relative;
+  padding-right: 48px !important;
+}
+
+.job-info {
+  width: 100%;
+}
+
+.job-card-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
 }
 
 .title-link {

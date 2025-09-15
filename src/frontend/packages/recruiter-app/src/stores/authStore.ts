@@ -69,18 +69,19 @@ export const useAuthStore = defineStore('auth', () => {
           refreshToken: response.data.refreshToken || '',
           expiresAt: Math.floor(new Date(response.data.tokenExpiry!).getTime() / 1000),
         });
-        notification.showSuccessNotification('Login successful');
         return true;
       } else {
-        const errorMessage = response?.errors?.join(', ') || response?.message || 'Login failed';
+        console.log(response);
+        const errorMessage =
+          response?.errors?.join(', ') || response?.message || 'Échec de la connexion';
         setError(errorMessage);
         notification.showErrorNotification(errorMessage);
         return false;
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Network error occurred!');
+      setError(error instanceof Error ? error.message : 'Erreur réseau !');
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Network error occurred!',
+        error instanceof Error ? error.message : 'Erreur réseau !',
       );
       return false;
     } finally {
@@ -112,15 +113,19 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = response.data!;
         return true;
       } else {
-        setError(response?.message || 'Failed to load user information');
-        notification.showErrorNotification(response?.message || 'Failed to load user information');
+        setError(response?.message || 'Échec du chargement des informations utilisateur');
+        notification.showErrorNotification(
+          response?.message || 'Échec du chargement des informations utilisateur',
+        );
       }
       return false;
     } catch (error) {
       console.error('Failed to load current user:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load user information');
+      setError(
+        error instanceof Error ? error.message : 'Échec du chargement des informations utilisateur',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Failed to load user information',
+        error instanceof Error ? error.message : 'Échec du chargement des informations utilisateur',
       );
       return false;
     } finally {
@@ -132,22 +137,22 @@ export const useAuthStore = defineStore('auth', () => {
    * Logout user
    */
   const logout = async () => {
+    // Try to call logout API first while we still have tokens
     try {
       await authService.logoutUser();
-      notification.showSuccessNotification('Logged out successfully');
     } catch (error) {
-      console.warn('Logout API call failed:', error);
-      setError(error instanceof Error ? error.message : 'Logout failed');
-      notification.showWarningNotification(
-        'Logout request failed, but you have been logged out locally',
-      );
-    } finally {
-      // Clear state regardless of API call success
-      user.value = null;
-      token.value = null;
-      refreshToken.value = null;
-      error.value = null;
+      // Log error but continue with local logout
+      console.warn('Logout API call failed (will continue with local logout):', error);
     }
+
+    // Clear state and tokens regardless of API call result
+    user.value = null;
+    token.value = null;
+    refreshToken.value = null;
+    error.value = null;
+
+    // Clear tokens from localStorage
+    authService.clearJwtTokens();
   };
 
   /**

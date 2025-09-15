@@ -15,7 +15,8 @@ public class CreateOrganizationDtoValidator : AbstractValidator<CreateOrganizati
         RuleFor(x => x.Code)
             .NotEmpty().WithMessage("Organization code is required.")
             .Length(2, 20).WithMessage("Organization code must be between 2 and 20 characters.")
-            .Matches(@"^[A-Z0-9_-]+$").WithMessage("Organization code must contain only uppercase letters, numbers, underscores and dashes.");
+            .Matches(@"^[A-Z0-9_-]+$")
+            .WithMessage("Organization code must contain only uppercase letters, numbers, underscores and dashes.");
 
         RuleFor(x => x.Description)
             .MaximumLength(500).WithMessage("Description cannot exceed 500 characters.");
@@ -26,7 +27,7 @@ public class CreateOrganizationDtoValidator : AbstractValidator<CreateOrganizati
         RuleFor(x => x.Size)
             .IsInEnum().WithMessage("Organization size must be a valid value.");
 
-        
+
         RuleFor(x => x.ContactEmail)
             .EmailAddress().WithMessage("Contact email must be a valid email address.")
             .When(x => !string.IsNullOrEmpty(x.ContactEmail));

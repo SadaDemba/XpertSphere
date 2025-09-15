@@ -381,6 +381,10 @@ namespace XpertSphere.MonolithApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Benefits")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ContractType")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -1155,7 +1159,7 @@ namespace XpertSphere.MonolithApi.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("XpertSphere.MonolithApi.Models.JobOffer", "JobOffer")
-                        .WithMany()
+                        .WithMany("Applications")
                         .HasForeignKey("JobOfferId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1297,7 +1301,7 @@ namespace XpertSphere.MonolithApi.Migrations
                                 .HasColumnType("nvarchar(100)")
                                 .HasColumnName("Address_Region");
 
-                            b1.Property<string>("Street")
+                            b1.Property<string>("StreetName")
                                 .HasMaxLength(200)
                                 .HasColumnType("nvarchar(200)")
                                 .HasColumnName("Address_StreetName");
@@ -1462,7 +1466,7 @@ namespace XpertSphere.MonolithApi.Migrations
                                 .HasColumnType("nvarchar(100)")
                                 .HasColumnName("Address_Region");
 
-                            b1.Property<string>("Street")
+                            b1.Property<string>("StreetName")
                                 .HasMaxLength(200)
                                 .HasColumnType("nvarchar(200)")
                                 .HasColumnName("Address_StreetName");
@@ -1533,6 +1537,11 @@ namespace XpertSphere.MonolithApi.Migrations
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.Application", b =>
                 {
                     b.Navigation("StatusHistory");
+                });
+
+            modelBuilder.Entity("XpertSphere.MonolithApi.Models.JobOffer", b =>
+                {
+                    b.Navigation("Applications");
                 });
 
             modelBuilder.Entity("XpertSphere.MonolithApi.Models.Organization", b =>

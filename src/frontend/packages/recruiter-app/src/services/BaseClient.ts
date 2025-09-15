@@ -70,44 +70,46 @@ export class BaseClient {
     service: string,
     config?: AxiosRequestConfig,
     errorMessage?: string,
-  ): Promise<T | null> {
+  ): Promise<T> {
     try {
       const response = await this.apiClient.get<T>(service, config ?? {});
-
-      if (response.status >= 200 && response.status < 300) {
-        return response.data;
-      } else {
-        throw new Error(errorMessage);
-      }
+      return response.data;
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        return error.response.data as T;
+      }
       throw new Error(error instanceof Error ? error.message : errorMessage);
     }
   }
 
-  protected async post<T>(service: string, data?: any, errorMessage?: string): Promise<T | null> {
+  protected async post<T>(service: string, data?: any, errorMessage?: string): Promise<T> {
     try {
       const response = await this.apiClient.post<T>(service, data, {});
-
-      if (response.status >= 200 && response.status < 300) {
-        return response.data;
-      } else {
-        throw new Error(errorMessage);
-      }
+      return response.data;
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        return error.response.data as T;
+      }
       throw new Error(error instanceof Error ? error.message : errorMessage);
     }
   }
 
-  protected async patch<T>(service: string, data?: any, errorMessage?: string): Promise<T | null> {
+  protected async postFormData<T>(
+    service: string,
+    data: FormData,
+    errorMessage?: string,
+  ): Promise<T> {
     try {
-      const response = await this.apiClient.patch<T>(service, data, {});
-
-      if (response.status >= 200 && response.status < 300) {
-        return response.data;
-      } else {
-        throw new Error(errorMessage);
-      }
+      const response = await this.apiClient.post<T>(service, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        return error.response.data as T;
+      }
       throw new Error(error instanceof Error ? error.message : errorMessage);
     }
   }
@@ -117,20 +119,31 @@ export class BaseClient {
     data?: any,
     type?: string,
     errorMessage?: string,
-  ): Promise<T | null> {
+  ): Promise<T> {
     try {
       const response = await this.apiClient.put<T>(service, data, {
         headers: {
           'Content-Type': type ?? 'application/json',
         },
       });
-
-      if (response.status >= 200 && response.status < 300) {
-        return response.data;
-      } else {
-        throw new Error(errorMessage);
-      }
+      return response.data;
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        return error.response.data as T;
+      }
+      throw new Error(error instanceof Error ? error.message : errorMessage);
+    }
+  }
+
+  protected async patch<T>(service: string, data?: any, errorMessage?: string): Promise<T> {
+    try {
+      const response = await this.apiClient.patch<T>(service, data, {});
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        return error.response.data as T;
+      }
       throw new Error(error instanceof Error ? error.message : errorMessage);
     }
   }
@@ -139,12 +152,11 @@ export class BaseClient {
     try {
       const response = await this.apiClient.delete<T>(service);
 
-      if (response.status >= 200 && response.status < 300) {
-        return response.data;
-      } else {
-        throw new Error(errorMessage);
-      }
+      return response.data;
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        return error.response.data as T;
+      }
       throw new Error(error instanceof Error ? error.message : errorMessage);
     }
   }

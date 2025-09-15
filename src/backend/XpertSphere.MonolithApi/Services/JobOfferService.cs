@@ -6,6 +6,7 @@ using XpertSphere.MonolithApi.DTOs.JobOffer;
 using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Utils;
 using XpertSphere.MonolithApi.Utils.Results;
 using XpertSphere.MonolithApi.Utils.Results.Pagination;
 
@@ -19,6 +20,7 @@ public class JobOfferService : IJobOfferService
     private readonly IValidator<UpdateJobOfferDto> _updateJobOfferValidator;
     private readonly IValidator<JobOfferFilterDto> _filterValidator;
     private readonly ILogger<JobOfferService> _logger;
+    private readonly ICurrentUserService _currentUserService;
 
     public JobOfferService(
         XpertSphereDbContext context,
@@ -26,7 +28,8 @@ public class JobOfferService : IJobOfferService
         IValidator<CreateJobOfferDto> createJobOfferValidator,
         IValidator<UpdateJobOfferDto> updateJobOfferValidator,
         IValidator<JobOfferFilterDto> filterValidator,
-        ILogger<JobOfferService> logger)
+        ILogger<JobOfferService> logger,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _mapper = mapper;
@@ -34,15 +37,23 @@ public class JobOfferService : IJobOfferService
         _updateJobOfferValidator = updateJobOfferValidator;
         _filterValidator = filterValidator;
         _logger = logger;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ServiceResult<IEnumerable<JobOfferDto>>> GetAllJobOffersAsync()
     {
         try
         {
-            var jobOffers = await _context.JobOffers
+            var query = _context.JobOffers
                 .Include(jo => jo.Organization)
+                .Include(jo => jo.Applications)
                 .Include(jo => jo.CreatedByUserNavigation)
+                .AsQueryable();
+
+            // Apply filtering based on user type
+            query = await ApplyUserBasedFilteringAsync(query);
+
+            var jobOffers = await query
                 .OrderByDescending(jo => jo.CreatedAt)
                 .ToListAsync();
 
@@ -52,7 +63,8 @@ public class JobOfferService : IJobOfferService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving all job offers");
-            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError("An error occurred while retrieving job offers");
+            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError(
+                "An error occurred while retrieving job offers");
         }
     }
 
@@ -68,6 +80,9 @@ public class JobOfferService : IJobOfferService
             }
 
             var query = BuildJobOfferQuery(filter);
+
+            // Apply filtering based on user type
+            query = await ApplyUserBasedFilteringAsync(query);
 
             var pageNumber = int.TryParse(filter.PageNumber, out var pn) ? pn : 1;
             var pageSize = int.TryParse(filter.PageSize, out var ps) ? ps : 10;
@@ -89,6 +104,7 @@ public class JobOfferService : IJobOfferService
         {
             var jobOffer = await _context.JobOffers
                 .Include(jo => jo.Organization)
+                .Include(jo => jo.Applications)
                 .Include(jo => jo.CreatedByUserNavigation)
                 .FirstOrDefaultAsync(jo => jo.Id == id);
 
@@ -107,7 +123,8 @@ public class JobOfferService : IJobOfferService
         }
     }
 
-    public async Task<ServiceResult<JobOfferDto>> CreateJobOfferAsync(CreateJobOfferDto createJobOfferDto, Guid userId, Guid organizationId)
+    public async Task<ServiceResult<JobOfferDto>> CreateJobOfferAsync(CreateJobOfferDto createJobOfferDto, Guid userId,
+        Guid organizationId)
     {
         try
         {
@@ -118,7 +135,8 @@ public class JobOfferService : IJobOfferService
                 return ServiceResult<JobOfferDto>.ValidationError(errors);
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && u.OrganizationId == organizationId);
+            var user = await _context.Users.FirstOrDefaultAsync(u =>
+                u.Id == userId && u.OrganizationId == organizationId);
             if (user == null)
             {
                 return ServiceResult<JobOfferDto>.Forbidden("User does not belong to the specified organization");
@@ -142,7 +160,8 @@ public class JobOfferService : IJobOfferService
             _context.JobOffers.Add(jobOffer);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Created new job offer with ID {JobOfferId} for organization {OrganizationId}", jobOffer.Id, organizationId);
+            _logger.LogInformation("Created new job offer with ID {JobOfferId} for organization {OrganizationId}",
+                jobOffer.Id, organizationId);
 
             var jobOfferDto = _mapper.Map<JobOfferDto>(jobOffer);
             return ServiceResult<JobOfferDto>.Success(jobOfferDto, "Job offer created successfully");
@@ -154,7 +173,8 @@ public class JobOfferService : IJobOfferService
         }
     }
 
-    public async Task<ServiceResult<JobOfferDto>> UpdateJobOfferAsync(Guid id, UpdateJobOfferDto updateJobOfferDto, Guid userId)
+    public async Task<ServiceResult<JobOfferDto>> UpdateJobOfferAsync(Guid id, UpdateJobOfferDto updateJobOfferDto,
+        Guid userId)
     {
         try
         {
@@ -167,6 +187,7 @@ public class JobOfferService : IJobOfferService
 
             var jobOffer = await _context.JobOffers
                 .Include(jo => jo.Organization)
+                .Include(jo => jo.Applications)
                 .Include(jo => jo.CreatedByUserNavigation)
                 .FirstOrDefaultAsync(jo => jo.Id == id);
 
@@ -320,6 +341,7 @@ public class JobOfferService : IJobOfferService
         {
             var jobOffers = await _context.JobOffers
                 .Include(jo => jo.Organization)
+                .Include(jo => jo.Applications)
                 .Include(jo => jo.CreatedByUserNavigation)
                 .Where(jo => jo.OrganizationId == organizationId)
                 .OrderByDescending(jo => jo.CreatedAt)
@@ -331,7 +353,8 @@ public class JobOfferService : IJobOfferService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving job offers for organization {OrganizationId}", organizationId);
-            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError("An error occurred while retrieving job offers");
+            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError(
+                "An error occurred while retrieving job offers");
         }
     }
 
@@ -341,6 +364,7 @@ public class JobOfferService : IJobOfferService
         {
             var jobOffers = await _context.JobOffers
                 .Include(jo => jo.Organization)
+                .Include(jo => jo.Applications)
                 .Include(jo => jo.CreatedByUserNavigation)
                 .Where(jo => jo.CreatedByUserId == userId)
                 .OrderByDescending(jo => jo.CreatedAt)
@@ -352,7 +376,8 @@ public class JobOfferService : IJobOfferService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving job offers for user {UserId}", userId);
-            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError("An error occurred while retrieving job offers");
+            return ServiceResult<IEnumerable<JobOfferDto>>.InternalError(
+                "An error occurred while retrieving job offers");
         }
     }
 
@@ -381,7 +406,7 @@ public class JobOfferService : IJobOfferService
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) return false;
 
-        return jobOffer.CreatedByUserId == userId || 
+        return jobOffer.CreatedByUserId == userId ||
                (user.OrganizationId.HasValue && user.OrganizationId == jobOffer.OrganizationId);
     }
 
@@ -389,6 +414,7 @@ public class JobOfferService : IJobOfferService
     {
         var query = _context.JobOffers
             .Include(jo => jo.Organization)
+            .Include(jo => jo.Applications)
             .Include(jo => jo.CreatedByUserNavigation)
             .AsQueryable();
 
@@ -439,9 +465,11 @@ public class JobOfferService : IJobOfferService
 
         if (filter.IsActive.HasValue)
         {
-            query = filter.IsActive.Value 
-                ? query.Where(jo => jo.Status == JobOfferStatus.Published && (jo.ExpiresAt == null || jo.ExpiresAt > DateTime.UtcNow))
-                : query.Where(jo => jo.Status != JobOfferStatus.Published || (jo.ExpiresAt != null && jo.ExpiresAt <= DateTime.UtcNow));
+            query = filter.IsActive.Value
+                ? query.Where(jo =>
+                    jo.Status == JobOfferStatus.Published && (jo.ExpiresAt == null || jo.ExpiresAt > DateTime.UtcNow))
+                : query.Where(jo =>
+                    jo.Status != JobOfferStatus.Published || (jo.ExpiresAt != null && jo.ExpiresAt <= DateTime.UtcNow));
         }
 
         if (filter.IsExpired.HasValue)
@@ -478,6 +506,7 @@ public class JobOfferService : IJobOfferService
                 jo.Title.ToLower().Contains(searchTerms) ||
                 jo.Description.ToLower().Contains(searchTerms) ||
                 jo.Requirements.ToLower().Contains(searchTerms) ||
+                jo.Benefits.ToLower().Contains(searchTerms) ||
                 (jo.Location != null && jo.Location.ToLower().Contains(searchTerms)));
         }
 
@@ -495,7 +524,8 @@ public class JobOfferService : IJobOfferService
         return query;
     }
 
-    private static IQueryable<JobOffer> ApplySorting(IQueryable<JobOffer> query, string sortBy, SortDirection sortDirection)
+    private static IQueryable<JobOffer> ApplySorting(IQueryable<JobOffer> query, string sortBy,
+        SortDirection sortDirection)
     {
         return sortBy.ToLower() switch
         {
@@ -527,5 +557,55 @@ public class JobOfferService : IJobOfferService
                 ? query.OrderBy(jo => jo.CreatedAt)
                 : query.OrderByDescending(jo => jo.CreatedAt)
         };
+    }
+
+    private async Task<IQueryable<JobOffer>> ApplyUserBasedFilteringAsync(IQueryable<JobOffer> query)
+    {
+        // If no user is authenticated, return empty query
+        if (!_currentUserService.UserId.HasValue)
+        {
+            return query;
+        }
+
+        var currentUserId = _currentUserService.UserId.Value;
+        var currentUser = await _context.Users
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Id == currentUserId);
+
+        if (currentUser == null)
+        {
+            return query.Where(jo => false);
+        }
+
+        // Get user's roles
+        var userRoleNames = currentUser.UserRoles
+            .Where(ur => ur.IsActive && (ur.ExpiresAt == null || ur.ExpiresAt > DateTime.UtcNow))
+            .Select(ur => ur.Role.Name)
+            .ToList();
+
+        // Check if user is a candidate
+        if (userRoleNames.Contains(Roles.Candidate.Name))
+        {
+            // Candidates can see all published job offers
+            return query.Where(jo => jo.Status == JobOfferStatus.Published);
+        }
+
+        // Check if user is from XpertSphere (platform admin or super admin)
+        if (userRoleNames.Any(r => Roles.PlatformRoles.Contains(r)))
+        {
+            // XpertSphere admins can see all job offers
+            return query;
+        }
+
+        // Check if user is from a client organization
+        if (currentUser.OrganizationId.HasValue && userRoleNames.Any(r => Roles.OrganizationRoles.Contains(r)))
+        {
+            // Client organization users can only see their organization's job offers
+            return query.Where(jo => jo.OrganizationId == currentUser.OrganizationId.Value);
+        }
+
+        // Default: no access
+        return query.Where(jo => false);
     }
 }

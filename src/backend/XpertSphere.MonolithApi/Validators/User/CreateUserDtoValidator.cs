@@ -104,7 +104,7 @@ public class CreateUserDtoValidator : AbstractValidator<CreateUserDto>
         if (string.IsNullOrEmpty(linkedInUrl))
             return true;
 
-        return linkedInUrl.Contains("linkedin.com/in/") || 
+        return linkedInUrl.Contains("linkedin.com/in/") ||
                linkedInUrl.Contains("linkedin.com/pub/") ||
                linkedInUrl.StartsWith("https://linkedin.com/") ||
                linkedInUrl.StartsWith("https://www.linkedin.com/");

@@ -9,8 +9,10 @@ namespace XpertSphere.MonolithApi.Utils.Results;
 /// </summary>
 public class AuthResult : ServiceResult<AuthResponseDto>
 {
-    private AuthResult() : base() { }
-    
+    private AuthResult() : base()
+    {
+    }
+
     /// <summary>
     /// Additional metadata for this authentication result
     /// </summary>
@@ -34,7 +36,6 @@ public class AuthResult : ServiceResult<AuthResponseDto>
 
     public static AuthResult SuccessWithUser(AuthResponseDto user, string message = "Operation successful")
     {
-
         return new AuthResult
         {
             IsSuccess = true,
@@ -98,7 +99,7 @@ public class AuthResult : ServiceResult<AuthResponseDto>
             StatusCode = 200
         };
     }
-    
+
     /// <summary>
     /// Add metadata to this authentication result
     /// </summary>
@@ -107,7 +108,7 @@ public class AuthResult : ServiceResult<AuthResponseDto>
         Metadata[key] = value;
         return this;
     }
-    
+
     /// <summary>
     /// Set the status code for this authentication result
     /// </summary>
@@ -116,7 +117,7 @@ public class AuthResult : ServiceResult<AuthResponseDto>
         StatusCode = statusCode;
         return this;
     }
-    
+
     /// <summary>
     /// Get metadata value by key
     /// </summary>
@@ -126,9 +127,10 @@ public class AuthResult : ServiceResult<AuthResponseDto>
         {
             return typedValue;
         }
+
         return default;
     }
-    
+
     /// <summary>
     /// Check if metadata contains a specific key
     /// </summary>

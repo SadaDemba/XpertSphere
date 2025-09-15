@@ -110,6 +110,12 @@ export const OrganizationRoles = [
   UserRole.TechnicalEvaluator,
 ];
 
+export const OrganizationRolesExceptAdmin = [
+  UserRole.Manager,
+  UserRole.Recruiter,
+  UserRole.TechnicalEvaluator,
+];
+
 export const InternalRoles = [...PlatformRoles, ...OrganizationRoles];
 
 export const ManagementRoles = [

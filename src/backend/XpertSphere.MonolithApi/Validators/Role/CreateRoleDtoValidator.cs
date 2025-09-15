@@ -19,7 +19,8 @@ public class CreateRoleDtoValidator : AbstractValidator<CreateRoleDto>
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Role name is required")
             .MaximumLength(100).WithMessage("Role name cannot exceed 100 characters")
-            .Matches(@"^[a-zA-Z0-9._-]+$").WithMessage("Role name can only contain letters, numbers, dots, underscores, and hyphens")
+            .Matches(@"^[a-zA-Z0-9._-]+$")
+            .WithMessage("Role name can only contain letters, numbers, dots, underscores, and hyphens")
             .Must(NotStartWithDot).WithMessage("Role name cannot start with a dot")
             .Must(NotEndWithDot).WithMessage("Role name cannot end with a dot");
 

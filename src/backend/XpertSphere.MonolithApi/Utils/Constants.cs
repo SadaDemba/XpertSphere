@@ -40,23 +40,35 @@
         public const string POSTAL_CODE_INVALID_FORMAT = "Invalid postal code format";
         public const string REGION_MAX_LENGTH = "Region cannot exceed 100 characters";
         public const string COUNTRY_MAX_LENGTH = "Country cannot exceed 100 characters";
-        public const string COUNTRY_INVALID_FORMAT = "Country can only contain letters, spaces, hyphens and apostrophes";
+
+        public const string COUNTRY_INVALID_FORMAT =
+            "Country can only contain letters, spaces, hyphens and apostrophes";
+
         public const string ADDRESS_LINE2_MAX_LENGTH = "Address line 2 cannot exceed 255 characters";
 
         // User validation messages
         public const string FIRST_NAME_REQUIRED = "First name is required";
         public const string FIRST_NAME_MAX_LENGTH = "First name cannot exceed 100 characters";
-        public const string FIRST_NAME_INVALID_FORMAT = "First name can only contain letters, spaces, hyphens and apostrophes";
+
+        public const string FIRST_NAME_INVALID_FORMAT =
+            "First name can only contain letters, spaces, hyphens and apostrophes";
+
         public const string LAST_NAME_REQUIRED = "Last name is required";
         public const string LAST_NAME_MAX_LENGTH = "Last name cannot exceed 100 characters";
-        public const string LAST_NAME_INVALID_FORMAT = "Last name can only contain letters, spaces, hyphens and apostrophes";
+
+        public const string LAST_NAME_INVALID_FORMAT =
+            "Last name can only contain letters, spaces, hyphens and apostrophes";
+
         public const string EMAIL_REQUIRED = "Email is required";
         public const string EMAIL_INVALID_FORMAT = "Invalid email format";
         public const string EMAIL_MAX_LENGTH = "Email cannot exceed 255 characters";
         public const string PHONE_NUMBER_INVALID_FORMAT = "Invalid phone number format";
         public const string USER_TYPE_INVALID = "Invalid user type";
         public const string ORGANIZATION_REQUIRED_FOR_INTERNAL_USERS = "Organization is required for internal users";
-        public const string EMPLOYEE_ID_REQUIRED_FOR_ORGANIZATIONAL_USERS = "Employee ID is required for organizational users";
+
+        public const string EMPLOYEE_ID_REQUIRED_FOR_ORGANIZATIONAL_USERS =
+            "Employee ID is required for organizational users";
+
         public const string EMPLOYEE_ID_MAX_LENGTH = "Employee ID cannot exceed 50 characters";
         public const string DEPARTMENT_MAX_LENGTH = "Department cannot exceed 100 characters";
         public const string HIRE_DATE_CANNOT_BE_FUTURE = "Hire date cannot be in the future";
@@ -81,7 +93,10 @@
         public const string MIN_EXPERIENCE_MAX_YEARS = "Minimum experience cannot exceed 50 years";
         public const string MAX_EXPERIENCE_CANNOT_BE_NEGATIVE = "Maximum experience cannot be negative";
         public const string MAX_EXPERIENCE_MAX_YEARS = "Maximum experience cannot exceed 50 years";
-        public const string MIN_EXPERIENCE_GREATER_THAN_MAX = "Minimum experience must be less than or equal to maximum experience";
+
+        public const string MIN_EXPERIENCE_GREATER_THAN_MAX =
+            "Minimum experience must be less than or equal to maximum experience";
+
         public const string MIN_SALARY_MUST_BE_POSITIVE = "Minimum salary must be greater than 0";
         public const string MAX_SALARY_MUST_BE_POSITIVE = "Maximum salary must be greater than 0";
         public const string MIN_SALARY_GREATER_THAN_MAX = "Minimum salary must be less than or equal to maximum salary";
@@ -91,6 +106,5 @@
         public const string SEARCH_TERMS_MAX_LENGTH = "Search terms cannot exceed 200 characters";
         public const string SORT_FIELD_MAX_LENGTH = "Sort field cannot exceed 50 characters";
         public const string SORT_DIRECTION_INVALID = "Invalid sort direction";
-
     }
 }

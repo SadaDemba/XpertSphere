@@ -54,7 +54,7 @@
 
         <q-table
           v-model:pagination="pagination"
-          :rows="applicationStore.applications"
+          :rows="applications"
           :columns="columns"
           :loading="applicationStore.isLoading"
           :rows-per-page-options="dataTable.defaultPagination.value.rowsPerPageOptions"
@@ -85,12 +85,12 @@
           <template #body-cell-currentStatus="props">
             <q-td :props="props">
               <q-chip
-                :color="getStatusConfig(props.value).color"
-                :text-color="getStatusConfig(props.value).textColor"
-                :icon="getStatusConfig(props.value).icon"
+                :color="applicationStatusConfig[props.value]?.color"
+                :text-color="applicationStatusConfig[props.value]?.textColor"
+                :icon="applicationStatusConfig[props.value]?.icon"
                 size="sm"
               >
-                {{ getStatusConfig(props.value).label }}
+                {{ applicationStatusConfig[props.value]?.label }}
               </q-chip>
             </q-td>
           </template>
@@ -101,7 +101,7 @@
                 v-if="props.value"
                 :model-value="props.value"
                 :max="5"
-                size="sm"
+                size="xs"
                 color="amber"
                 readonly
               />
@@ -193,13 +193,6 @@
       </q-card-section>
     </q-card>
 
-    <!-- Application Details Dialog -->
-    <application-details
-      v-model="showDetailsDialog"
-      :application="selectedApplication"
-      @updated="refreshData"
-    />
-
     <!-- Update Status Dialog -->
     <application-status-update
       v-model="showStatusDialog"
@@ -231,7 +224,6 @@ import { applicationStatusConfig } from 'src/models/application';
 import type { ApplicationDto, ApplicationFilterDto } from 'src/models/application';
 import type { ApplicationStatus } from 'src/enums/ApplicationStatus';
 import { statusOptions } from 'src/enums/ApplicationStatus';
-import ApplicationDetails from 'src/components/applications/ApplicationDetails.vue';
 import ApplicationStatusUpdate from 'src/components/applications/ApplicationStatusUpdate.vue';
 import ApplicationAssign from 'src/components/applications/ApplicationAssign.vue';
 import ApplicationHistory from 'src/components/applications/ApplicationHistory.vue';
@@ -240,11 +232,11 @@ const router = useRouter();
 const applicationStore = useApplicationStore();
 const dataTable = useDataTable();
 
+const applications = computed(() => applicationStore.applications || []);
 const searchText = ref('');
 const statusFilter = ref<ApplicationStatus | null>(null);
 const activeFilter = ref<boolean | null>(null);
 const selectedApplication = ref<ApplicationDto | null>(null);
-const showDetailsDialog = ref(false);
 const showStatusDialog = ref(false);
 const showAssignDialog = ref(false);
 const showHistoryDialog = ref(false);
@@ -322,17 +314,6 @@ const columns = computed<QTableProps['columns']>(() => [
   },
 ]);
 
-const getStatusConfig = (status: ApplicationStatus) => {
-  return (
-    applicationStatusConfig[status] || {
-      color: 'grey',
-      textColor: 'white',
-      icon: 'help',
-      label: 'Inconnu',
-    }
-  );
-};
-
 const formatDate = (dateString: string) => {
   return date.formatDate(dateString, 'DD/MM/YYYY HH:mm');
 };
@@ -370,8 +351,7 @@ const refreshData = () => {
 };
 
 const viewApplicationDetails = (application: ApplicationDto) => {
-  selectedApplication.value = application;
-  showDetailsDialog.value = true;
+  router.push(`/applications/${application.id}`);
 };
 
 const viewCandidate = (application: ApplicationDto) => {

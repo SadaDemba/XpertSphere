@@ -4,7 +4,7 @@ using XpertSphere.MonolithApi.Models.Base;
 
 namespace XpertSphere.MonolithApi.Data.Configurations.Base;
 
-public abstract class AuditableEntityConfiguration<T> : IEntityTypeConfiguration<T> 
+public abstract class AuditableEntityConfiguration<T> : IEntityTypeConfiguration<T>
     where T : AuditableEntity
 {
     public virtual void Configure(EntityTypeBuilder<T> builder)
@@ -23,7 +23,7 @@ public abstract class AuditableEntityConfiguration<T> : IEntityTypeConfiguration
         // Indexes for performance
         builder.HasIndex(e => e.CreatedAt);
         builder.HasIndex(e => e.CreatedBy);
-        
+
         // Call derived configuration
         ConfigureEntity(builder);
     }

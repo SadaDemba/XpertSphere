@@ -66,7 +66,7 @@ public class UserRolesController : ControllerBase
     /// <summary>
     /// Update user role status (activate/deactivate)
     /// </summary>
-    [HttpPatch("{userRoleId:guid}/status")]
+    [HttpPut("{userRoleId:guid}/status")]
     [Authorize(Policy = "RequireInternalUser")]
     public async Task<ActionResult> UpdateUserRoleStatus(Guid userRoleId, [FromBody] bool isActive)
     {

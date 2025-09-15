@@ -253,14 +253,14 @@ import type {
 } from '../../models/organization';
 import { OrganizationSize } from '../../enums';
 import { organizationSizeOptions } from '../../enums/OrganizationSize';
-import { useQuasar } from 'quasar';
 import { useNotification } from '../../composables/notification';
 import { useDataTable } from 'src/composables/datatable';
+import { useDialog } from 'src/composables/dialog';
 
-const $q = useQuasar();
 const notification = useNotification();
 const organizationStore = useOrganizationStore();
 const dataTable = useDataTable();
+const dialog = useDialog();
 
 const showCreateDialog = ref(false);
 const editingOrganization = ref<OrganizationDto | null>(null);
@@ -530,39 +530,22 @@ const toggleOrganizationStatus = async (organization: OrganizationDto, isActive:
   }
 };
 
-const confirmToggleStatus = (organization: OrganizationDto) => {
-  const action = organization.isActive ? 'désactiver' : 'activer';
-  const actionCapitalized = organization.isActive ? 'Désactiver' : 'Activer';
-
-  $q.dialog({
-    title: "Confirmer l'action",
-    message: `Êtes-vous sûr de vouloir ${action} l'organisation "${organization.name}" ?`,
-    cancel: true,
-    ok: {
-      push: true,
-      label: actionCapitalized,
-      color: organization.isActive ? 'warning' : 'positive',
-    },
-    persistent: true,
-  }).onOk(() => {
-    toggleOrganizationStatus(organization, !organization.isActive);
-  });
+const confirmToggleStatus = async (organization: OrganizationDto) => {
+  try {
+    await dialog.confirmToggle(organization.isActive, organization.name, 'organisation');
+    await toggleOrganizationStatus(organization, !organization.isActive);
+  } catch {
+    // User cancelled
+  }
 };
 
-const confirmDelete = (organization: OrganizationDto) => {
-  $q.dialog({
-    title: 'Confirmer la suppression',
-    message: `Êtes-vous sûr de vouloir supprimer l'organisation "${organization.name}" ? Cette action est irréversible.`,
-    cancel: true,
-    ok: {
-      push: true,
-      label: 'Supprimer',
-      color: 'negative',
-    },
-    persistent: true,
-  }).onOk(() => {
-    deleteOrganization(organization);
-  });
+const confirmDelete = async (organization: OrganizationDto) => {
+  try {
+    await dialog.confirmDelete(organization.name, 'organisation');
+    await deleteOrganization(organization);
+  } catch {
+    // User cancelled
+  }
 };
 
 const deleteOrganization = async (organization: OrganizationDto) => {

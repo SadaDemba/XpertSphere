@@ -6,26 +6,19 @@ namespace XpertSphere.MonolithApi.Models.Base;
 [ComplexType]
 public class Address
 {
-    [MaxLength(10)]
-    public string? StreetNumber { get; set; }
+    [MaxLength(10)] public string? StreetNumber { get; set; }
 
-    [MaxLength(200)]
-    public string? StreetName { get; set; }
+    [MaxLength(200)] public string? StreetName { get; set; }
 
-    [MaxLength(100)]
-    public string? City { get; set; }
+    [MaxLength(100)] public string? City { get; set; }
 
-    [MaxLength(20)]
-    public string? PostalCode { get; set; }
+    [MaxLength(20)] public string? PostalCode { get; set; }
 
-    [MaxLength(100)]
-    public string? Region { get; set; }
+    [MaxLength(100)] public string? Region { get; set; }
 
-    [MaxLength(100)]
-    public string? Country { get; set; } = "France";
+    [MaxLength(100)] public string? Country { get; set; } = "France";
 
-    [MaxLength(100)]
-    public string? AddressLine2 { get; set; }
+    [MaxLength(100)] public string? AddressLine2 { get; set; }
 
     [NotMapped]
     public string FullAddress
@@ -72,9 +65,9 @@ public class Address
     }
 
     [NotMapped]
-    public bool IsEmpty => string.IsNullOrWhiteSpace(StreetName) && 
-                          string.IsNullOrWhiteSpace(City) && 
-                          string.IsNullOrWhiteSpace(PostalCode);
+    public bool IsEmpty => string.IsNullOrWhiteSpace(StreetName) &&
+                           string.IsNullOrWhiteSpace(City) &&
+                           string.IsNullOrWhiteSpace(PostalCode);
 
     [NotMapped]
     public string MultiLineAddress
