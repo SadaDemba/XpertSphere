@@ -8,46 +8,35 @@ namespace XpertSphere.MonolithApi.Models;
 
 public class JobOffer : AuditableEntity
 {
-    [Required]
-    [MaxLength(200)]
-    public required string Title { get; set; }
+    [Required] [MaxLength(200)] public required string Title { get; set; }
 
-    [Required]
-    public required string Description { get; set; }
+    [Required] public string Description { get; set; }
 
-    [Required]
-    public required string Requirements { get; set; }
+    [Required] public string Requirements { get; set; }
 
-    [MaxLength(200)]
-    public string? Location { get; set; }
+    [Required] public string Benefits { get; set; }
 
-    [Required]
-    public WorkMode WorkMode { get; set; }
+    [MaxLength(200)] public string? Location { get; set; }
 
-    [Required]
-    public ContractType ContractType { get; set; }
+    [Required] public WorkMode WorkMode { get; set; }
 
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? SalaryMin { get; set; }
+    [Required] public ContractType ContractType { get; set; }
 
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? SalaryMax { get; set; }
+    [Column(TypeName = "decimal(18,2)")] public decimal? SalaryMin { get; set; }
 
-    [MaxLength(10)]
-    public string? SalaryCurrency { get; set; } = "EUR";
+    [Column(TypeName = "decimal(18,2)")] public decimal? SalaryMax { get; set; }
 
-    [Required]
-    public JobOfferStatus Status { get; set; } = JobOfferStatus.Draft;
+    [MaxLength(10)] public string? SalaryCurrency { get; set; } = "EUR";
+
+    [Required] public JobOfferStatus Status { get; set; } = JobOfferStatus.Draft;
 
     public DateTime? PublishedAt { get; set; }
 
     public DateTime? ExpiresAt { get; set; }
 
-    [Required]
-    public Guid OrganizationId { get; set; }
+    [Required] public Guid OrganizationId { get; set; }
 
-    [Required]
-    public Guid CreatedByUserId { get; set; }
+    [Required] public Guid CreatedByUserId { get; set; }
 
     // Navigation properties
     [ForeignKey("OrganizationId")]
@@ -58,16 +47,17 @@ public class JobOffer : AuditableEntity
     [JsonIgnore]
     public virtual User CreatedByUserNavigation { get; set; } = null!;
 
+    [JsonIgnore]
+    public virtual ICollection<Application> Applications { get; set; } = new List<Application>();
+
     // Computed properties
     [NotMapped]
-    public bool IsActive => Status == JobOfferStatus.Published && 
-                           (ExpiresAt == null || ExpiresAt > DateTime.UtcNow);
+    public bool IsActive => Status == JobOfferStatus.Published &&
+                            (ExpiresAt == null || ExpiresAt > DateTime.UtcNow);
 
-    [NotMapped]
-    public bool IsExpired => ExpiresAt.HasValue && ExpiresAt <= DateTime.UtcNow;
+    [NotMapped] public bool IsExpired => ExpiresAt.HasValue && ExpiresAt <= DateTime.UtcNow;
 
-    [NotMapped]
-    public bool RequiresLocation => WorkMode != WorkMode.FullRemote;
+    [NotMapped] public bool RequiresLocation => WorkMode != WorkMode.FullRemote;
 
     // Methods
     public void Publish()

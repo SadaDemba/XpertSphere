@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using XpertSphere.MonolithApi.DTOs.Organization;
 using XpertSphere.MonolithApi.Enums;
+using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Models.Base;
 using XpertSphere.MonolithApi.Services;
@@ -18,8 +19,8 @@ public class OrganizationServiceTests : IDisposable
     private readonly Mock<IValidator<UpdateOrganizationDto>> _mockUpdateValidator;
     private readonly Mock<IValidator<OrganizationFilterDto>> _mockFilterValidator;
     private readonly Mock<ILogger<OrganizationService>> _mockLogger;
-    private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
-    private readonly XpertSphere.MonolithApi.Data.XpertSphereDbContext _context;
+    private readonly Mock<ICurrentUserService> _mockCurrentUserService;
+    private readonly Data.XpertSphereDbContext _context;
 
     public OrganizationServiceTests()
     {
@@ -28,7 +29,7 @@ public class OrganizationServiceTests : IDisposable
         _mockUpdateValidator = new Mock<IValidator<UpdateOrganizationDto>>();
         _mockFilterValidator = new Mock<IValidator<OrganizationFilterDto>>();
         _mockLogger = MockHelper.CreateMockLogger<OrganizationService>();
-        _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        _mockCurrentUserService = new Mock<ICurrentUserService>();
     }
 
     [Fact]
@@ -318,7 +319,7 @@ public class OrganizationServiceTests : IDisposable
             _mockUpdateValidator.Object,
             _mockFilterValidator.Object,
             _mockLogger.Object,
-            _mockHttpContextAccessor.Object
+            _mockCurrentUserService.Object
         );
     }
 

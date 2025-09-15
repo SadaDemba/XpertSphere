@@ -3,11 +3,9 @@ import type { Filter } from './base';
 
 export interface Training {
   id?: string;
-  title: string;
-  institution: string;
-  startDate: string;
-  endDate?: string;
-  description?: string;
+  field: string;
+  school: string;
+  period: string;
 }
 
 export interface Experience {
@@ -43,6 +41,7 @@ export interface UserSearchResultDto {
   fullName: string;
   isAvailable: boolean;
   experienceDisplay: string;
+  roles?: string[];
 }
 
 export interface UserDto {

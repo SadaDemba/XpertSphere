@@ -38,7 +38,8 @@ public class ApplicationStatusHistoryController(IApplicationStatusHistoryService
     /// </summary>
     [HttpPost]
     [Authorize(Policy = "RequireRecruiterRole")]
-    public async Task<ActionResult<ApplicationStatusHistoryDto>> Create([FromBody] CreateApplicationStatusHistoryDto dto)
+    public async Task<ActionResult<ApplicationStatusHistoryDto>> Create(
+        [FromBody] CreateApplicationStatusHistoryDto dto)
     {
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
@@ -55,7 +56,8 @@ public class ApplicationStatusHistoryController(IApplicationStatusHistoryService
     /// </summary>
     [HttpPut("{id:guid}")]
     [Authorize(Policy = "RequireRecruiterRole")]
-    public async Task<ActionResult<ApplicationStatusHistoryDto>> Update(Guid id, [FromBody] UpdateApplicationStatusHistoryDto dto)
+    public async Task<ActionResult<ApplicationStatusHistoryDto>> Update(Guid id,
+        [FromBody] UpdateApplicationStatusHistoryDto dto)
     {
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)

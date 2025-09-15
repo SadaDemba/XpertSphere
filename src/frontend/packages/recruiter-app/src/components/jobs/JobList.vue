@@ -51,6 +51,9 @@
           @delete="$emit('delete', job)"
           @duplicate="$emit('duplicate', job)"
           @view-applications="$emit('viewApplications', job)"
+          @update-status="
+            (job: JobOffer, status: JobOfferStatus) => $emit('updateStatus', job, status)
+          "
         />
       </div>
 
@@ -61,6 +64,9 @@
           @delete="$emit('delete', $event)"
           @duplicate="$emit('duplicate', $event)"
           @view-applications="$emit('viewApplications', $event)"
+          @update-status="
+            (job: JobOffer, status: JobOfferStatus) => $emit('updateStatus', job, status)
+          "
         />
       </div>
 
@@ -84,6 +90,7 @@ import JobCard from './JobCard.vue';
 import JobTable from './JobTable.vue';
 import AppPagination from '../common/AppPagination.vue';
 import type { JobOffer } from '../../models/job';
+import { JobOfferStatus } from 'src/enums';
 
 interface Props {
   jobs?: JobOffer[];
@@ -98,6 +105,7 @@ interface Emits {
   (e: 'delete', job: JobOffer): void;
   (e: 'duplicate', job: JobOffer): void;
   (e: 'viewApplications', job: JobOffer): void;
+  (e: 'updateStatus', job: JobOffer, status: JobOfferStatus): void;
   (e: 'page-change', page: number): void;
 }
 

@@ -2,7 +2,9 @@
 
 ## 🚀 Vue d'ensemble
 
-XpertSphere MonolithApi est une API REST développée en .NET 9 pour gérer une plateforme de recrutement complète. Elle permet la gestion des utilisateurs, des organisations, des offres d'emploi et des candidatures avec un système d'authentification hybride (local et Entra ID).
+XpertSphere MonolithApi est une API REST développée en .NET 9 pour gérer une plateforme de recrutement complète. Elle
+permet la gestion des utilisateurs, des organisations, des offres d'emploi et des candidatures avec un système d'
+authentification hybride (local et Entra ID).
 
 ## 📊 Statistiques du Projet
 
@@ -15,23 +17,27 @@ XpertSphere MonolithApi est une API REST développée en .NET 9 pour gérer une 
 ## 🛠️ Technologies Clés
 
 ### Backend & Framework
+
 - **.NET 9** - Runtime et framework principal
 - **ASP.NET Core Web API** - Framework web
 - **Entity Framework Core 9.0** - ORM et accès aux données
 - **SQL Server** - Base de données relationnelle
 
 ### Authentification & Sécurité
+
 - **Microsoft Identity Web** - Intégration Entra ID
 - **JWT Bearer Authentication** - Tokens d'authentification
 - **Azure Key Vault** - Gestion sécurisée des secrets
 - **FluentValidation** - Validation des entrées
 
 ### Services Azure
+
 - **Application Insights** - Télémétrie et monitoring
 - **Blob Storage** - Stockage de fichiers (CVs)
 - **Key Vault** - Gestion des secrets
 
 ### Outils de Développement
+
 - **AutoMapper** - Mapping entités ↔ DTOs
 - **Swagger/OpenAPI** - Documentation API
 - **Serilog** - Logging structuré
@@ -57,7 +63,7 @@ XpertSphere MonolithApi est une API REST développée en .NET 9 pour gérer une 
 ### Entités Principales
 
 - **User** - Utilisateurs (candidats/recruteurs)
-- **Organization** - Entreprises et organisations  
+- **Organization** - Entreprises et organisations
 - **JobOffer** - Offres d'emploi
 - **Application** - Candidatures
 - **Role/Permission** - Système d'autorisation
@@ -65,12 +71,14 @@ XpertSphere MonolithApi est une API REST développée en .NET 9 pour gérer une 
 ## 🌐 API Endpoints
 
 ### 🔐 Authentication (`/api/auth`)
+
 - `POST /register` - Inscription utilisateur
 - `POST /login` - Connexion
 - `POST /refresh-token` - Renouvellement token
 - `GET /login-url` - URL connexion Entra ID
 
 ### 👤 Users (`/api/users`)
+
 - `GET /users` - Liste paginée des utilisateurs
 - `GET /users/{id}` - Détails utilisateur
 - `POST /users` - Création utilisateur
@@ -78,13 +86,15 @@ XpertSphere MonolithApi est une API REST développée en .NET 9 pour gérer une 
 - `POST /users/{id}/cv` - Upload CV
 
 ### 💼 Job Offers (`/api/joboffers`)
+
 - `GET /joboffers` - Liste des offres
 - `POST /joboffers` - Création offre
 - `PATCH /joboffers/{id}/publish` - Publication
 
 ### 📝 Applications (`/api/applications`)
+
 - `GET /applications` - Liste des candidatures
-- `POST /applications` - Soumission candidature  
+- `POST /applications` - Soumission candidature
 - `PATCH /applications/{id}/status` - Mise à jour statut
 
 ## ⚙️ Configuration
@@ -191,7 +201,7 @@ _logger.LogError(ex, "Error processing application {ApplicationId}", id);
 
 - Temps de réponse des endpoints
 - Taux d'erreur HTTP
-- Performance des requêtes SQL  
+- Performance des requêtes SQL
 - Utilisation des ressources Azure
 
 ## 🔒 Sécurité
@@ -210,20 +220,21 @@ _logger.LogError(ex, "Error processing application {ApplicationId}", id);
 
 ### Conformité OWASP Top 10 2021 *(Score: 8.5/10)* 🛡️
 
-| Vulnérabilité | Status | Implémentation |
-|---------------|--------|----------------|
-| **A01: Broken Access Control** | ✅ **Implémenté** | Politiques d'autorisation, RBAC, isolation multi-tenant |
-| **A02: Cryptographic Failures** | ✅ **Implémenté** | JWT HMAC-SHA256, TLS, hachage sécurisé des mots de passe |
-| **A03: Injection** | ✅ **Implémenté** | EF Core paramétrisé, FluentValidation, sanitisation |
-| **A04: Insecure Design** | ✅ **Implémenté** | Flux d'auth sécurisés, gestion de session, MFA |
+| Vulnérabilité                      | Status           | Implémentation                                            |
+|------------------------------------|------------------|-----------------------------------------------------------|
+| **A01: Broken Access Control**     | ✅ **Implémenté** | Politiques d'autorisation, RBAC, isolation multi-tenant   |
+| **A02: Cryptographic Failures**    | ✅ **Implémenté** | JWT HMAC-SHA256, TLS, hachage sécurisé des mots de passe  |
+| **A03: Injection**                 | ✅ **Implémenté** | EF Core paramétrisé, FluentValidation, sanitisation       |
+| **A04: Insecure Design**           | ✅ **Implémenté** | Flux d'auth sécurisés, gestion de session, MFA            |
 | **A05: Security Misconfiguration** | ✅ **Implémenté** | HTTPS, cookies sécurisés, HSTS + **APIM + ACA sécurisés** |
-| **A06: Vulnerable Components** | ✅ **Implémenté** | ACA gestion automatique + **APIM protection externe** |
-| **A07: Auth Failures** | ✅ **Implémenté** | Politiques de MDP, verrouillage, MFA, expiration tokens |
-| **A08: Data Integrity** | ⚠️ **Partiel** | Validation JWT, audit fields *(manque: audit complet)* |
-| **A09: Logging Failures** | ✅ **Implémenté** | AuthenticationLogger, événements sécurité, monitoring |
-| **A10: SSRF** | ✅ **Implémenté** | **APIM contrôle trafic sortant + ACA isolation réseau** |
+| **A06: Vulnerable Components**     | ✅ **Implémenté** | ACA gestion automatique + **APIM protection externe**     |
+| **A07: Auth Failures**             | ✅ **Implémenté** | Politiques de MDP, verrouillage, MFA, expiration tokens   |
+| **A08: Data Integrity**            | ⚠️ **Partiel**   | Validation JWT, audit fields *(manque: audit complet)*    |
+| **A09: Logging Failures**          | ✅ **Implémenté** | AuthenticationLogger, événements sécurité, monitoring     |
+| **A10: SSRF**                      | ✅ **Implémenté** | **APIM contrôle trafic sortant + ACA isolation réseau**   |
 
 ### Architecture Sécurisée Multi-Couches
+
 ```
 Internet → APIM (API Key) → ACA (Réseau Isolé) → API (RBAC + JWT)
                 ↓                    ↓               ↓
@@ -233,6 +244,7 @@ Internet → APIM (API Key) → ACA (Réseau Isolé) → API (RBAC + JWT)
 ```
 
 ### Points Forts Sécurité
+
 - ✅ **Architecture Defense-in-Depth** : APIM + ACA + API
 - ✅ **Isolation Réseau** : ACA containers + CORS restreint
 - ✅ **Authentification multi-providers** robuste (JWT + Entra ID)
@@ -244,6 +256,7 @@ Internet → APIM (API Key) → ACA (Réseau Isolé) → API (RBAC + JWT)
 - ✅ **Gestion automatique** des vulnérabilités (ACA)
 
 ### Améliorations Restantes *(Mineures)*
+
 - 🔧 **Audit complet** : Logging détaillé des modifications de données
 - ✨ **Nice-to-have** : WAF additionnel (déjà couvert par APIM)
 
@@ -285,7 +298,7 @@ Internet → APIM (API Key) → ACA (Réseau Isolé) → API (RBAC + JWT)
 ### Structure de l'Équipe
 
 - **Backend** - API et logique métier
-- **DevOps** - Infrastructure et déploiement  
+- **DevOps** - Infrastructure et déploiement
 - **QA** - Tests et validation
 
 ### Documentation Technique

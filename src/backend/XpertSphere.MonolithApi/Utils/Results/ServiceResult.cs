@@ -12,7 +12,9 @@ public class ServiceResult<T>
     public List<string> Errors { get; protected set; } = [];
     public int? StatusCode { get; protected set; }
 
-    protected ServiceResult() { }
+    protected ServiceResult()
+    {
+    }
 
     /// <summary>
     /// Create a successful result with data
@@ -58,7 +60,8 @@ public class ServiceResult<T>
     /// <summary>
     /// Create a failure result with multiple error messages
     /// </summary>
-    public static ServiceResult<T> Failure(List<string> errors, string message = Constants.OPERATION_FAILED, int statusCode = 400)
+    public static ServiceResult<T> Failure(List<string> errors, string message = Constants.OPERATION_FAILED,
+        int statusCode = 400)
     {
         return new ServiceResult<T>
         {
@@ -206,7 +209,9 @@ public class ServiceResult
     public List<string> Errors { get; private set; } = [];
     public int? StatusCode { get; private set; }
 
-    protected ServiceResult() { }
+    protected ServiceResult()
+    {
+    }
 
     /// <summary>
     /// Create a successful result
@@ -220,7 +225,7 @@ public class ServiceResult
             StatusCode = 200
         };
     }
-    
+
     /// <summary>
     /// Create a validation error result
     /// </summary>
@@ -252,7 +257,8 @@ public class ServiceResult
     /// <summary>
     /// Create a failure result with multiple errors
     /// </summary>
-    public static ServiceResult Failure(List<string> errors, string message = Constants.OPERATION_FAILED, int statusCode = 400)
+    public static ServiceResult Failure(List<string> errors, string message = Constants.OPERATION_FAILED,
+        int statusCode = 400)
     {
         return new ServiceResult
         {
@@ -262,7 +268,7 @@ public class ServiceResult
             StatusCode = statusCode
         };
     }
-    
+
     /// <summary>
     /// Create an internal server error result
     /// </summary>
@@ -290,7 +296,7 @@ public class ServiceResult
             StatusCode = 404
         };
     }
-    
+
 
     /// <summary>
     /// Create an unauthorized result

@@ -34,7 +34,8 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
         _logger = logger;
     }
 
-    public async Task<ServiceResult<ApplicationStatusHistoryDto>> AddStatusChangeAsync(AddStatusChangeDto addStatusChangeDto)
+    public async Task<ServiceResult<ApplicationStatusHistoryDto>> AddStatusChangeAsync(
+        AddStatusChangeDto addStatusChangeDto)
     {
         try
         {
@@ -50,7 +51,8 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
 
             if (application == null)
             {
-                return ServiceResult<ApplicationStatusHistoryDto>.NotFound($"Application with ID {addStatusChangeDto.ApplicationId} not found");
+                return ServiceResult<ApplicationStatusHistoryDto>.NotFound(
+                    $"Application with ID {addStatusChangeDto.ApplicationId} not found");
             }
 
             var user = await _context.Users
@@ -58,7 +60,8 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
 
             if (user == null)
             {
-                return ServiceResult<ApplicationStatusHistoryDto>.NotFound($"User with ID {addStatusChangeDto.UpdatedByUserId} not found");
+                return ServiceResult<ApplicationStatusHistoryDto>.NotFound(
+                    $"User with ID {addStatusChangeDto.UpdatedByUserId} not found");
             }
 
             var statusHistory = _mapper.Map<ApplicationStatusHistory>(addStatusChangeDto);
@@ -74,19 +77,22 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
                 addStatusChangeDto.Status,
                 addStatusChangeDto.UpdatedByUserId);
 
-            return ServiceResult<ApplicationStatusHistoryDto>.Success(_mapper.Map<ApplicationStatusHistoryDto>(statusHistory),"Status change added successfully");
+            return ServiceResult<ApplicationStatusHistoryDto>.Success(
+                _mapper.Map<ApplicationStatusHistoryDto>(statusHistory), "Status change added successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, 
+            _logger.LogError(ex,
                 "Error adding status change for application {ApplicationId}",
                 addStatusChangeDto.ApplicationId);
-            return ServiceResult<ApplicationStatusHistoryDto>.InternalError("An error occurred while adding status change");
+            return ServiceResult<ApplicationStatusHistoryDto>.InternalError(
+                "An error occurred while adding status change");
         }
     }
 
 
-    public async Task<ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>> GetByApplicationIdAsync(Guid applicationId)
+    public async Task<ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>> GetByApplicationIdAsync(
+        Guid applicationId)
     {
         try
         {
@@ -98,7 +104,7 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
 
             var historyDtos = _mapper.Map<IEnumerable<ApplicationStatusHistoryDto>>(history);
 
-            _logger.LogInformation("Retrieved {Count} status history entries for application {ApplicationId}", 
+            _logger.LogInformation("Retrieved {Count} status history entries for application {ApplicationId}",
                 history.Count, applicationId);
 
             return ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>.Success(historyDtos);
@@ -106,7 +112,8 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving status history for application {ApplicationId}", applicationId);
-            return ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>.InternalError("An error occurred while retrieving status history");
+            return ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>.InternalError(
+                "An error occurred while retrieving status history");
         }
     }
 
@@ -130,11 +137,13 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving status history with ID {Id}", id);
-            return ServiceResult<ApplicationStatusHistoryDto>.InternalError("An error occurred while retrieving status history");
+            return ServiceResult<ApplicationStatusHistoryDto>.InternalError(
+                "An error occurred while retrieving status history");
         }
     }
 
-    public async Task<ServiceResult<ApplicationStatusHistoryDto>> CreateAsync(CreateApplicationStatusHistoryDto dto, Guid updatedByUserId)
+    public async Task<ServiceResult<ApplicationStatusHistoryDto>> CreateAsync(CreateApplicationStatusHistoryDto dto,
+        Guid updatedByUserId)
     {
         try
         {
@@ -148,7 +157,8 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
             var application = await _context.Applications.FindAsync(dto.ApplicationId);
             if (application == null)
             {
-                return ServiceResult<ApplicationStatusHistoryDto>.NotFound($"Application with ID {dto.ApplicationId} not found");
+                return ServiceResult<ApplicationStatusHistoryDto>.NotFound(
+                    $"Application with ID {dto.ApplicationId} not found");
             }
 
             var user = await _context.Users.FindAsync(updatedByUserId);
@@ -172,19 +182,22 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
 
             var statusHistoryDto = _mapper.Map<ApplicationStatusHistoryDto>(createdStatusHistory);
 
-            _logger.LogInformation("Created status history with ID {Id} for application {ApplicationId}", 
+            _logger.LogInformation("Created status history with ID {Id} for application {ApplicationId}",
                 statusHistory.Id, dto.ApplicationId);
 
-            return ServiceResult<ApplicationStatusHistoryDto>.Success(statusHistoryDto, "Status history created successfully");
+            return ServiceResult<ApplicationStatusHistoryDto>.Success(statusHistoryDto,
+                "Status history created successfully");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating status history for application {ApplicationId}", dto.ApplicationId);
-            return ServiceResult<ApplicationStatusHistoryDto>.InternalError("An error occurred while creating status history");
+            return ServiceResult<ApplicationStatusHistoryDto>.InternalError(
+                "An error occurred while creating status history");
         }
     }
 
-    public async Task<ServiceResult<ApplicationStatusHistoryDto>> UpdateAsync(Guid id, UpdateApplicationStatusHistoryDto dto, Guid updatedByUserId)
+    public async Task<ServiceResult<ApplicationStatusHistoryDto>> UpdateAsync(Guid id,
+        UpdateApplicationStatusHistoryDto dto, Guid updatedByUserId)
     {
         try
         {
@@ -215,12 +228,14 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
 
             _logger.LogInformation("Updated status history with ID {Id}", id);
 
-            return ServiceResult<ApplicationStatusHistoryDto>.Success(statusHistoryDto, "Status history updated successfully");
+            return ServiceResult<ApplicationStatusHistoryDto>.Success(statusHistoryDto,
+                "Status history updated successfully");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating status history with ID {Id}", id);
-            return ServiceResult<ApplicationStatusHistoryDto>.InternalError("An error occurred while updating status history");
+            return ServiceResult<ApplicationStatusHistoryDto>.InternalError(
+                "An error occurred while updating status history");
         }
     }
 

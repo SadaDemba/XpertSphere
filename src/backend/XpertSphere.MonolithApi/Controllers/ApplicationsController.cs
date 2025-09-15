@@ -29,7 +29,8 @@ public class ApplicationsController(IApplicationService applicationService) : Co
     /// </summary>
     [HttpGet("paginated")]
     [Authorize(Policy = "RequireRecruiterRole")]
-    public async Task<ActionResult<PaginatedResult<ApplicationDto>>> GetAllPaginatedApplications([FromQuery] ApplicationFilterDto filter)
+    public async Task<ActionResult<PaginatedResult<ApplicationDto>>> GetAllPaginatedApplications(
+        [FromQuery] ApplicationFilterDto filter)
     {
         var result = await applicationService.GetAllPaginatedApplicationsAsync(filter);
         return this.ToPaginatedActionResult(result);
@@ -65,7 +66,8 @@ public class ApplicationsController(IApplicationService applicationService) : Co
     /// Update an existing application
     /// </summary>
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<ApplicationDto>> UpdateApplication(Guid id, UpdateApplicationDto updateApplicationDto)
+    public async Task<ActionResult<ApplicationDto>> UpdateApplication(Guid id,
+        UpdateApplicationDto updateApplicationDto)
     {
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
@@ -98,7 +100,8 @@ public class ApplicationsController(IApplicationService applicationService) : Co
     /// </summary>
     [HttpPut("{id:guid}/status")]
     [Authorize(Policy = "RequireRecruiterRole")]
-    public async Task<ActionResult<ApplicationDto>> UpdateApplicationStatus(Guid id, UpdateApplicationStatusDto updateStatusDto)
+    public async Task<ActionResult<ApplicationDto>> UpdateApplicationStatus(Guid id,
+        UpdateApplicationStatusDto updateStatusDto)
     {
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)

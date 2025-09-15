@@ -1,6 +1,5 @@
 namespace XpertSphere.MonolithApi.Utils.Results.Pagination;
 
-
 /// <summary>
 /// Pagination navigation links
 /// </summary>

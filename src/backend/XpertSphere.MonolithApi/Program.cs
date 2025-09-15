@@ -17,7 +17,7 @@ var useEntraId = Environment.GetEnvironmentVariable("USE_ENTRA_ID")?.ToLower() =
 if (builder.Environment.IsDevelopment())
 {
     var corsOrigins = Environment.GetEnvironmentVariable("CORS__ALLOWED_ORIGINS")?.Split(',') ?? [];
-    
+
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(policy =>
@@ -34,14 +34,14 @@ if (!builder.Environment.IsDevelopment())
 {
     // Azure Key Vault Configuration
     builder.Services.AddKeyVaultConfiguration(builder);
-    
+
     // Application Insights Telemetry 
     builder.Services.AddApplicationInsightsTelemetry();
-    
+
     // Logging configuration
     builder.Logging.ClearProviders();
     builder.Logging.AddConsole();
-    
+
     builder.Logging.AddApplicationInsights();
 }
 
@@ -61,10 +61,7 @@ builder.Services.AddHealthChecks();
 
 // API Services
 builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
+    .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
 
 builder.Services.AddSwaggerDocumentation();
 
@@ -78,7 +75,7 @@ if (useEntraId)
     // Authentication Error Handling & Logging Services
     builder.Services.AddEntraIdFallback();
     builder.Services.AddEntraIdRateLimit();
-    
+
     // HTTP Client for Entra ID APIs
     builder.Services.AddHttpClient("EntraId", client => client.ConfigureForEntraId());
 }
@@ -122,4 +119,6 @@ app.MapControllers();
 await app.RunAsync();
 
 // Make the Program accessible for the testing project
-public partial class Program { }
+public partial class Program
+{
+}

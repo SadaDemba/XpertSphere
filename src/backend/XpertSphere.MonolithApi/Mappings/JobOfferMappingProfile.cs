@@ -18,7 +18,8 @@ public class JobOfferMappingProfile : Profile
             .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.Organization.Name))
             .ForMember(dest => dest.CreatedByUserName, opt => opt.MapFrom(src => src.CreatedByUserNavigation.FullName))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-            .ForMember(dest => dest.IsExpired, opt => opt.MapFrom(src => src.IsExpired));
+            .ForMember(dest => dest.IsExpired, opt => opt.MapFrom(src => src.IsExpired))
+            .ForMember(dest => dest.ApplicationsCount, opt => opt.MapFrom(src => src.Applications.Count));
 
         // CreateJobOfferDto -> JobOffer
         CreateMap<CreateJobOfferDto, JobOffer>()

@@ -7,12 +7,9 @@ namespace XpertSphere.MonolithApi.Models;
 
 public class UserRole : AuditableEntity
 {
+    [Required] public Guid UserId { get; set; }
 
-    [Required]
-    public Guid UserId { get; set; }
-
-    [Required]
-    public Guid RoleId { get; set; }
+    [Required] public Guid RoleId { get; set; }
 
     public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
 
@@ -23,13 +20,9 @@ public class UserRole : AuditableEntity
     public DateTime? ExpiresAt { get; set; } // Optionnel : expiration du rôle
 
     // Navigation properties
-    [ForeignKey("UserId")]
-    [JsonIgnore]
-    public virtual User User { get; set; } = null!;
+    [ForeignKey("UserId")] [JsonIgnore] public virtual User User { get; set; } = null!;
 
-    [ForeignKey("RoleId")]
-    [JsonIgnore]
-    public virtual Role Role { get; set; } = null!;
+    [ForeignKey("RoleId")] [JsonIgnore] public virtual Role Role { get; set; } = null!;
 
     [ForeignKey("AssignedBy")]
     [JsonIgnore]

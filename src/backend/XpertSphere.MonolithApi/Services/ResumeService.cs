@@ -1,3 +1,4 @@
+using System.Linq;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using XpertSphere.MonolithApi.Interfaces;
@@ -51,7 +52,7 @@ public class ResumeService : IResumeService
                 Metadata = new Dictionary<string, string>
                 {
                     { "userId", userId.ToString() },
-                    { "originalFileName", file.FileName },
+                    { "originalFileName", SanitizeFileName(file.FileName) },
                     { "uploadedAt", DateTime.UtcNow.ToString("O") }
                 }
             };
@@ -69,7 +70,8 @@ public class ResumeService : IResumeService
         }
     }
 
-    public async Task<ServiceResult<string>> UpdateResumeAsync(IFormFile file, Guid userId, string? existingResumePath = null)
+    public async Task<ServiceResult<string>> UpdateResumeAsync(IFormFile file, Guid userId,
+        string? existingResumePath = null)
     {
         try
         {
@@ -173,15 +175,19 @@ public class ResumeService : IResumeService
             var blobClient = containerClient.GetBlobClient(blobName);
 
             var properties = await blobClient.GetPropertiesAsync();
-            
+
             var metadata = new ResumeMetadata
             {
-                FileName = properties.Value.Metadata.TryGetValue("originalFileName", out var fileName) ? fileName : "resume.pdf",
+                FileName = properties.Value.Metadata.TryGetValue("originalFileName", out var fileName)
+                    ? fileName
+                    : "resume.pdf",
                 Size = properties.Value.ContentLength,
                 ContentType = properties.Value.ContentType,
                 LastModified = properties.Value.LastModified.DateTime,
-                UploadedAt = properties.Value.Metadata.TryGetValue("uploadedAt", out var uploadedAtStr) && DateTime.TryParse(uploadedAtStr, out var uploadedAt) 
-                    ? uploadedAt : properties.Value.LastModified.DateTime
+                UploadedAt = properties.Value.Metadata.TryGetValue("uploadedAt", out var uploadedAtStr) &&
+                             DateTime.TryParse(uploadedAtStr, out var uploadedAt)
+                    ? uploadedAt
+                    : properties.Value.LastModified.DateTime
             };
 
             return ServiceResult<ResumeMetadata>.Success(metadata, "Metadata retrieved successfully");
@@ -208,7 +214,9 @@ public class ResumeService : IResumeService
         var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!_allowedExtensions.Contains(fileExtension))
         {
-            return ServiceResult<string>.ValidationError([$"File type {fileExtension} is not allowed. Allowed types: {string.Join(", ", _allowedExtensions)}"]);
+            return ServiceResult<string>.ValidationError([
+                $"File type {fileExtension} is not allowed. Allowed types: {string.Join(", ", _allowedExtensions)}"
+            ]);
         }
 
         return ServiceResult<string>.Success("", "File validation passed");
@@ -223,5 +231,46 @@ public class ResumeService : IResumeService
             ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             _ => "application/octet-stream"
         };
+    }
+
+    private static string SanitizeFileName(string fileName)
+    {
+        if (string.IsNullOrEmpty(fileName))
+            return "resume";
+
+        // Remove or replace non-ASCII characters
+        var sanitized = fileName
+            .Replace("é", "e")
+            .Replace("è", "e")
+            .Replace("ê", "e")
+            .Replace("ë", "e")
+            .Replace("à", "a")
+            .Replace("á", "a")
+            .Replace("â", "a")
+            .Replace("ä", "a")
+            .Replace("ù", "u")
+            .Replace("ú", "u")
+            .Replace("û", "u")
+            .Replace("ü", "u")
+            .Replace("ç", "c")
+            .Replace("ô", "o")
+            .Replace("ö", "o")
+            .Replace("î", "i")
+            .Replace("ï", "i")
+            .Replace(" ", "_")
+            .Replace("'", "")
+            .Replace("\"", "")
+            .Replace("&", "and")
+            .Replace("#", "")
+            .Replace("%", "")
+            .Replace("?", "")
+            .Replace("=", "")
+            .Replace("+", "");
+
+        // Remove any remaining non-ASCII characters and control characters
+        var asciiOnly = new string(sanitized.Where(c => c >= 32 && c <= 126).ToArray());
+
+        // Ensure it's not empty after sanitization
+        return string.IsNullOrWhiteSpace(asciiOnly) ? "resume" : asciiOnly;
     }
 }

@@ -166,7 +166,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       if (response?.isSuccess) {
         jobOffers.value.unshift(response.data!);
         totalCount.value++;
-        notification.showSuccessNotification('Offres créée avec succès');
+        notification.showSuccessNotification('Offre créée avec succès');
       } else {
         setError(response?.message || 'Erreur lors de la création');
         notification.showErrorNotification(response?.message || 'Erreur lors de la création');
@@ -278,7 +278,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
           currentJobOffer.value.status = JobOfferStatus.Published;
           currentJobOffer.value.publishedAt = new Date().toISOString();
         }
-        notification.showSuccessNotification('Offre puliée avec succès');
+        notification.showSuccessNotification('Offre publiée avec succès');
       } else {
         setError(response?.message || "Erreur lors de la publication de l'offre");
         notification.showErrorNotification(

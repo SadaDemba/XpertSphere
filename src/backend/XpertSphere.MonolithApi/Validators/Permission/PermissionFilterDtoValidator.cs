@@ -20,7 +20,8 @@ public class PermissionFilterDtoValidator : AbstractValidator<PermissionFilterDt
             .When(x => !string.IsNullOrEmpty(x.SearchTerms));
 
         RuleFor(x => x.SortBy)
-            .Must(BeValidSortField).WithMessage("Invalid sort field. Valid fields are: name, resource, action, category, scope, createdat.")
+            .Must(BeValidSortField)
+            .WithMessage("Invalid sort field. Valid fields are: name, resource, action, category, scope, createdat.")
             .When(x => !string.IsNullOrEmpty(x.SortBy));
 
         RuleFor(x => x.SortDirection)

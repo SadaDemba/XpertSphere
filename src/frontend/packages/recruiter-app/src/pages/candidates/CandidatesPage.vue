@@ -47,8 +47,6 @@
           <q-btn flat icon="refresh" :loading="userStore.isLoading" @click="refreshData" />
         </div>
 
-        <q-linear-progress v-if="userStore.isLoading" color="primary" indeterminate />
-
         <q-table
           v-model:pagination="pagination"
           :rows="userStore.users"

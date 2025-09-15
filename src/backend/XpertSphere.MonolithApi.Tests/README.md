@@ -7,7 +7,9 @@ Ce projet contient les tests unitaires pour l'API XpertSphere dans le cadre du P
 ## Structure des Tests
 
 ### Services Tests (78 tests)
-- **AuthenticationServiceTests** (9 tests) - Tests d'authentification (registration, login, confirmation email, reset password)
+
+- **AuthenticationServiceTests** (9 tests) - Tests d'authentification (registration, login, confirmation email, reset
+  password)
 - **RoleServiceTests** (10 tests) - Tests CRUD des rôles (création, mise à jour, activation/désactivation)
 - **UserRoleServiceTests** (10 tests) - Tests d'assignation des rôles aux utilisateurs
 - **PermissionServiceTests** (10 tests) - Tests de gestion des permissions
@@ -17,10 +19,12 @@ Ce projet contient les tests unitaires pour l'API XpertSphere dans le cadre du P
 - **UserServiceTests** (10 tests) - Tests de gestion des utilisateurs
 
 ### Controllers Tests (14 tests)
+
 - **OrganizationControllerTests** (9 tests) - Tests des endpoints d'organisations
 - **RolesControllerTests** (14 tests) - Tests des endpoints de rôles
 
 ### Helpers
+
 - **TestDbContextFactory** - Factory pour créer des contextes de base de données en mémoire
 - **AutoMapperHelper** - Configuration AutoMapper pour les tests
 - **MockHelper** - Helpers pour créer des mocks (UserManager, SignInManager, etc.)
@@ -59,6 +63,7 @@ dotnet test --logger "console;verbosity=detailed"
 Les tests couvrent l'ensemble du système RBAC (Role-Based Access Control) de XpertSphere :
 
 ✅ **Authentification** (9 tests)
+
 - Registration avec validation
 - Login avec credentials valides/invalides
 - Confirmation d'email
@@ -66,38 +71,45 @@ Les tests couvrent l'ensemble du système RBAC (Role-Based Access Control) de Xp
 - Gestion des erreurs d'authentification
 
 ✅ **Système de Rôles** (10 tests)
+
 - CRUD complet des rôles
 - Activation/Désactivation des rôles
 - Validation de l'existence des rôles
 - Vérification des contraintes de suppression
 
 ✅ **Gestion des Utilisateurs-Rôles** (10 tests)
+
 - Assignation de rôles aux utilisateurs
 - Suppression d'assignations
 - Validation des utilisateurs et rôles existants
 - Gestion des erreurs de duplication
 
 ✅ **Système de Permissions** (10 tests)
+
 - CRUD complet des permissions
 - Validation des noms de permissions
 - Gestion des permissions système
 
 ✅ **Assignation Rôles-Permissions** (10 tests)
+
 - Liaison permissions aux rôles
 - Suppression d'assignations
 - Validation des contraintes
 
 ✅ **Gestion des Organisations** (9 tests)
+
 - CRUD des organisations
 - Validation des règles métier (utilisateurs actifs)
 - Gestion des conflits (noms dupliqués)
 
 ✅ **Historique des Statuts** (10 tests)
+
 - Création d'historiques de candidatures jouant le role ici du flux d'infos de la candidature
 - Mise à jour des statuts
 - Validation des données
 
 ✅ **Tests Controllers** (14 tests)
+
 - Endpoints API des organisations
 - Endpoints API des rôles
 - Validation des réponses HTTP
@@ -106,6 +118,7 @@ Les tests couvrent l'ensemble du système RBAC (Role-Based Access Control) de Xp
 ## Configuration des Tests
 
 Les tests utilisent :
+
 - Base de données en mémoire (EntityFramework InMemory)
 - Configuration de test (TestConfiguration.cs)
 - Données de test seeded automatiquement
@@ -120,11 +133,11 @@ Les tests utilisent :
 
 ## Statistiques des Tests
 
-| Catégorie | Nombre de Tests | Description |
-|-----------|-----------------|-------------|
-| **Services** | 78 | Tests unitaires des services métier |
-| **Controllers** | 14 | Tests des endpoints API |
-| **Total** | **92** | **Couverture complète RBAC** |
+| Catégorie       | Nombre de Tests | Description                         |
+|-----------------|-----------------|-------------------------------------|
+| **Services**    | 78              | Tests unitaires des services métier |
+| **Controllers** | 14              | Tests des endpoints API             |
+| **Total**       | **92**          | **Couverture complète RBAC**        |
 
 ## Exemple d'Exécution
 

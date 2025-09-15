@@ -38,7 +38,8 @@ public class RolePermissionsController(IRolePermissionService rolePermissionServ
     /// </summary>
     [HttpPost("assign")]
     [Authorize(Policy = "RequirePlatformSuperAdminRole")]
-    public async Task<ActionResult<RolePermissionDto>> AssignPermissionToRole([FromBody] AssignPermissionDto assignPermissionDto)
+    public async Task<ActionResult<RolePermissionDto>> AssignPermissionToRole(
+        [FromBody] AssignPermissionDto assignPermissionDto)
     {
         var result = await rolePermissionService.AssignPermissionToRoleAsync(assignPermissionDto);
         return this.ToActionResult(result);

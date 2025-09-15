@@ -46,23 +46,52 @@ public static class ControllerExtensions
         if (result.IsSuccess)
             return result.StatusCode switch
             {
-                200 => controller.Ok(new { message = result.Message }),
-                201 => controller.Created("", new { message = result.Message }),
-                202 => controller.Accepted(new { message = result.Message }),
+                200 => controller.Ok(result),
+                201 => controller.Created("", result),
+                202 => controller.Accepted(result),
                 204 => controller.NoContent(),
-                _ => controller.Ok(new { message = result.Message })
+                _ => controller.Ok(result)
             };
 
         return result.StatusCode switch
         {
-            400 => controller.BadRequest(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            401 => controller.Unauthorized(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
+            400 => controller.BadRequest(new
+            {
+                message = result.Message, errors = result.Errors, success = result.IsSuccess,
+                statusCode = result.StatusCode
+            }),
+            401 => controller.Unauthorized(new
+            {
+                message = result.Message, errors = result.Errors, success = result.IsSuccess,
+                statusCode = result.StatusCode
+            }),
             403 => controller.Forbid(),
-            404 => controller.NotFound(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            409 => controller.Conflict(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            422 => controller.UnprocessableEntity(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            500 => controller.StatusCode(500, new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
-            _ => controller.BadRequest(new { message = result.Message, errors = result.Errors, success = result.IsSuccess, statusCode = result.StatusCode }),
+            404 => controller.NotFound(new
+            {
+                message = result.Message, errors = result.Errors, success = result.IsSuccess,
+                statusCode = result.StatusCode
+            }),
+            409 => controller.Conflict(new
+            {
+                message = result.Message, errors = result.Errors, success = result.IsSuccess,
+                statusCode = result.StatusCode
+            }),
+            422 => controller.UnprocessableEntity(new
+            {
+                message = result.Message, errors = result.Errors, success = result.IsSuccess,
+                statusCode = result.StatusCode
+            }),
+            500 => controller.StatusCode(500,
+                new
+                {
+                    message = result.Message, errors = result.Errors, success = result.IsSuccess,
+                    statusCode = result.StatusCode
+                }),
+            _ => controller.BadRequest(new
+            {
+                message = result.Message, errors = result.Errors, success = result.IsSuccess,
+                statusCode = result.StatusCode
+            }),
         };
     }
 

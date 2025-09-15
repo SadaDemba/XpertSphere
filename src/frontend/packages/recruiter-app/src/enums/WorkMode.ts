@@ -24,3 +24,16 @@ export const workModeLabels = {
   [WorkMode.Hybrid]: 'Hybride',
   [WorkMode.FullRemote]: 'Télétravail complet',
 };
+
+export function getWorkModeName(workMode: WorkMode): string {
+  switch (workMode) {
+    case WorkMode.OnSite:
+      return 'OnSite';
+    case WorkMode.Hybrid:
+      return 'Hybrid';
+    case WorkMode.FullRemote:
+      return 'FullRemote';
+    default:
+      return '';
+  }
+}

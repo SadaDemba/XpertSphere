@@ -86,15 +86,19 @@ export const useApplicationStore = defineStore('application', () => {
       clearError();
       const response = await applicationService.getAllApplications();
       if (response?.isSuccess) {
-        applications.value = response.data!;
+        applications.value = response.data || [];
       } else {
-        setError('Error loading applications');
-        notification.showErrorNotification('Error loading applications');
+        applications.value = [];
+        setError('Erreur lors du chargement des candidatures');
+        notification.showErrorNotification('Erreur lors du chargement des candidatures');
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error loading applications');
+      applications.value = [];
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des candidatures',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error loading applications',
+        error instanceof Error ? error.message : 'Erreur lors du chargement des candidatures',
       );
     } finally {
       setLoading(false);
@@ -124,23 +128,26 @@ export const useApplicationStore = defineStore('application', () => {
       const response = await applicationService.getPaginatedApplications(paginationFilter);
 
       if (response?.isSuccess) {
-        applications.value = response.items;
+        applications.value = response.data;
         totalCount.value = response.pagination.totalItems;
         currentPage.value = response.pagination.currentPage;
         pageSize.value = response.pagination.pageSize;
         totalPages.value = response.pagination.totalPages;
         hasPrevious.value = response.pagination.hasPrevious;
         hasNext.value = response.pagination.hasNext;
-
-        notification.showSuccessNotification('Applications loaded successfully');
+        notification.showSuccessNotification('Candidatures chargées avec succès');
       } else {
-        setError('Error loading applications');
-        notification.showErrorNotification('Error loading applications');
+        applications.value = [];
+        setError('Erreur lors du chargement des candidatures');
+        notification.showErrorNotification('Erreur lors du chargement des candidatures');
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error loading applications');
+      applications.value = [];
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des candidatures',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error loading applications',
+        error instanceof Error ? error.message : 'Erreur lors du chargement des candidatures',
       );
     } finally {
       setLoading(false);
@@ -158,14 +165,18 @@ export const useApplicationStore = defineStore('application', () => {
       if (response?.isSuccess) {
         currentApplication.value = response.data!;
       } else {
-        setError(response?.message || 'Error loading application');
-        notification.showErrorNotification(response?.message || 'Error loading application');
+        setError(response?.message || 'Erreur lors du chargement de la candidature');
+        notification.showErrorNotification(
+          response?.message || 'Erreur lors du chargement de la candidature',
+        );
       }
       return response?.data;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error loading application');
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors du chargement de la candidature',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error loading application',
+        error instanceof Error ? error.message : 'Erreur lors du chargement de la candidature',
       );
       return null;
     } finally {
@@ -184,16 +195,20 @@ export const useApplicationStore = defineStore('application', () => {
       if (response?.isSuccess) {
         applications.value.unshift(response.data!);
         totalCount.value++;
-        notification.showSuccessNotification('Application created successfully');
+        notification.showSuccessNotification('Candidature créée avec succès');
       } else {
-        setError(response?.message || 'Error creating application');
-        notification.showErrorNotification(response?.message || 'Error creating application');
+        setError(response?.message || 'Erreur lors de la création de la candidature');
+        notification.showErrorNotification(
+          response?.message || 'Erreur lors de la création de la candidature',
+        );
       }
       return response?.data;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error creating application');
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors de la création de la candidature',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error creating application',
+        error instanceof Error ? error.message : 'Erreur lors de la création de la candidature',
       );
       return null;
     } finally {
@@ -219,17 +234,21 @@ export const useApplicationStore = defineStore('application', () => {
         if (currentApplication.value?.id === id) {
           currentApplication.value = response.data!;
         }
-        notification.showSuccessNotification('Application updated successfully');
+        notification.showSuccessNotification('Candidature mise à jour avec succès');
       } else {
-        setError(response?.message || 'Error updating application');
-        notification.showErrorNotification(response?.message || 'Error updating application');
+        setError(response?.message || 'Erreur lors de la mise à jour de la candidature');
+        notification.showErrorNotification(
+          response?.message || 'Erreur lors de la mise à jour de la candidature',
+        );
       }
 
       return response?.data;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error updating application');
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors de la mise à jour de la candidature',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error updating application',
+        error instanceof Error ? error.message : 'Erreur lors de la mise à jour de la candidature',
       );
       return null;
     } finally {
@@ -256,17 +275,21 @@ export const useApplicationStore = defineStore('application', () => {
         if (currentApplication.value?.id === id) {
           currentApplication.value = null;
         }
-        notification.showSuccessNotification('Application deleted successfully');
+        notification.showSuccessNotification('Candidature supprimée avec succès');
       } else {
-        setError(response?.message || 'Error deleting application');
-        notification.showErrorNotification(response?.message || 'Error deleting application');
+        setError(response?.message || 'Erreur lors de la suppression de la candidature');
+        notification.showErrorNotification(
+          response?.message || 'Erreur lors de la suppression de la candidature',
+        );
       }
 
       return response?.isSuccess;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error deleting application');
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors de la suppression de la candidature',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error deleting application',
+        error instanceof Error ? error.message : 'Erreur lors de la suppression de la candidature',
       );
       return false;
     } finally {
@@ -292,17 +315,19 @@ export const useApplicationStore = defineStore('application', () => {
         if (currentApplication.value?.id === id) {
           currentApplication.value = response.data!;
         }
-        notification.showSuccessNotification('Status updated successfully');
+        notification.showSuccessNotification('Statut mis à jour avec succès');
       } else {
-        setError(response?.message || 'Error updating status');
-        notification.showErrorNotification(response?.message || 'Error updating status');
+        setError(response?.message || 'Erreur lors de la mise à jour du statut');
+        notification.showErrorNotification(
+          response?.message || 'Erreur lors de la mise à jour du statut',
+        );
       }
 
       return response?.data;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error updating status');
+      setError(error instanceof Error ? error.message : 'Erreur lors de la mise à jour du statut');
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error updating status',
+        error instanceof Error ? error.message : 'Erreur lors de la mise à jour du statut',
       );
       return null;
     } finally {
@@ -328,17 +353,19 @@ export const useApplicationStore = defineStore('application', () => {
         if (currentApplication.value?.id === id) {
           currentApplication.value.currentStatus = ApplicationStatus.Withdrawn;
         }
-        notification.showSuccessNotification('Application withdrawn successfully');
+        notification.showSuccessNotification('Candidature retirée avec succès');
       } else {
-        setError(response?.message || 'Error withdrawing application');
-        notification.showErrorNotification(response?.message || 'Error withdrawing application');
+        setError(response?.message || 'Erreur lors du retrait de la candidature');
+        notification.showErrorNotification(
+          response?.message || 'Erreur lors du retrait de la candidature',
+        );
       }
 
       return response?.isSuccess;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error withdrawing application');
+      setError(error instanceof Error ? error.message : 'Erreur lors du retrait de la candidature');
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error withdrawing application',
+        error instanceof Error ? error.message : 'Erreur lors du retrait de la candidature',
       );
       return false;
     } finally {
@@ -355,15 +382,19 @@ export const useApplicationStore = defineStore('application', () => {
       clearError();
       const response = await applicationService.getApplicationsByJobOffer(jobOfferId);
       if (response?.isSuccess) {
-        applications.value = response.data!;
+        applications.value = response.data || [];
       } else {
-        setError('Error loading applications');
-        notification.showErrorNotification('Error loading applications');
+        applications.value = [];
+        setError('Erreur lors du chargement des candidatures');
+        notification.showErrorNotification('Erreur lors du chargement des candidatures');
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error loading applications');
+      applications.value = [];
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des candidatures',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error loading applications',
+        error instanceof Error ? error.message : 'Erreur lors du chargement des candidatures',
       );
     } finally {
       setLoading(false);
@@ -379,15 +410,19 @@ export const useApplicationStore = defineStore('application', () => {
       clearError();
       const response = await applicationService.getMyCandidateApplications();
       if (response?.isSuccess) {
-        applications.value = response.data!;
+        applications.value = response.data || [];
       } else {
-        setError('Error loading your applications');
-        notification.showErrorNotification('Error loading your applications');
+        applications.value = [];
+        setError('Erreur lors du chargement de vos candidatures');
+        notification.showErrorNotification('Erreur lors du chargement de vos candidatures');
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error loading your applications');
+      applications.value = [];
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors du chargement de vos candidatures',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error loading your applications',
+        error instanceof Error ? error.message : 'Erreur lors du chargement de vos candidatures',
       );
     } finally {
       setLoading(false);
@@ -403,15 +438,19 @@ export const useApplicationStore = defineStore('application', () => {
       clearError();
       const response = await applicationService.getApplicationsByCandidate(candidateId);
       if (response?.isSuccess) {
-        applications.value = response.data!;
+        applications.value = response.data || [];
       } else {
-        setError('Error loading applications');
-        notification.showErrorNotification('Error loading applications');
+        applications.value = [];
+        setError('Erreur lors du chargement des candidatures');
+        notification.showErrorNotification('Erreur lors du chargement des candidatures');
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error loading applications');
+      applications.value = [];
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des candidatures',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error loading applications',
+        error instanceof Error ? error.message : 'Erreur lors du chargement des candidatures',
       );
     } finally {
       setLoading(false);
@@ -427,15 +466,20 @@ export const useApplicationStore = defineStore('application', () => {
       clearError();
       const response = await applicationService.getApplicationsByOrganization(organizationId);
       if (response?.isSuccess) {
-        applications.value = response.data!;
+        applications.value = response.data || [];
+        console.log('Response from API:', response);
       } else {
-        setError('Error loading applications');
-        notification.showErrorNotification('Error loading applications');
+        applications.value = [];
+        setError('Erreur lors du chargement des candidatures');
+        notification.showErrorNotification('Erreur lors du chargement des candidatures');
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error loading applications');
+      applications.value = [];
+      setError(
+        error instanceof Error ? error.message : 'Erreur lors du chargement des candidatures',
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error loading applications',
+        error instanceof Error ? error.message : 'Erreur lors du chargement des candidatures',
       );
     } finally {
       setLoading(false);
@@ -453,14 +497,16 @@ export const useApplicationStore = defineStore('application', () => {
       if (response?.isSuccess) {
         applicationHistory.value = response.data!;
       } else {
-        setError('Error loading history');
-        notification.showErrorNotification('Error loading history');
+        setError("Erreur lors du chargement de l'historique");
+        notification.showErrorNotification("Erreur lors du chargement de l'historique");
       }
       return response?.data || [];
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error loading history');
+      setError(
+        error instanceof Error ? error.message : "Erreur lors du chargement de l'historique",
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error loading history',
+        error instanceof Error ? error.message : "Erreur lors du chargement de l'historique",
       );
       return [];
     } finally {
@@ -479,14 +525,16 @@ export const useApplicationStore = defineStore('application', () => {
       if (response?.isSuccess) {
         statusHistory.value = response.data!;
       } else {
-        setError('Error loading history');
-        notification.showErrorNotification('Error loading history');
+        setError("Erreur lors du chargement de l'historique");
+        notification.showErrorNotification("Erreur lors du chargement de l'historique");
       }
       return response?.data || [];
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error loading history');
+      setError(
+        error instanceof Error ? error.message : "Erreur lors du chargement de l'historique",
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error loading history',
+        error instanceof Error ? error.message : "Erreur lors du chargement de l'historique",
       );
       return [];
     } finally {
@@ -501,11 +549,11 @@ export const useApplicationStore = defineStore('application', () => {
     try {
       const response = await applicationService.canManageApplication(id);
       if (!response?.isSuccess) {
-        setError(response?.message || 'Error checking permissions');
+        setError(response?.message || 'Erreur lors de la vérification des permissions');
       }
       return response?.data;
     } catch (err) {
-      setError(`Error checking permissions: ${err}`);
+      setError(`Erreur lors de la vérification des permissions: ${err}`);
       return false;
     }
   };
@@ -517,11 +565,11 @@ export const useApplicationStore = defineStore('application', () => {
     try {
       const response = await applicationService.hasAppliedToJob(jobOfferId);
       if (!response?.isSuccess) {
-        setError(response?.message || 'Error checking application');
+        setError(response?.message || 'Erreur lors de la vérification de la candidature');
       }
       return response?.data;
     } catch (err) {
-      setError(`Error checking application: ${err}`);
+      setError(`Erreur lors de la vérification de la candidature: ${err}`);
       return false;
     }
   };
@@ -533,11 +581,11 @@ export const useApplicationStore = defineStore('application', () => {
     try {
       const response = await applicationService.hasCandidateAppliedToJob(jobOfferId, candidateId);
       if (!response?.isSuccess) {
-        setError(response?.message || 'Error checking application');
+        setError(response?.message || 'Erreur lors de la vérification de la candidature');
       }
       return response?.data;
     } catch (err) {
-      setError(`Error checking application: ${err}`);
+      setError(`Erreur lors de la vérification de la candidature: ${err}`);
       return false;
     }
   };
@@ -560,17 +608,21 @@ export const useApplicationStore = defineStore('application', () => {
         if (currentApplication.value?.id === assignUserDto.applicationId) {
           currentApplication.value = response.data!;
         }
-        notification.showSuccessNotification('User assigned successfully');
+        notification.showSuccessNotification('Utilisateur assigné avec succès');
       } else {
-        setError(response?.message || 'Error assigning user');
-        notification.showErrorNotification(response?.message || 'Error assigning user');
+        setError(response?.message || "Erreur lors de l'assignation de l'utilisateur");
+        notification.showErrorNotification(
+          response?.message || "Erreur lors de l'assignation de l'utilisateur",
+        );
       }
 
       return response?.data;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error assigning user');
+      setError(
+        error instanceof Error ? error.message : "Erreur lors de l'assignation de l'utilisateur",
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error assigning user',
+        error instanceof Error ? error.message : "Erreur lors de l'assignation de l'utilisateur",
       );
       return null;
     } finally {
@@ -598,17 +650,25 @@ export const useApplicationStore = defineStore('application', () => {
         if (currentApplication.value?.id === unassignUserDto.applicationId) {
           currentApplication.value = response.data!;
         }
-        notification.showSuccessNotification('User unassigned successfully');
+        notification.showSuccessNotification('Utilisateur désattribution avec succès');
       } else {
-        setError(response?.message || 'Error unassigning user');
-        notification.showErrorNotification(response?.message || 'Error unassigning user');
+        setError(response?.message || "Erreur lors de la désattribution de l'utilisateur");
+        notification.showErrorNotification(
+          response?.message || "Erreur lors de la désattribution de l'utilisateur",
+        );
       }
 
       return response?.data;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error unassigning user');
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de la désattribution de l'utilisateur",
+      );
       notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Error unassigning user',
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de la désattribution de l'utilisateur",
       );
       return null;
     } finally {

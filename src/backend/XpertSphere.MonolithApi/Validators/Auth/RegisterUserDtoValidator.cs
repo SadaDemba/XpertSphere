@@ -22,12 +22,14 @@ public class RegisterUserDtoValidator : AbstractValidator<RegisterDto>
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("First name is required")
             .MaximumLength(100).WithMessage("First name cannot exceed 100 characters")
-            .Matches(@"^[a-zA-ZÀ-ÿ\s\-']+$").WithMessage("First name can only contain letters, spaces, hyphens and apostrophes");
+            .Matches(@"^[a-zA-ZÀ-ÿ\s\-']+$")
+            .WithMessage("First name can only contain letters, spaces, hyphens and apostrophes");
 
         RuleFor(x => x.LastName)
             .NotEmpty().WithMessage("Last name is required")
             .MaximumLength(100).WithMessage("Last name cannot exceed 100 characters")
-            .Matches(@"^[a-zA-ZÀ-ÿ\s\-']+$").WithMessage("Last name can only contain letters, spaces, hyphens and apostrophes");
+            .Matches(@"^[a-zA-ZÀ-ÿ\s\-']+$")
+            .WithMessage("Last name can only contain letters, spaces, hyphens and apostrophes");
 
         RuleFor(x => x.PhoneNumber)
             .Matches(@"^[\+]?[0-9\s\-\(\)\.]{7,20}$").WithMessage("Invalid phone number format")

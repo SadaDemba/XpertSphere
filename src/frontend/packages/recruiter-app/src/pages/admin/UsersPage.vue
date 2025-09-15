@@ -79,13 +79,53 @@
           <template #body-cell-name="props">
             <q-td :props="props">
               <div>
-                <div class="text-weight-medium">
-                  {{ props.row.firstName }} {{ props.row.lastName }}
+                <div class="row items-center no-wrap">
+                  <span class="text-weight-medium">
+                    {{ props.row.firstName }} {{ props.row.lastName }}
+                  </span>
+                  <q-chip
+                    v-if="authStore.user?.id === props.row.id"
+                    size="sm"
+                    color="primary"
+                    text-color="white"
+                    dense
+                    class="q-ml-sm"
+                  >
+                    <q-icon name="person" size="xs" class="q-mr-xs" />
+                    Moi
+                  </q-chip>
                 </div>
                 <div class="text-caption text-grey-6">
                   {{ props.row.email }}
                 </div>
               </div>
+            </q-td>
+          </template>
+
+          <template #body-cell-roles="props">
+            <q-td :props="props">
+              <div v-if="props.row.roles && props.row.roles.length > 0" class="q-gutter-xs">
+                <q-chip
+                  v-for="(role, index) in props.row.roles.slice(0, 2)"
+                  :key="index"
+                  size="sm"
+                  color="blue-grey-6"
+                  text-color="white"
+                  dense
+                >
+                  {{ role }}
+                </q-chip>
+                <q-chip
+                  v-if="props.row.roles.length > 2"
+                  size="sm"
+                  color="grey-6"
+                  text-color="white"
+                  dense
+                >
+                  +{{ props.row.roles.length - 2 }} ...
+                </q-chip>
+              </div>
+              <span v-else class="text-grey-6">Aucun rôle</span>
             </q-td>
           </template>
 
@@ -276,6 +316,10 @@
             :loading="userRoleStore.isLoading"
             :rows-per-page-options="dataTable.defaultPagination.value.rowsPerPageOptions"
             :style="dataTable.defaultStyle.value"
+            :no-data-label="dataTable.frenchLabels.value.noData"
+            :no-results-label="dataTable.frenchLabels.value.noResults"
+            :loading-label="dataTable.frenchLabels.value.loading"
+            :rows-per-page-label="dataTable.frenchLabels.value.rowsPerPage"
             class="sticky-header"
             row-key="id"
           >
@@ -426,6 +470,7 @@ import { useUserStore } from '../../stores/userStore';
 import { useUserRoleStore } from '../../stores/userRoleStore';
 import { useRoleStore } from '../../stores/roleStore';
 import { useOrganizationStore } from '../../stores/organizationStore';
+import { useAuthStore } from '../../stores/authStore';
 import type {
   UserSearchResultDto,
   CreateUserDto,
@@ -435,17 +480,18 @@ import type {
 import type { UserRoleDto, AssignRoleDto } from '../../models/userRole';
 import type { AdminResetPasswordDto } from '../../models/auth';
 import { authService } from '../../services/authService';
-import { useQuasar } from 'quasar';
 import { useDataTable } from 'src/composables/datatable';
 import { useNotification } from 'src/composables/notification';
+import { useDialog } from 'src/composables/dialog';
 
-const $q = useQuasar();
 const userStore = useUserStore();
 const userRoleStore = useUserRoleStore();
 const roleStore = useRoleStore();
 const organizationStore = useOrganizationStore();
+const authStore = useAuthStore();
 const dataTable = useDataTable();
 const notification = useNotification();
+const dialog = useDialog();
 
 const showCreateDialog = ref(false);
 const showUserRolesDialog = ref(false);
@@ -529,30 +575,20 @@ const columns: Ref<QTableColumn<any>[]> = ref([
     format: (val: string) => val || '-',
   },
   {
+    name: 'roles',
+    field: 'roles',
+    label: 'Rôles',
+    ...dataTable.defaultConfig.value,
+    sortable: false,
+    align: 'left',
+  },
+  {
     name: 'isActive',
     field: 'isActive',
     label: 'Statut',
     ...dataTable.defaultConfig.value,
     sortable: true,
     align: 'center',
-  },
-  {
-    name: 'lastLoginAt',
-    field: 'lastLoginAt',
-    label: 'Dernière connexion',
-    ...dataTable.defaultConfig.value,
-    sortable: true,
-    align: 'center',
-    format: (val: string) => (val ? new Date(val).toLocaleDateString('fr-FR') : 'Jamais'),
-  },
-  {
-    name: 'createdAt',
-    field: 'createdAt',
-    label: 'Créé le',
-    ...dataTable.defaultConfig.value,
-    sortable: true,
-    align: 'center',
-    format: (val: string) => new Date(val).toLocaleDateString('fr-FR'),
   },
   {
     name: 'actions',
@@ -691,114 +727,87 @@ const editUser = (user: UserSearchResultDto) => {
 };
 
 const saveUser = async () => {
-  try {
-    if (editingUser.value) {
-      const updateData: UpdateUserDto = {
-        firstName: userForm.firstName,
-        lastName: userForm.lastName,
-        email: userForm.email,
-        phoneNumber: userForm.phoneNumber,
-        organizationId: userForm.organizationId,
-        employeeId: userForm.employeeId,
-        department: userForm.department,
-        isActive: userForm.isActive,
-      };
+  if (editingUser.value) {
+    const updateData: UpdateUserDto = {
+      firstName: userForm.firstName,
+      lastName: userForm.lastName,
+      email: userForm.email,
+      phoneNumber: userForm.phoneNumber,
+      organizationId: userForm.organizationId,
+      employeeId: userForm.employeeId,
+      department: userForm.department,
+      isActive: userForm.isActive,
+    };
 
-      await userStore.updateUser(editingUser.value.id, updateData);
-      notification.showSuccessNotification('Utilisateur mis à jour avec succès');
-    } else {
-      const createData: CreateUserDto = {
-        firstName: userForm.firstName,
-        lastName: userForm.lastName,
-        email: userForm.email,
-        phoneNumber: userForm.phoneNumber,
-        organizationId: userForm.organizationId,
-        employeeId: userForm.employeeId,
-        department: userForm.department,
-        password: userForm.password,
-        isActive: userForm.isActive,
-        emailNotificationsEnabled: userForm.emailNotificationsEnabled || true,
-        smsNotificationsEnabled: userForm.smsNotificationsEnabled || false,
-        preferredLanguage: userForm.preferredLanguage || 'fr',
-        timeZone: 'UTC',
-        emailConfirmed: false,
-      };
+    await userStore.updateUser(editingUser.value.id, updateData);
 
-      // Log pour debug
-      console.log('createData avant envoi:', createData);
+    updateUserInList(editingUser.value.id, {
+      firstName: updateData.firstName!,
+      lastName: updateData.lastName!,
+      email: updateData.email!,
+      phoneNumber: updateData.phoneNumber!,
+      employeeId: updateData.employeeId!,
+      department: updateData.department!,
+      isActive: updateData.isActive!,
+      fullName: `${updateData.firstName} ${updateData.lastName}`,
+    });
+  } else {
+    const createData: CreateUserDto = {
+      firstName: userForm.firstName,
+      lastName: userForm.lastName,
+      email: userForm.email,
+      phoneNumber: userForm.phoneNumber,
+      organizationId: userForm.organizationId,
+      employeeId: userForm.employeeId,
+      department: userForm.department,
+      password: userForm.password,
+      isActive: userForm.isActive,
+      emailNotificationsEnabled: userForm.emailNotificationsEnabled || true,
+      smsNotificationsEnabled: userForm.smsNotificationsEnabled || false,
+      preferredLanguage: userForm.preferredLanguage || 'fr',
+      timeZone: 'UTC',
+      emailConfirmed: false,
+    };
 
-      await userStore.createUser(createData);
-      notification.showSuccessNotification('Utilisateur créé avec succès');
-    }
-
-    closeDialog();
+    await userStore.createUser(createData);
     await fetchUsers();
-  } catch (error: any) {
-    console.log(error.message);
-    notification.showErrorNotification("Erreur lors de l'enregistrement");
   }
+
+  closeDialog();
 };
 
 const toggleUserStatus = async (user: UserSearchResultDto, isActive: boolean) => {
+  if (isActive) {
+    await userStore.activateUser(user.id);
+  } else {
+    await userStore.deactivateUser(user.id);
+  }
+
+  updateUserInList(user.id, { isActive });
+};
+
+const confirmToggleStatus = async (user: UserSearchResultDto) => {
   try {
-    if (isActive) {
-      await userStore.activateUser(user.id);
-      notification.showSuccessNotification('Utilisateur activé avec succès');
-    } else {
-      await userStore.deactivateUser(user.id);
-      notification.showSuccessNotification('Utilisateur désactivé avec succès');
-    }
-    await fetchUsers();
-  } catch (error: any) {
-    console.log(error.message);
-    notification.showErrorNotification('Erreur lors de la modification du statut');
+    await dialog.confirmToggle(user.isActive, user.fullName, 'utilisateur');
+    await toggleUserStatus(user, !user.isActive);
+  } catch {
+    // User cancelled
   }
 };
 
-const confirmToggleStatus = (user: UserSearchResultDto) => {
-  const action = user.isActive ? 'désactiver' : 'activer';
-  const actionCapitalized = user.isActive ? 'Désactiver' : 'Activer';
-
-  $q.dialog({
-    title: "Confirmer l'action",
-    message: `Êtes-vous sûr de vouloir ${action} l'utilisateur "${user.fullName}" ?`,
-    cancel: true,
-    ok: {
-      push: true,
-      label: actionCapitalized,
-      color: user.isActive ? 'warning' : 'positive',
-    },
-    persistent: true,
-  }).onOk(() => {
-    toggleUserStatus(user, !user.isActive);
-  });
-};
-
-const confirmDelete = (user: UserSearchResultDto) => {
-  $q.dialog({
-    title: 'Confirmer la suppression',
-    message: `Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.fullName}" ? Cette action est irréversible.`,
-    cancel: true,
-    ok: {
-      push: true,
-      label: 'Supprimer',
-      color: 'negative',
-    },
-    persistent: true,
-  }).onOk(() => {
-    deleteUser(user);
-  });
+const confirmDelete = async (user: UserSearchResultDto) => {
+  try {
+    await dialog.confirmDelete(user.fullName, 'utilisateur');
+    await deleteUser(user);
+  } catch {
+    // User cancelled
+  }
 };
 
 const deleteUser = async (user: UserSearchResultDto) => {
-  try {
-    await userStore.deleteUser(user.id);
-    notification.showSuccessNotification('Utilisateur supprimé avec succès');
-    await fetchUsers();
-  } catch (error: any) {
-    console.log(error.message);
-    notification.showErrorNotification('Erreur lors de la suppression');
-  }
+  await userStore.deleteUser(user.id);
+
+  removeUserFromList(user.id);
 };
 
 const closeDialog = () => {
@@ -821,65 +830,98 @@ const loadAvailableRoles = async () => {
   }));
 };
 
-const assignRole = async () => {
-  try {
-    if (!selectedUser.value) return;
+const updateUserRolesInList = async (userId: string) => {
+  const roleNames = await userRoleStore.fetchUserRoleNames(userId);
 
-    const assignData: AssignRoleDto = {
-      userId: selectedUser.value.id,
-      roleId: assignRoleForm.roleId,
-    };
-
-    if (assignRoleForm.expiresAt) {
-      assignData.expiresAt = assignRoleForm.expiresAt;
-    }
-
-    await userRoleStore.assignRoleToUser(assignData);
-    notification.showSuccessNotification('Rôle assigné avec succès');
-
-    // Refresh user roles
-    await userRoleStore.fetchUserRoles(selectedUser.value.id);
-    closeAssignRoleDialog();
-  } catch (error: any) {
-    console.log(error.message);
-    notification.showErrorNotification("Erreur lors de l'assignation du rôle");
+  const user = userStore.users.find((u) => u.id === userId);
+  if (user) {
+    user.roles = roleNames;
   }
+};
+
+const updateUserInList = (userId: string, updates: Partial<UserSearchResultDto>) => {
+  const user = userStore.users.find((u) => u.id === userId);
+  if (user) {
+    Object.assign(user, updates);
+  }
+};
+
+const removeUserFromList = (userId: string) => {
+  const index = userStore.users.findIndex((u) => u.id === userId);
+  if (index !== -1) {
+    userStore.users.splice(index, 1);
+    userStore.totalCount--;
+  }
+};
+
+const assignRole = async () => {
+  if (!selectedUser.value) return;
+
+  const assignData: AssignRoleDto = {
+    userId: selectedUser.value.id,
+    roleId: assignRoleForm.roleId,
+  };
+
+  if (assignRoleForm.expiresAt) {
+    assignData.expiresAt = assignRoleForm.expiresAt;
+  } else {
+    const nextYear = new Date();
+    nextYear.setFullYear(nextYear.getFullYear() + 5);
+    assignData.expiresAt = nextYear.toISOString().split('T')[0]!;
+  }
+
+  await userRoleStore.assignRoleToUser(assignData);
+
+  await updateUserRolesInList(selectedUser.value.id);
+
+  // Refresh user roles dialog
+  await userRoleStore.fetchUserRoles(selectedUser.value.id);
+  closeAssignRoleDialog();
 };
 
 const toggleUserRoleStatus = async (userRole: UserRoleDto) => {
   try {
+    await dialog.confirmToggle(userRole.isActive, userRole.roleDisplayName, 'rôle');
     await userRoleStore.updateUserRoleStatus(userRole.id, !userRole.isActive);
-    notification.showSuccessNotification('Statut du rôle mis à jour avec succès');
 
-    // Refresh user roles
     if (selectedUser.value) {
+      await updateUserRolesInList(selectedUser.value.id);
       await userRoleStore.fetchUserRoles(selectedUser.value.id);
     }
-  } catch (error: any) {
-    console.log(error.message);
-    notification.showErrorNotification('Erreur lors de la modification du statut du rôle');
+  } catch {
+    // User cancelled
   }
 };
 
 const removeUserRole = async (userRole: UserRoleDto) => {
   try {
+    await dialog.confirmAction('retirer le rôle', userRole.roleDisplayName, {
+      message: `Êtes-vous sûr de vouloir retirer le rôle "${userRole.roleDisplayName}" à cet utilisateur ?`,
+      ok: {
+        push: true,
+        label: 'Retirer',
+        color: 'negative',
+      },
+    });
     await userRoleStore.removeRoleFromUser(userRole.id);
-    notification.showSuccessNotification('Rôle retiré avec succès');
 
-    // Refresh user roles
     if (selectedUser.value) {
+      await updateUserRolesInList(selectedUser.value.id);
       await userRoleStore.fetchUserRoles(selectedUser.value.id);
     }
-  } catch (error: any) {
-    console.log(error.message);
-    notification.showErrorNotification('Erreur lors de la suppression du rôle');
+  } catch {
+    // User cancelled
   }
 };
 
 const resetAssignRoleForm = () => {
+  const nextYear = new Date();
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  const defaultExpiresAt = nextYear.toISOString().split('T')[0]; // Format YYYY-MM-DD
+
   Object.assign(assignRoleForm, {
     roleId: '',
-    expiresAt: '',
+    expiresAt: defaultExpiresAt,
   });
 };
 

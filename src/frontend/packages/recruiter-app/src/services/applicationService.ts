@@ -2,14 +2,13 @@ import { BaseClient } from './BaseClient';
 import type {
   ApplicationDto,
   ApplicationFilterDto,
-  PaginatedApplications,
   CreateApplicationDto,
   UpdateApplicationDto,
   ApplicationStatusHistoryDto,
   UpdateApplicationStatusDto,
   AssignUserDto,
 } from '../models/application';
-import type { ResponseResult, VoidResponseResult } from '../models/base';
+import type { PaginatedResult, ResponseResult, VoidResponseResult } from '../models/base';
 
 export class ApplicationService extends BaseClient {
   constructor() {
@@ -22,8 +21,8 @@ export class ApplicationService extends BaseClient {
 
   async getPaginatedApplications(
     filter: ApplicationFilterDto = { organizationId: '' },
-  ): Promise<PaginatedApplications | null> {
-    return this.get<PaginatedApplications>('/paginated', { params: filter });
+  ): Promise<PaginatedResult<ApplicationDto> | null> {
+    return this.get<PaginatedResult<ApplicationDto>>('/paginated', { params: filter });
   }
 
   async getApplicationById(id: string): Promise<ResponseResult<ApplicationDto> | null> {

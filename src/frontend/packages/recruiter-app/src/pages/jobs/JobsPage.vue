@@ -46,6 +46,7 @@
           @delete="deleteJob"
           @duplicate="duplicateJob"
           @view-applications="viewApplications"
+          @update-status="(job: JobOffer, status: JobOfferStatus) => updateJobStatus(job, status)"
           @page-change="handlePageChange"
         />
       </div>
@@ -57,12 +58,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useJobOfferStore } from '../../stores/jobOfferStore';
 import JobFilters from '../../components/jobs/JobFilters.vue';
 import JobList from '../../components/jobs/JobList.vue';
 import JobDialog from '../../components/jobs/JobDialog.vue';
 import type { JobOffer, JobOfferFilter } from '../../models/job';
+import { JobOfferStatus } from '../../enums';
 
+const router = useRouter();
 const jobOfferStore = useJobOfferStore();
 
 const showJobDialog = ref(false);
@@ -90,8 +94,7 @@ function createJob() {
 }
 
 function editJob(job: JobOffer) {
-  selectedJob.value = job;
-  showJobDialog.value = true;
+  router.push(`/jobs/${job.id}`);
 }
 
 async function deleteJob(job: JobOffer) {
@@ -123,6 +126,15 @@ function clearFilters() {
 function handleJobSaved() {
   showJobDialog.value = false;
   loadJobs();
+}
+
+async function updateJobStatus(job: JobOffer, newStatus: JobOfferStatus) {
+  if (newStatus === JobOfferStatus.Published) {
+    await jobOfferStore.publishJobOffer(job.id);
+  } else if (newStatus === JobOfferStatus.Closed) {
+    await jobOfferStore.closeJobOffer(job.id);
+  }
+  // Draft : pas de méthode disponible pour l'instant
 }
 
 function handlePageChange(page: number) {

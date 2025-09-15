@@ -60,7 +60,7 @@ public class JobOfferConfiguration : AuditableEntityConfiguration<JobOffer>
         // Composite indexes for common queries
         builder.HasIndex(jo => new { jo.Status, jo.PublishedAt })
             .HasDatabaseName("IX_JobOffers_Status_PublishedAt");
-        
+
         builder.HasIndex(jo => new { jo.OrganizationId, jo.Status })
             .HasDatabaseName("IX_JobOffers_OrganizationId_Status");
 
@@ -75,13 +75,6 @@ public class JobOfferConfiguration : AuditableEntityConfiguration<JobOffer>
             .HasOne(jo => jo.CreatedByUserNavigation)
             .WithMany()
             .HasForeignKey(jo => jo.CreatedByUserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // One-to-many with Applications
-        builder
-            .HasMany<Application>()
-            .WithOne(a => a.JobOffer)
-            .HasForeignKey(a => a.JobOfferId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

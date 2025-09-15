@@ -8,28 +8,21 @@ namespace XpertSphere.MonolithApi.Models;
 
 public class Application : AuditableEntity
 {
-    [MaxLength(2000)]
-    public string? CoverLetter { get; set; }
+    [MaxLength(2000)] public string? CoverLetter { get; set; }
 
-    [MaxLength(1000)]
-    public string? AdditionalNotes { get; set; }
+    [MaxLength(1000)] public string? AdditionalNotes { get; set; }
 
-    [Required]
-    public ApplicationStatus CurrentStatus { get; set; } = ApplicationStatus.Applied;
+    [Required] public ApplicationStatus CurrentStatus { get; set; } = ApplicationStatus.Applied;
 
-    [Range(1, 5)]
-    public int? Rating { get; set; }
+    [Range(1, 5)] public int? Rating { get; set; }
 
-    [Required]
-    public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
+    [Required] public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? LastUpdatedAt { get; set; }
 
-    [Required]
-    public Guid JobOfferId { get; set; }
+    [Required] public Guid JobOfferId { get; set; }
 
-    [Required]
-    public Guid CandidateId { get; set; }
+    [Required] public Guid CandidateId { get; set; }
 
     public Guid? AssignedTechnicalEvaluatorId { get; set; }
 
@@ -52,22 +45,20 @@ public class Application : AuditableEntity
     [JsonIgnore]
     public virtual User? AssignedManager { get; set; }
 
-    [JsonIgnore]
-    public virtual ICollection<ApplicationStatusHistory> StatusHistory { get; set; } = [];
+    [JsonIgnore] public virtual ICollection<ApplicationStatusHistory> StatusHistory { get; set; } = [];
 
     // Computed properties
     [NotMapped]
-    public bool IsActive => CurrentStatus != ApplicationStatus.Rejected && 
-                           CurrentStatus != ApplicationStatus.Withdrawn && 
-                           CurrentStatus != ApplicationStatus.Accepted;
+    public bool IsActive => CurrentStatus != ApplicationStatus.Rejected &&
+                            CurrentStatus != ApplicationStatus.Withdrawn &&
+                            CurrentStatus != ApplicationStatus.Accepted;
 
     [NotMapped]
-    public bool IsCompleted => CurrentStatus == ApplicationStatus.Accepted || 
-                              CurrentStatus == ApplicationStatus.Rejected || 
-                              CurrentStatus == ApplicationStatus.Withdrawn;
+    public bool IsCompleted => CurrentStatus == ApplicationStatus.Accepted ||
+                               CurrentStatus == ApplicationStatus.Rejected ||
+                               CurrentStatus == ApplicationStatus.Withdrawn;
 
-    [NotMapped]
-    public bool IsInProgress => CurrentStatus != ApplicationStatus.Applied && IsActive;
+    [NotMapped] public bool IsInProgress => CurrentStatus != ApplicationStatus.Applied && IsActive;
 
     [NotMapped]
     public string StatusDisplayName => CurrentStatus switch
@@ -84,5 +75,4 @@ public class Application : AuditableEntity
         ApplicationStatus.Withdrawn => "Application Withdrawn",
         _ => CurrentStatus.ToString()
     };
-
 }

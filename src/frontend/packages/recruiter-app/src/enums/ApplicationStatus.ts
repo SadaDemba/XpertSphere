@@ -1,14 +1,14 @@
 export enum ApplicationStatus {
-  Applied = 0,
-  Reviewed = 1,
-  PhoneScreening = 2,
-  TechnicalTest = 3,
-  TechnicalInterview = 4,
-  FinalInterview = 5,
-  OfferMade = 6,
-  Accepted = 7,
-  Rejected = 8,
-  Withdrawn = 9,
+  Applied,
+  Reviewed,
+  PhoneScreening,
+  TechnicalTest,
+  TechnicalInterview,
+  FinalInterview,
+  OfferMade,
+  Accepted,
+  Rejected,
+  Withdrawn,
 }
 
 export const statusOptions = [

@@ -27,7 +27,7 @@ public class TrainingService : ITrainingService
         _logger = logger;
         _updateValidator = updateValidator;
     }
-    
+
     public async Task<ServiceResult<IEnumerable<TrainingDto>>> GetUserTrainingsAsync(Guid userId)
     {
         try
@@ -44,7 +44,8 @@ public class TrainingService : ITrainingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving trainings for user {UserId}", userId);
-            return ServiceResult<IEnumerable<TrainingDto>>.InternalError("An error occurred while retrieving user trainings");
+            return ServiceResult<IEnumerable<TrainingDto>>.InternalError(
+                "An error occurred while retrieving user trainings");
         }
     }
 
@@ -77,7 +78,7 @@ public class TrainingService : ITrainingService
         {
             var training = _mapper.Map<Training>(createDto);
             await _context.Trainings.AddAsync(training);
-            
+
             var trainingDto = _mapper.Map<TrainingDto>(createDto);
             return ServiceResult<TrainingDto>.Success(trainingDto, "Training created successfully");
         }
@@ -178,7 +179,8 @@ public class TrainingService : ITrainingService
         }
     }
 
-    public async Task<ServiceResult<IEnumerable<TrainingDto>>> ReplaceUserTrainingsAsync(Guid userId, List<CreateTrainingDto> trainings)
+    public async Task<ServiceResult<IEnumerable<TrainingDto>>> ReplaceUserTrainingsAsync(Guid userId,
+        List<CreateTrainingDto> trainings)
     {
         try
         {
@@ -205,18 +207,18 @@ public class TrainingService : ITrainingService
             {
                 // Set the userId for each training
                 trainingDto.UserId = userId;
-                
+
                 var training = _mapper.Map<Training>(trainingDto);
                 training.Id = Guid.NewGuid();
                 training.CreatedAt = DateTime.UtcNow;
-                
+
                 _context.Trainings.Add(training);
                 newTrainings.Add(training);
             }
 
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Replaced {OldCount} trainings with {NewCount} trainings for user {UserId}", 
+            _logger.LogInformation("Replaced {OldCount} trainings with {NewCount} trainings for user {UserId}",
                 existingTrainings.Count, trainings.Count, userId);
 
             // Reload with User info for DTOs
@@ -227,13 +229,14 @@ public class TrainingService : ITrainingService
                 .ToListAsync();
 
             var trainingDtos = _mapper.Map<IEnumerable<TrainingDto>>(savedTrainings);
-            return ServiceResult<IEnumerable<TrainingDto>>.Success(trainingDtos, 
+            return ServiceResult<IEnumerable<TrainingDto>>.Success(trainingDtos,
                 $"Successfully replaced user trainings with {trainings.Count} new trainings");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error replacing trainings for user {UserId}", userId);
-            return ServiceResult<IEnumerable<TrainingDto>>.InternalError("An error occurred while replacing user trainings");
+            return ServiceResult<IEnumerable<TrainingDto>>.InternalError(
+                "An error occurred while replacing user trainings");
         }
     }
 
@@ -294,7 +297,7 @@ public class TrainingService : ITrainingService
             _context.Trainings.Remove(training);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Deleted training {TrainingId} (was assigned to user {UserId})", 
+            _logger.LogInformation("Deleted training {TrainingId} (was assigned to user {UserId})",
                 trainingId, training.UserId);
             return ServiceResult.Success("Training removed successfully");
         }
@@ -311,7 +314,7 @@ public class TrainingService : ITrainingService
         {
             var hasTraining = await _context.Trainings
                 .AnyAsync(t => t.Id == trainingId && t.UserId == userId);
-            
+
             return ServiceResult<bool>.Success(hasTraining);
         }
         catch (Exception ex)

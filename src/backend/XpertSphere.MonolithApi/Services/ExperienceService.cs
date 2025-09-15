@@ -47,7 +47,8 @@ public class ExperienceService : IExperienceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving experiences for user {UserId}", userId);
-            return ServiceResult<IEnumerable<ExperienceDto>>.InternalError("An error occurred while retrieving user experiences");
+            return ServiceResult<IEnumerable<ExperienceDto>>.InternalError(
+                "An error occurred while retrieving user experiences");
         }
     }
 
@@ -85,7 +86,7 @@ public class ExperienceService : IExperienceService
                 var currentExperiences = await _context.Experiences
                     .Where(e => e.UserId == createDto.UserId && e.IsCurrent)
                     .ToListAsync();
-                
+
                 foreach (var exp in currentExperiences)
                 {
                     exp.IsCurrent = false;
@@ -93,7 +94,7 @@ public class ExperienceService : IExperienceService
             }
 
             await _context.Experiences.AddAsync(experience);
-            
+
             var experienceDto = _mapper.Map<ExperienceDto>(createDto);
             return ServiceResult<ExperienceDto>.Success(experienceDto, "Experience created successfully");
         }
@@ -134,7 +135,7 @@ public class ExperienceService : IExperienceService
                 var currentExperiences = await _context.Experiences
                     .Where(e => e.UserId == experience.UserId && e.IsCurrent && e.Id != id)
                     .ToListAsync();
-                
+
                 foreach (var exp in currentExperiences)
                 {
                     exp.IsCurrent = false;
@@ -207,7 +208,8 @@ public class ExperienceService : IExperienceService
         }
     }
 
-    public async Task<ServiceResult<IEnumerable<ExperienceDto>>> ReplaceUserExperiencesAsync(Guid userId, List<CreateExperienceDto> experiences)
+    public async Task<ServiceResult<IEnumerable<ExperienceDto>>> ReplaceUserExperiencesAsync(Guid userId,
+        List<CreateExperienceDto> experiences)
     {
         try
         {
@@ -234,9 +236,9 @@ public class ExperienceService : IExperienceService
             {
                 // Set the userId for each experience
                 experienceDto.UserId = userId;
-                
+
                 var experience = _mapper.Map<Experience>(experienceDto);
-                
+
                 _context.Experiences.Add(experience);
                 newExperiences.Add(experience);
             }
@@ -254,7 +256,7 @@ public class ExperienceService : IExperienceService
 
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Replaced {OldCount} experiences with {NewCount} experiences for user {UserId}", 
+            _logger.LogInformation("Replaced {OldCount} experiences with {NewCount} experiences for user {UserId}",
                 existingExperiences.Count, experiences.Count, userId);
 
             // Reload with User info for DTOs
@@ -266,13 +268,14 @@ public class ExperienceService : IExperienceService
                 .ToListAsync();
 
             var experienceDtos = _mapper.Map<IEnumerable<ExperienceDto>>(savedExperiences);
-            return ServiceResult<IEnumerable<ExperienceDto>>.Success(experienceDtos, 
+            return ServiceResult<IEnumerable<ExperienceDto>>.Success(experienceDtos,
                 $"Successfully replaced user experiences with {experiences.Count} new experiences");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error replacing experiences for user {UserId}", userId);
-            return ServiceResult<IEnumerable<ExperienceDto>>.InternalError("An error occurred while replacing user experiences");
+            return ServiceResult<IEnumerable<ExperienceDto>>.InternalError(
+                "An error occurred while replacing user experiences");
         }
     }
 
@@ -333,7 +336,7 @@ public class ExperienceService : IExperienceService
             _context.Experiences.Remove(experience);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Deleted experience {ExperienceId} (was assigned to user {UserId})", 
+            _logger.LogInformation("Deleted experience {ExperienceId} (was assigned to user {UserId})",
                 experienceId, experience.UserId);
             return ServiceResult.Success("Experience removed successfully");
         }
@@ -350,7 +353,7 @@ public class ExperienceService : IExperienceService
         {
             var hasExperience = await _context.Experiences
                 .AnyAsync(e => e.Id == experienceId && e.UserId == userId);
-            
+
             return ServiceResult<bool>.Success(hasExperience);
         }
         catch (Exception ex)

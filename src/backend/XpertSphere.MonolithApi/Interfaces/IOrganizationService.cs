@@ -47,6 +47,5 @@ namespace XpertSphere.MonolithApi.Interfaces
         /// <param name="id"></param>
         /// <returns></returns>
         Task<ServiceResult> DeleteAsync(Guid id);
-
     }
 }

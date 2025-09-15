@@ -104,31 +104,56 @@
 
           <div class="row q-gutter-md">
             <div class="col-12">
-              <q-input
-                v-model="formData.description"
-                outlined
-                type="textarea"
-                label="Description du poste *"
-                :rules="[(val) => !!val || 'La description est obligatoire']"
-                rows="6"
-                aria-label="Description détaillée du poste"
-                required
-              />
+              <div class="editor-group">
+                <label class="editor-label" for="description-editor">
+                  Description du poste *
+                </label>
+                <q-editor
+                  id="description-editor"
+                  v-model="formData.description"
+                  :toolbar="editorToolbar"
+                  height="200px"
+                  placeholder="Décrivez le poste, les missions, l'environnement de travail..."
+                  class="editor-field"
+                  aria-label="Description détaillée du poste"
+                />
+              </div>
             </div>
           </div>
 
           <div class="row q-gutter-md">
             <div class="col-12">
-              <q-input
-                v-model="formData.requirements"
-                outlined
-                type="textarea"
-                label="Exigences et qualifications *"
-                :rules="[(val) => !!val || 'Les exigences sont obligatoires']"
-                rows="4"
-                aria-label="Exigences et qualifications requises"
-                required
-              />
+              <div class="editor-group">
+                <label class="editor-label" for="requirements-editor">
+                  Exigences et qualifications *
+                </label>
+                <q-editor
+                  id="requirements-editor"
+                  v-model="formData.requirements"
+                  :toolbar="editorToolbar"
+                  height="150px"
+                  placeholder="Listez les compétences requises, l'expérience nécessaire, les diplômes..."
+                  class="editor-field"
+                  aria-label="Exigences et qualifications requises"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="row q-gutter-md">
+            <div class="col-12">
+              <div class="editor-group">
+                <label class="editor-label" for="benefits-editor"> Avantages et bénéfices * </label>
+                <q-editor
+                  id="benefits-editor"
+                  v-model="formData.benefits"
+                  :toolbar="editorToolbar"
+                  height="120px"
+                  placeholder="Décrivez les avantages : mutuelle, tickets resto, télétravail, formation..."
+                  class="editor-field"
+                  aria-label="Avantages et bénéfices offerts"
+                />
+              </div>
             </div>
           </div>
         </q-form>
@@ -156,15 +181,32 @@ import type { JobOffer, CreateJobOfferDto, UpdateJobOfferDto } from '../../model
 import { WorkMode, ContractType } from '../../enums';
 import { workModeLabels, contractTypeLabels } from '../../models/job';
 import { useJobOfferStore } from '../../stores/jobOfferStore';
-import { useQuasar } from 'quasar';
+import { useNotification } from 'src/composables/notification';
 
-const $q = useQuasar();
+const notification = useNotification();
 const jobOfferStore = useJobOfferStore();
+
+// Editor toolbar configuration
+const editorToolbar = [
+  ['bold', 'italic', 'underline', 'strike'],
+  ['unordered', 'ordered'],
+  [
+    {
+      label: 'Taille',
+      icon: 'format_size',
+      list: 'no-icons',
+      options: ['size-1', 'size-2', 'size-3', 'size-4', 'size-5', 'size-6'],
+    },
+  ],
+  ['quote', 'link'],
+  ['fullscreen'],
+];
 
 interface JobFormData {
   title: string;
   description: string;
   requirements: string;
+  benefits: string;
   location: string;
   workMode: WorkMode;
   contractType: ContractType;
@@ -200,6 +242,7 @@ const formData = ref<JobFormData>({
   title: '',
   description: '',
   requirements: '',
+  benefits: '',
   location: '',
   workMode: WorkMode.OnSite,
   contractType: ContractType.FullTime,
@@ -227,6 +270,7 @@ watch(
         title: newJob.title || '',
         description: newJob.description || '',
         requirements: newJob.requirements || '',
+        benefits: newJob.benefits || '',
         location: newJob.location || '',
         workMode: newJob.workMode || WorkMode.OnSite,
         contractType: newJob.contractType || ContractType.FullTime,
@@ -247,6 +291,7 @@ function resetForm() {
     title: '',
     description: '',
     requirements: '',
+    benefits: '',
     location: '',
     workMode: WorkMode.OnSite,
     contractType: ContractType.FullTime,
@@ -263,6 +308,24 @@ function closeDialog() {
 }
 
 async function saveJob() {
+  // Validation des champs obligatoires
+  if (!formData.value.title.trim()) {
+    notification.showErrorNotification('Le titre est obligatoire');
+    return;
+  }
+  if (!formData.value.description.trim()) {
+    notification.showErrorNotification('La description est obligatoire');
+    return;
+  }
+  if (!formData.value.requirements.trim()) {
+    notification.showErrorNotification('Les exigences sont obligatoires');
+    return;
+  }
+  if (!formData.value.benefits.trim()) {
+    notification.showErrorNotification('Les avantages sont obligatoires');
+    return;
+  }
+
   saving.value = true;
   try {
     let result;
@@ -273,6 +336,7 @@ async function saveJob() {
         title: formData.value.title,
         description: formData.value.description,
         requirements: formData.value.requirements,
+        benefits: formData.value.benefits,
         location: formData.value.location,
         workMode: formData.value.workMode,
         contractType: formData.value.contractType,
@@ -285,11 +349,7 @@ async function saveJob() {
       result = await jobOfferStore.updateJobOffer(props.job.id, updateData);
 
       if (result) {
-        $q.notify({
-          type: 'positive',
-          message: "Offre d'emploi mise à jour avec succès",
-          position: 'top',
-        });
+        notification.showSuccessNotification("Offre d'emploi mise à jour avec succès");
       }
     } else {
       // Mode création : appeler createJobOffer
@@ -297,6 +357,7 @@ async function saveJob() {
         title: formData.value.title,
         description: formData.value.description,
         requirements: formData.value.requirements,
+        benefits: formData.value.benefits,
         location: formData.value.location,
         workMode: formData.value.workMode,
         contractType: formData.value.contractType,
@@ -309,11 +370,7 @@ async function saveJob() {
       result = await jobOfferStore.createJobOffer(createData);
 
       if (result) {
-        $q.notify({
-          type: 'positive',
-          message: "Offre d'emploi créée avec succès",
-          position: 'top',
-        });
+        notification.showSuccessNotification("Offre d'emploi créée avec succès");
       }
     }
 
@@ -321,19 +378,15 @@ async function saveJob() {
       emit('saved');
       closeDialog();
     } else {
-      $q.notify({
-        type: 'negative',
-        message: `Erreur lors de ${isEditing.value ? 'la mise à jour' : 'la création'} de l'offre`,
-        position: 'top',
-      });
+      notification.showErrorNotification(
+        `Erreur lors de ${isEditing.value ? 'la mise à jour' : 'la création'} de l'offre`,
+      );
     }
   } catch (error) {
     console.error('Erreur lors de la sauvegarde:', error);
-    $q.notify({
-      type: 'negative',
-      message: `Erreur: ${error instanceof Error ? error.message : 'Une erreur est survenue'}`,
-      position: 'top',
-    });
+    notification.showErrorNotification(
+      `Erreur: ${error instanceof Error ? error.message : 'Une erreur est survenue'}`,
+    );
   } finally {
     saving.value = false;
   }
@@ -344,6 +397,29 @@ async function saveJob() {
 .job-dialog {
   width: 100%;
   max-width: 800px;
+}
+
+.editor-group {
+  margin-bottom: 16px;
+}
+
+.editor-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.editor-field {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.editor-field:focus-within {
+  border-color: var(--q-primary);
+  box-shadow: 0 0 0 2px rgba(var(--q-primary-rgb), 0.2);
 }
 
 @media (max-width: 768px) {

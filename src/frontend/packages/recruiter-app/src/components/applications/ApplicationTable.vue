@@ -55,17 +55,17 @@
     <template #body-cell-status="props">
       <q-td :props="props">
         <q-chip
-          :color="applicationStatusConfig[props.row.status as ApplicationStatus].color"
-          :text-color="applicationStatusConfig[props.row.status as ApplicationStatus].textColor"
+          :color="applicationStatusConfig[props.row.status]?.color"
+          :text-color="applicationStatusConfig[props.row.status]?.textColor"
           dense
-          :aria-label="`Statut: ${applicationStatusConfig[props.row.status as ApplicationStatus].label}`"
+          :aria-label="`Statut: ${applicationStatusConfig[props.row.status]?.label}`"
         >
           <q-icon
-            :name="applicationStatusConfig[props.row.status as ApplicationStatus].icon"
+            :name="applicationStatusConfig[props.row.status]?.icon"
             size="14px"
             class="q-mr-xs"
           />
-          {{ applicationStatusConfig[props.row.status as ApplicationStatus].label }}
+          {{ applicationStatusConfig[props.row.status]?.label }}
         </q-chip>
       </q-td>
     </template>
@@ -156,7 +156,6 @@ import type { QTableColumn } from 'quasar';
 import type { Application } from '../../models';
 import { applicationStatusConfig, applicationSourceLabels } from '../../models';
 import { formatDate } from '../../helpers';
-import type { ApplicationStatus } from 'src/enums';
 import { useDataTable } from 'src/composables/datatable';
 
 const dataTable = useDataTable();

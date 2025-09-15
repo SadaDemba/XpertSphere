@@ -50,7 +50,7 @@ public class ApplicationConfiguration : AuditableEntityConfiguration<Application
         // Composite indexes for common queries
         builder.HasIndex(a => new { a.JobOfferId, a.CurrentStatus })
             .HasDatabaseName("IX_Applications_JobOfferId_Status");
-        
+
         builder.HasIndex(a => new { a.CandidateId, a.CurrentStatus })
             .HasDatabaseName("IX_Applications_CandidateId_Status");
 
@@ -61,7 +61,7 @@ public class ApplicationConfiguration : AuditableEntityConfiguration<Application
         // Relationships
         builder
             .HasOne(a => a.JobOffer)
-            .WithMany()
+            .WithMany(jo => jo.Applications)
             .HasForeignKey(a => a.JobOfferId)
             .OnDelete(DeleteBehavior.Restrict);
 

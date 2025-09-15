@@ -6,28 +6,19 @@ namespace XpertSphere.MonolithApi.DTOs.Auth;
 
 public record RegisterCandidateDto
 {
-    [Required]
-    [EmailAddress]
-    public required string Email { get; init; }
+    [Required] [EmailAddress] public required string Email { get; init; }
 
-    [Required]
-    [MinLength(6)]
-    public required string Password { get; init; }
+    [Required] [MinLength(6)] public required string Password { get; init; }
 
     [Required]
     [Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
     public required string ConfirmPassword { get; init; }
 
-    [Required]
-    [MaxLength(100)]
-    public required string FirstName { get; init; }
+    [Required] [MaxLength(100)] public required string FirstName { get; init; }
 
-    [Required]
-    [MaxLength(100)]
-    public required string LastName { get; init; }
+    [Required] [MaxLength(100)] public required string LastName { get; init; }
 
-    [Phone]
-    public string? PhoneNumber { get; init; }
+    [Phone] public string? PhoneNumber { get; init; }
 
     // Address Information (matching Address model)
     public string? StreetNumber { get; init; }
@@ -56,17 +47,15 @@ public record RegisterCandidateDto
     public string TimeZone { get; init; } = "UTC";
 
     // Legal
-    [Required]
-    public bool AcceptTerms { get; init; } = false;
+    [Required] public bool AcceptTerms { get; init; } = false;
 
-    [Required]
-    public bool AcceptPrivacyPolicy { get; init; } = false;
+    [Required] public bool AcceptPrivacyPolicy { get; init; } = false;
 
     public DateTime? ConsentGivenAt { get; init; }
 
     // Navigation
     public string? ReturnUrl { get; init; }
-    
+
     // Entra ID specific fields
     public bool ForceLocalRegistration { get; init; } = false;
     public string? OrganizationDomain { get; init; }

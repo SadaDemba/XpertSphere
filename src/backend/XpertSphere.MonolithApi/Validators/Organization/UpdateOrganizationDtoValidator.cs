@@ -14,7 +14,8 @@ public class UpdateOrganizationDtoValidator : AbstractValidator<UpdateOrganizati
 
         RuleFor(x => x.Code)
             .Length(2, 20).WithMessage("Organization code must be between 2 and 20 characters.")
-            .Matches(@"^[A-Z0-9_-]+$").WithMessage("Organization code must contain only uppercase letters, numbers, underscores and dashes.")
+            .Matches(@"^[A-Z0-9_-]+$")
+            .WithMessage("Organization code must contain only uppercase letters, numbers, underscores and dashes.")
             .When(x => !string.IsNullOrEmpty(x.Code));
 
         RuleFor(x => x.Description)

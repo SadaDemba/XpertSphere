@@ -7,6 +7,7 @@ namespace XpertSphere.MonolithApi.DTOs.Base
     public class Filter
     {
         public string? SearchTerms { get; set; }
+
         // Pagination
         public string PageNumber { get; set; } = "1";
         public string PageSize { get; set; } = "10";

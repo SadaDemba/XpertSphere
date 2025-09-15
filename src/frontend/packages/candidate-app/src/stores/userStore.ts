@@ -116,6 +116,32 @@ export const useUserStore = defineStore('user', () => {
     currentUser.value = user;
   };
 
+  const uploadCv = async (userId: string, cvFile: File): Promise<boolean> => {
+    try {
+      setLoading(true);
+      clearError();
+
+      const response = await userService.uploadCv(userId, cvFile);
+
+      if (response?.isSuccess) {
+        notification.showSuccessNotification(response.data?.message || 'CV uploadé avec succès');
+        return true;
+      } else {
+        setError(response?.message || "Erreur lors de l'upload du CV");
+        notification.showErrorNotification(response?.message || "Erreur lors de l'upload du CV");
+        return false;
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Erreur lors de l'upload du CV");
+      notification.showErrorNotification(
+        error instanceof Error ? error.message : "Erreur lors de l'upload du CV",
+      );
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const clearCurrentUser = () => {
     currentUser.value = null;
   };
@@ -133,6 +159,7 @@ export const useUserStore = defineStore('user', () => {
     clearError,
     updateUserSkills,
     updateUserProfile,
+    uploadCv,
     setCurrentUser,
     clearCurrentUser,
   };

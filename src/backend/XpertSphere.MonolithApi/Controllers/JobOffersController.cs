@@ -9,7 +9,6 @@ namespace XpertSphere.MonolithApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
 public class JobOffersController(IJobOfferService jobOfferService) : ControllerBase
 {
     /// <summary>
@@ -26,7 +25,8 @@ public class JobOffersController(IJobOfferService jobOfferService) : ControllerB
     /// Get all job offers with pagination and filtering
     /// </summary>
     [HttpGet("paginated")]
-    public async Task<ActionResult<PaginatedResult<JobOfferDto>>> GetAllPaginatedJobOffers([FromQuery] JobOfferFilterDto filter)
+    public async Task<ActionResult<PaginatedResult<JobOfferDto>>> GetAllPaginatedJobOffers(
+        [FromQuery] JobOfferFilterDto filter)
     {
         var result = await jobOfferService.GetAllPaginatedJobOffersAsync(filter);
         return this.ToPaginatedActionResult(result);

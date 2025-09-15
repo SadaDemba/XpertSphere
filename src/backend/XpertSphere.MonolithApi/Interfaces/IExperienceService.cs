@@ -14,12 +14,12 @@ public interface IExperienceService
     /// <param name="userId"></param>
     /// <returns></returns>
     Task<ServiceResult<IEnumerable<ExperienceDto>>> GetUserExperiencesAsync(Guid userId);
-    
+
     /// <summary>
     /// Get a specific professional experience by ID
     /// </summary>
     Task<ServiceResult<ExperienceDto>> GetExperienceByIdAsync(Guid id);
-    
+
     /// <summary>
     /// Create a new professional experience for a user
     /// </summary>
@@ -36,7 +36,7 @@ public interface IExperienceService
     /// Delete a specific professional experience
     /// </summary>
     Task<ServiceResult> DeleteExperienceAsync(Guid id);
-    
+
     /// <summary>
     /// Delete all professional experiences for a specific user
     /// </summary>
@@ -47,13 +47,14 @@ public interface IExperienceService
     /// </summary>
     /// <param name="userId">The user ID</param>
     /// <param name="experiences">List of new experiences to create</param>
-    Task<ServiceResult<IEnumerable<ExperienceDto>>> ReplaceUserExperiencesAsync(Guid userId, List<CreateExperienceDto> experiences);
+    Task<ServiceResult<IEnumerable<ExperienceDto>>> ReplaceUserExperiencesAsync(Guid userId,
+        List<CreateExperienceDto> experiences);
 
     /// <summary>
     /// Assign an existing professional experience to a different user
     /// </summary>
     Task<ServiceResult<ExperienceDto>> AssignExperienceToUserAsync(Guid experienceId, Guid userId);
-    
+
     /// <summary>
     /// Remove a professional experience from a user (deletes the experience)
     /// </summary>
@@ -63,7 +64,7 @@ public interface IExperienceService
     /// Check if a user has a specific professional experience
     /// </summary>
     Task<ServiceResult<bool>> UserHasExperienceAsync(Guid userId, Guid experienceId);
-    
+
     /// <summary>
     /// Check if a professional experience can be deleted
     /// </summary>

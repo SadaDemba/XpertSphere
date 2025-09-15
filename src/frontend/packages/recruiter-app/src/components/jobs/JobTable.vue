@@ -30,45 +30,74 @@
 
     <template #body-cell-status="props">
       <q-td :props="props">
-        <q-chip
-          :color="jobOfferStatusConfig[props.row.status as JobOfferStatus].color"
-          :text-color="jobOfferStatusConfig[props.row.status as JobOfferStatus].textColor"
+        <q-select
+          :model-value="props.row.status"
+          :options="statusOptions"
           dense
-          :aria-label="`Statut: ${jobOfferStatusConfig[props.row.status as JobOfferStatus].label}`"
+          borderless
+          behavior="menu"
+          class="status-select"
+          emit-value
+          map-options
+          :aria-label="`Modifier le statut de l'offre ${props.row.title}`"
+          @update:model-value="
+            (newStatus: JobOfferStatus) => handleStatusChange(props.row, newStatus)
+          "
         >
-          <q-icon
-            :name="jobOfferStatusConfig[props.row.status as JobOfferStatus].icon"
-            size="14px"
-            class="q-mr-xs"
-          />
-          {{ jobOfferStatusConfig[props.row.status as JobOfferStatus].label }}
-        </q-chip>
+          <template #selected>
+            <q-chip
+              :color="jobOfferStatusConfig[props.row.status as JobOfferStatus].color"
+              :text-color="jobOfferStatusConfig[props.row.status as JobOfferStatus].textColor"
+              dense
+            >
+              <q-icon
+                :name="jobOfferStatusConfig[props.row.status as JobOfferStatus].icon"
+                size="14px"
+                class="q-mr-xs"
+              />
+              {{ jobOfferStatusConfig[props.row.status as JobOfferStatus].label }}
+            </q-chip>
+          </template>
+          <template #option="scope">
+            <q-item v-bind="scope.itemProps">
+              <q-item-section avatar>
+                <q-icon :name="jobOfferStatusConfig[scope.opt.value as JobOfferStatus]?.icon" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ scope.opt.label }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+        </q-select>
       </q-td>
     </template>
 
     <template #body-cell-applications="props">
       <q-td :props="props">
-        <q-btn
-          flat
-          dense
-          :label="`${props.row.applications}`"
+        <q-chip
+          :clickable="props.row.applicationsCount > 0"
+          :color="props.row.applicationsCount > 0 ? 'primary' : 'grey-4'"
+          :text-color="props.row.applicationsCount > 0 ? 'white' : 'grey-8'"
           icon="assignment"
-          color="primary"
-          :aria-label="`Voir les ${props.row.applications} candidatures pour ${props.row.title}`"
-          @click="$emit('viewApplications', props.row)"
-        />
+          :label="props.row.applicationsCount"
+          :aria-label="`Voir les ${props.row.applicationsCount} candidatures pour ${props.row.title}`"
+          @click="props.row.applicationsCount > 0 ? $emit('viewApplications', props.row) : null"
+        >
+          <q-tooltip v-if="props.row.applicationsCount > 0">
+            Voir les {{ props.row.applicationsCount }} candidatures
+          </q-tooltip>
+          <q-tooltip v-else> Aucune candidature </q-tooltip>
+        </q-chip>
       </q-td>
     </template>
 
-    <template #body-cell-createdAt="props">
-      <q-td :props="props">
-        {{ formatDate(props.row.createdAt) }}
-      </q-td>
+    <template #body-cell-workMode="props">
+      <q-td :props="props">{{ getWorkModeLabel(props.row.workMode) }} </q-td>
     </template>
 
-    <template #body-cell-updatedAt="props">
+    <template #body-cell-contractType="props">
       <q-td :props="props">
-        {{ formatDate(props.row.updatedAt) }}
+        {{ getContractTypeLabel(props.row.contractType) }}
       </q-td>
     </template>
 
@@ -122,12 +151,13 @@ import { ref } from 'vue';
 import type { Ref } from 'vue';
 import type { QTableColumn } from 'quasar';
 import type { JobOffer } from '../../models';
-import { jobOfferStatusConfig } from '../../models';
-import type { JobOfferStatus } from '../../enums';
-import { formatDate } from '../../helpers';
+import { jobOfferStatusConfig, workModeLabels, contractTypeLabels } from '../../models';
+import { JobOfferStatus, WorkMode, ContractType } from '../../enums';
 import { useDataTable } from 'src/composables/datatable';
+import { useDialog } from '../../composables/dialog';
 
 const dataTable = useDataTable();
+const dialog = useDialog();
 
 interface Props {
   jobs: JobOffer[];
@@ -138,10 +168,50 @@ interface Emits {
   (e: 'delete', job: JobOffer): void;
   (e: 'duplicate', job: JobOffer): void;
   (e: 'viewApplications', job: JobOffer): void;
+  (e: 'updateStatus', job: JobOffer, status: JobOfferStatus): void;
 }
 
 defineProps<Props>();
-defineEmits<Emits>();
+const emit = defineEmits<Emits>();
+
+async function handleStatusChange(job: JobOffer, newStatus: JobOfferStatus) {
+  if (newStatus === JobOfferStatus.Published) {
+    await dialog.confirmAction('publier', job.title, {
+      title: 'Confirmer la publication',
+      message: `Êtes-vous sûr de vouloir publier l'offre "${job.title}" ?`,
+      ok: { label: 'Publier', color: 'positive' },
+    });
+  } else if (newStatus === JobOfferStatus.Draft) {
+    await dialog.confirmAction('remettre en brouillon', job.title, {
+      title: 'Confirmer le changement',
+      message: `Êtes-vous sûr de vouloir remettre l'offre "${job.title}" en brouillon ?`,
+      ok: { label: 'Confirmer', color: 'warning' },
+    });
+  } else if (newStatus === JobOfferStatus.Closed) {
+    await dialog.confirmAction('fermer', job.title, {
+      title: 'Confirmer la fermeture',
+      message: `Êtes-vous sûr de vouloir fermer l'offre "${job.title}" ?`,
+      ok: { label: 'Fermer', color: 'negative' },
+    });
+  }
+
+  // Si l'utilisateur a confirmé, on émet l'événement
+  emit('updateStatus', job, newStatus);
+}
+
+function getWorkModeLabel(workMode: WorkMode): string {
+  return workModeLabels[workMode] || '';
+}
+
+function getContractTypeLabel(contractType: ContractType): string {
+  return contractTypeLabels[contractType] || '';
+}
+
+const statusOptions = [
+  { label: 'Brouillon', value: JobOfferStatus.Draft },
+  { label: 'Publiée', value: JobOfferStatus.Published },
+  { label: 'Fermée', value: JobOfferStatus.Closed },
+];
 
 const columns: Ref<QTableColumn<any>[]> = ref([
   {
@@ -152,20 +222,26 @@ const columns: Ref<QTableColumn<any>[]> = ref([
     sortable: true,
   },
   {
-    name: 'department',
-    field: 'department',
-    label: 'Département',
-    ...dataTable.defaultConfig.value,
-    sortable: true,
-  },
-  {
     name: 'location',
     field: 'location',
     label: 'Localisation',
     ...dataTable.defaultConfig.value,
     sortable: true,
   },
-  { name: 'type', field: 'type', label: 'Type', ...dataTable.defaultConfig.value, sortable: true },
+  {
+    name: 'workMode',
+    field: 'workMode',
+    label: 'Mode de travail',
+    ...dataTable.defaultConfig.value,
+    sortable: true,
+  },
+  {
+    name: 'contractType',
+    field: 'contractType',
+    label: 'Type de contrat',
+    ...dataTable.defaultConfig.value,
+    sortable: true,
+  },
   {
     name: 'status',
     field: 'status',
@@ -175,26 +251,19 @@ const columns: Ref<QTableColumn<any>[]> = ref([
     align: 'center',
   },
   {
+    name: 'createdByUserName',
+    field: 'createdByUserName',
+    label: 'Créé par',
+    ...dataTable.defaultConfig.value,
+    sortable: true,
+  },
+  {
     name: 'applications',
     field: 'applications',
     label: 'Candidatures',
     ...dataTable.defaultConfig.value,
     sortable: true,
     align: 'center',
-  },
-  {
-    name: 'createdAt',
-    field: 'createdAt',
-    label: 'Créée le',
-    ...dataTable.defaultConfig.value,
-    sortable: true,
-  },
-  {
-    name: 'updatedAt',
-    field: 'updatedAt',
-    label: 'Modifiée le',
-    ...dataTable.defaultConfig.value,
-    sortable: true,
   },
   {
     name: 'actions',

@@ -17,7 +17,7 @@ public class ClaimsEnrichmentMiddleware
         ["Org-XpertSphere"] = [Roles.PlatformAdmin.Name, Roles.PlatformSuperAdmin.Name],
         ["XpertSphere-SuperAdmin"] = [Roles.PlatformSuperAdmin.Name],
         ["XpertSphere-Admin"] = [Roles.PlatformAdmin.Name],
-        
+
         // Expertime Client Groups
         ["Org-Expertime"] = [Roles.Recruiter.Name, Roles.Manager.Name, Roles.OrganizationAdmin.Name],
         ["Expertime-Admin"] = [Roles.OrganizationAdmin.Name],
@@ -115,7 +115,7 @@ public class ClaimsEnrichmentMiddleware
         // Add user permissions based on roles
         await AddUserPermissions(identity, dbUser, dbContext);
 
-        _logger.LogInformation("Enriched B2B claims for user {Email} with {ClaimsCount} claims", 
+        _logger.LogInformation("Enriched B2B claims for user {Email} with {ClaimsCount} claims",
             userEmail, identity.Claims.Count());
     }
 
@@ -161,9 +161,9 @@ public class ClaimsEnrichmentMiddleware
         var dbUser = await dbContext.Users
             .Include(u => u.Organization)
             .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-                    .ThenInclude(r => r.RolePermissions)
-                        .ThenInclude(rp => rp.Permission)
+            .ThenInclude(ur => ur.Role)
+            .ThenInclude(r => r.RolePermissions)
+            .ThenInclude(rp => rp.Permission)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (dbUser == null) return;
@@ -185,7 +185,7 @@ public class ClaimsEnrichmentMiddleware
         foreach (var userRole in dbUser.UserRoles)
         {
             identity.AddClaim(new Claim(ClaimTypes.Role, userRole.Role.Name));
-            
+
             // Add permissions for each role
             foreach (var rolePermission in userRole.Role.RolePermissions)
             {
@@ -194,11 +194,11 @@ public class ClaimsEnrichmentMiddleware
             }
         }
 
-        _logger.LogInformation("Enriched JWT claims for user {UserId} with {RolesCount} roles", 
+        _logger.LogInformation("Enriched JWT claims for user {UserId} with {RolesCount} roles",
             userId, dbUser.UserRoles.Count);
     }
 
-    private async Task<User?> FindOrCreateB2BUser(XpertSphereDbContext dbContext, string email, 
+    private async Task<User?> FindOrCreateB2BUser(XpertSphereDbContext dbContext, string email,
         string? entraUserId, ClaimsPrincipal userPrincipal)
     {
         // Try to find existing user by email or Entra ID
@@ -214,13 +214,14 @@ public class ClaimsEnrichmentMiddleware
                 user.ExternalId = entraUserId;
                 await dbContext.SaveChangesAsync();
             }
+
             return user;
         }
 
         // Create new B2B user
         var userName = userPrincipal.FindFirst(ClaimTypes.Name)?.Value ?? email;
         var nameParts = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        
+
         var newUser = new User
         {
             Id = Guid.NewGuid(),
@@ -246,13 +247,13 @@ public class ClaimsEnrichmentMiddleware
         dbContext.Users.Add(newUser);
         await dbContext.SaveChangesAsync();
 
-        _logger.LogInformation("Created new B2B user {Email} in organization {Organization}", 
+        _logger.LogInformation("Created new B2B user {Email} in organization {Organization}",
             email, organization?.Name ?? "Platform");
 
         return newUser;
     }
 
-    private async Task<User?> FindOrCreateB2CUser(XpertSphereDbContext dbContext, string email, 
+    private async Task<User?> FindOrCreateB2CUser(XpertSphereDbContext dbContext, string email,
         string? entraUserId, ClaimsPrincipal userPrincipal)
     {
         // Try to find existing user
@@ -266,13 +267,14 @@ public class ClaimsEnrichmentMiddleware
                 user.ExternalId = entraUserId;
                 await dbContext.SaveChangesAsync();
             }
+
             return user;
         }
 
         // Create new B2C candidate
         var userName = userPrincipal.FindFirst(ClaimTypes.Name)?.Value ?? email;
         var nameParts = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        
+
         var newUser = new User
         {
             Id = Guid.NewGuid(),
@@ -312,7 +314,7 @@ public class ClaimsEnrichmentMiddleware
         return newUser;
     }
 
-    private async Task<Organization?> DetermineOrganizationFromGroups(XpertSphereDbContext dbContext, 
+    private async Task<Organization?> DetermineOrganizationFromGroups(XpertSphereDbContext dbContext,
         ClaimsPrincipal userPrincipal)
     {
         var groupClaims = userPrincipal.FindAll("group").Select(c => c.Value).ToList();
@@ -333,7 +335,7 @@ public class ClaimsEnrichmentMiddleware
         return null;
     }
 
-    private async Task MapEntraIdGroupsToRoles(ClaimsIdentity identity, User dbUser, 
+    private async Task MapEntraIdGroupsToRoles(ClaimsIdentity identity, User dbUser,
         XpertSphereDbContext dbContext)
     {
         var groupClaims = identity.FindAll("group").Select(c => c.Value).ToList();
@@ -357,7 +359,7 @@ public class ClaimsEnrichmentMiddleware
         await SyncUserRolesInDatabase(dbUser, rolesToAssign.Distinct().ToList(), dbContext);
     }
 
-    private async Task SyncUserRolesInDatabase(User dbUser, List<string> roleNames, 
+    private async Task SyncUserRolesInDatabase(User dbUser, List<string> roleNames,
         XpertSphereDbContext dbContext)
     {
         var roles = await dbContext.Roles
@@ -394,14 +396,14 @@ public class ClaimsEnrichmentMiddleware
         await dbContext.SaveChangesAsync();
     }
 
-    private async Task AddUserPermissions(ClaimsIdentity identity, User dbUser, 
+    private async Task AddUserPermissions(ClaimsIdentity identity, User dbUser,
         XpertSphereDbContext dbContext)
     {
         var userRoles = await dbContext.UserRoles
             .Where(ur => ur.UserId == dbUser.Id)
             .Include(ur => ur.Role)
-                .ThenInclude(r => r.RolePermissions)
-                    .ThenInclude(rp => rp.Permission)
+            .ThenInclude(r => r.RolePermissions)
+            .ThenInclude(rp => rp.Permission)
             .ToListAsync();
 
         var permissions = userRoles

@@ -9,13 +9,9 @@ namespace XpertSphere.MonolithApi.Models;
 
 public class User : IdentityUser<Guid>, IAuditableEntity
 {
-    [Required]
-    [MaxLength(100)]
-    public required string FirstName { get; set; }
+    [Required] [MaxLength(100)] public required string FirstName { get; set; }
 
-    [Required]
-    [MaxLength(100)]
-    public required string LastName { get; set; }
+    [Required] [MaxLength(100)] public required string LastName { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public Guid? CreatedBy { get; set; }
@@ -24,45 +20,36 @@ public class User : IdentityUser<Guid>, IAuditableEntity
     public Address Address { get; set; } = new();
     public Guid? OrganizationId { get; set; }
 
-    [MaxLength(50)]
-    public string? EmployeeId { get; set; }
+    [MaxLength(50)] public string? EmployeeId { get; set; }
 
-    [MaxLength(100)]
-    public string? Department { get; set; }
+    [MaxLength(100)] public string? Department { get; set; }
 
     public DateTime? HireDate { get; set; }
 
-    [MaxLength(255)]
-    public string? LinkedInProfile { get; set; }
+    [MaxLength(255)] public string? LinkedInProfile { get; set; }
 
-    [MaxLength(500)]
-    public string? CvPath { get; set; }
+    [MaxLength(500)] public string? CvPath { get; set; }
 
     public string? Skills { get; set; }
-    
+
     public int? YearsOfExperience { get; set; }
 
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? DesiredSalary { get; set; }
+    [Column(TypeName = "decimal(18,2)")] public decimal? DesiredSalary { get; set; }
 
     public DateTime? Availability { get; set; }
 
     // Authentication & Security
-    [MaxLength(255)]
-    public string? ExternalId { get; set; }
+    [MaxLength(255)] public string? ExternalId { get; set; }
 
-    [MaxLength(500)]
-    public string? RefreshToken { get; set; }
+    [MaxLength(500)] public string? RefreshToken { get; set; }
 
     public DateTime? RefreshTokenExpiry { get; set; }
 
-    [MaxLength(100)]
-    public string? PasswordResetToken { get; set; }
+    [MaxLength(100)] public string? PasswordResetToken { get; set; }
 
     public DateTime? PasswordResetTokenExpiry { get; set; }
 
-    [MaxLength(100)]
-    public string? EmailConfirmationToken { get; set; }
+    [MaxLength(100)] public string? EmailConfirmationToken { get; set; }
 
     public DateTime? EmailConfirmationTokenExpiry { get; set; }
 
@@ -92,62 +79,45 @@ public class User : IdentityUser<Guid>, IAuditableEntity
 
     public bool SmsNotificationsEnabled { get; set; }
 
-    [MaxLength(20)]
-    public string? PreferredLanguage { get; set; } = "fr";
+    [MaxLength(20)] public string? PreferredLanguage { get; set; } = "fr";
 
-    [MaxLength(50)]
-    public string? TimeZone { get; set; } = "UTC";
+    [MaxLength(50)] public string? TimeZone { get; set; } = "UTC";
 
     // Common properties
     public bool IsActive { get; set; } = true;
     public DateTime? LastLoginAt { get; set; }
 
     // Navigation properties
-    [ForeignKey("CreatedBy")]
-    [JsonIgnore]
-    public virtual User? CreatedByUser { get; set; }
+    [ForeignKey("CreatedBy")] [JsonIgnore] public virtual User? CreatedByUser { get; set; }
 
-    [ForeignKey("UpdatedBy")]
-    [JsonIgnore]
-    public virtual User? UpdatedByUser { get; set; }
+    [ForeignKey("UpdatedBy")] [JsonIgnore] public virtual User? UpdatedByUser { get; set; }
 
     [ForeignKey("OrganizationId")]
     [JsonIgnore]
     public virtual Organization? Organization { get; set; }
 
-    [JsonIgnore]
-    public virtual ICollection<UserRole> UserRoles { get; set; } = [];
-    
-    [JsonIgnore]
-    public virtual ICollection<Training> Trainings { get; set; } = [];
+    [JsonIgnore] public virtual ICollection<UserRole> UserRoles { get; set; } = [];
 
-    [JsonIgnore]
-    public virtual ICollection<Experience> Experiences { get; set; } = [];
+    [JsonIgnore] public virtual ICollection<Training> Trainings { get; set; } = [];
+
+    [JsonIgnore] public virtual ICollection<Experience> Experiences { get; set; } = [];
 
     // Computed properties
-    [NotMapped]
-    public string FullName => $"{FirstName} {LastName}";
+    [NotMapped] public string FullName => $"{FirstName} {LastName}";
 
-    [NotMapped]
-    public bool IsAccountLocked => AccountLockedUntil.HasValue && AccountLockedUntil > DateTime.UtcNow;
+    [NotMapped] public bool IsAccountLocked => AccountLockedUntil.HasValue && AccountLockedUntil > DateTime.UtcNow;
 
-    [NotMapped]
-    public bool IsTokenValid => RefreshTokenExpiry.HasValue && RefreshTokenExpiry > DateTime.UtcNow;
+    [NotMapped] public bool IsTokenValid => RefreshTokenExpiry.HasValue && RefreshTokenExpiry > DateTime.UtcNow;
 
-    [NotMapped]
-    public bool HasValidConsent => ConsentGivenAt.HasValue && !ConsentWithdrawnAt.HasValue;
-    
-    [NotMapped]
-    public bool IsCandidate => !OrganizationId.HasValue;
+    [NotMapped] public bool HasValidConsent => ConsentGivenAt.HasValue && !ConsentWithdrawnAt.HasValue;
 
-    [NotMapped]
-    public bool IsOrganizationalUser => OrganizationId.HasValue;
+    [NotMapped] public bool IsCandidate => !OrganizationId.HasValue;
 
-    [NotMapped]
-    public bool IsXpertSphereUser => Organization?.Name == Constants.XPERTSPHERE;
+    [NotMapped] public bool IsOrganizationalUser => OrganizationId.HasValue;
 
-    [NotMapped]
-    public bool IsClientUser => OrganizationId.HasValue && Organization?.Name != Constants.XPERTSPHERE;
+    [NotMapped] public bool IsXpertSphereUser => Organization?.Name == Constants.XPERTSPHERE;
+
+    [NotMapped] public bool IsClientUser => OrganizationId.HasValue && Organization?.Name != Constants.XPERTSPHERE;
 
     // Methods for token management
     public void SetRefreshToken(string token, TimeSpan expiry)
@@ -194,10 +164,9 @@ public class User : IdentityUser<Guid>, IAuditableEntity
         LastLoginAt = DateTime.UtcNow;
         ResetFailedLogins();
     }
-    
+
     public void CalculateProfileCompletion()
     {
-        
         if (!IsCandidate) return;
         const int totalFields = 12;
         var completedFields = 0;

@@ -12,10 +12,10 @@ public static class TestDbContextFactory
             .Options;
 
         var context = new XpertSphereDbContext(options);
-        
+
         // Ensure the database is created
         context.Database.EnsureCreated();
-        
+
         return context;
     }
 }

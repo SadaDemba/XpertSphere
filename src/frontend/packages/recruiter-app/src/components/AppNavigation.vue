@@ -78,7 +78,7 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
-import { UserRole, PlatformRoles, OrganizationRoles } from '../models/auth';
+import { UserRole, PlatformRoles, OrganizationRolesExceptAdmin } from '../models/auth';
 import NavItem from './NavItem.vue';
 
 interface Props {
@@ -105,8 +105,8 @@ const hasPlatformRole = computed(() => {
 });
 
 // Check if user has organization roles
-const hasOrganizationRole = computed(() => {
-  return authStore.hasAnyRole(OrganizationRoles);
+const hasOrganizationRoleExceptAdmin = computed(() => {
+  return authStore.hasAnyRole(OrganizationRolesExceptAdmin);
 });
 
 // Check if user is Organization Admin
@@ -116,7 +116,7 @@ const isOrganizationAdmin = computed(() => {
 
 // Show main menu only for Organization.* roles
 const showMainMenu = computed(() => {
-  return hasOrganizationRole.value;
+  return hasOrganizationRoleExceptAdmin.value;
 });
 
 // Show admin section for Platform roles and Organization.Admin

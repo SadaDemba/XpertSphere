@@ -34,6 +34,8 @@ public record UserSearchResultDto
     public string? City { get; set; }
     public string? Country { get; set; }
 
+    public List<string>? Roles { get; set; }
+
     // Computed properties
     public string FullName => $"{FirstName} {LastName}";
     public bool IsAvailable => Availability.HasValue && Availability <= DateTime.UtcNow.AddMonths(1);

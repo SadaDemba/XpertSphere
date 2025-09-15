@@ -36,7 +36,7 @@ public class TrainingsController(ITrainingService trainingService) : ControllerB
     /// </summary>
     [HttpPut("user/{userId:guid}/replace")]
     public async Task<ActionResult<IEnumerable<TrainingDto>>> ReplaceUserTrainings(
-        Guid userId, 
+        Guid userId,
         [FromBody] List<CreateTrainingDto> trainings)
     {
         var result = await trainingService.ReplaceUserTrainingsAsync(userId, trainings);

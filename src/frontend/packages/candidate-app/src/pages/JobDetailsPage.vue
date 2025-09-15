@@ -77,6 +77,19 @@
                 <!--eslint-enable-->
               </q-card-section>
             </q-card>
+
+            <!-- Benefts -->
+            <q-card class="q-mb-lg">
+              <q-card-section>
+                <h6 class="text-h6 q-mt-none q-mb-md">
+                  <q-icon name="checklist" class="q-mr-sm" />
+                  Avantages
+                </h6>
+                <!-- eslint-disable vue/no-v-html -->
+                <div class="job-benefits" v-html="formattedBenefits"></div>
+                <!--eslint-enable-->
+              </q-card-section>
+            </q-card>
           </div>
 
           <!-- Sidebar -->
@@ -199,6 +212,7 @@ import { useApplicationStore } from '../stores/applicationStore';
 import { useAuthStore } from '../stores/authStore';
 import { jobOfferStatusConfig, workModeLabels, contractTypeLabels } from '../models/job';
 import ApplicationDialog from '../components/ApplicationDialog.vue';
+import { SanitizerService } from '../services/sanitizer';
 
 // Router
 const route = useRoute();
@@ -224,12 +238,17 @@ const statusConfig = computed(() =>
 
 const formattedDescription = computed(() => {
   if (!currentJobOffer.value?.description) return '';
-  return currentJobOffer.value.description.replace(/\n/g, '<br>');
+  return SanitizerService.sanitizeRichText(currentJobOffer.value.description);
 });
 
 const formattedRequirements = computed(() => {
   if (!currentJobOffer.value?.requirements) return '';
-  return currentJobOffer.value.requirements.replace(/\n/g, '<br>');
+  return SanitizerService.sanitizeRichText(currentJobOffer.value.requirements);
+});
+
+const formattedBenefits = computed(() => {
+  if (!currentJobOffer.value?.benefits) return '';
+  return SanitizerService.sanitizeRichText(currentJobOffer.value.benefits);
 });
 
 // Methods
