@@ -112,17 +112,17 @@
       <div class="row items-center justify-between">
         <div class="status-section">
           <q-chip
-            :color="applicationStatusConfig[application.status].color"
-            :text-color="applicationStatusConfig[application.status].textColor"
+            :color="applicationStatusConfig[application.status]?.color"
+            :text-color="applicationStatusConfig[application.status]?.textColor"
             dense
-            :aria-label="`Statut: ${applicationStatusConfig[application.status].label}`"
+            :aria-label="`Statut: ${applicationStatusConfig[application.status]?.label}`"
           >
             <q-icon
-              :name="applicationStatusConfig[application.status].icon"
+              :name="applicationStatusConfig[application.status]?.icon"
               size="14px"
               class="q-mr-xs"
             />
-            {{ applicationStatusConfig[application.status].label }}
+            {{ applicationStatusConfig[application.status]?.label }}
           </q-chip>
         </div>
       </div>

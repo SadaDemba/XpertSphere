@@ -76,12 +76,5 @@ public class JobOfferConfiguration : AuditableEntityConfiguration<JobOffer>
             .WithMany()
             .HasForeignKey(jo => jo.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // One-to-many with Applications
-        builder
-            .HasMany<Application>()
-            .WithOne(a => a.JobOffer)
-            .HasForeignKey(a => a.JobOfferId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

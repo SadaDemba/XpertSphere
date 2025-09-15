@@ -46,6 +46,7 @@ public class JobOfferService : IJobOfferService
         {
             var query = _context.JobOffers
                 .Include(jo => jo.Organization)
+                .Include(jo => jo.Applications)
                 .Include(jo => jo.CreatedByUserNavigation)
                 .AsQueryable();
 
@@ -103,6 +104,7 @@ public class JobOfferService : IJobOfferService
         {
             var jobOffer = await _context.JobOffers
                 .Include(jo => jo.Organization)
+                .Include(jo => jo.Applications)
                 .Include(jo => jo.CreatedByUserNavigation)
                 .FirstOrDefaultAsync(jo => jo.Id == id);
 
@@ -185,6 +187,7 @@ public class JobOfferService : IJobOfferService
 
             var jobOffer = await _context.JobOffers
                 .Include(jo => jo.Organization)
+                .Include(jo => jo.Applications)
                 .Include(jo => jo.CreatedByUserNavigation)
                 .FirstOrDefaultAsync(jo => jo.Id == id);
 
@@ -338,6 +341,7 @@ public class JobOfferService : IJobOfferService
         {
             var jobOffers = await _context.JobOffers
                 .Include(jo => jo.Organization)
+                .Include(jo => jo.Applications)
                 .Include(jo => jo.CreatedByUserNavigation)
                 .Where(jo => jo.OrganizationId == organizationId)
                 .OrderByDescending(jo => jo.CreatedAt)
@@ -360,6 +364,7 @@ public class JobOfferService : IJobOfferService
         {
             var jobOffers = await _context.JobOffers
                 .Include(jo => jo.Organization)
+                .Include(jo => jo.Applications)
                 .Include(jo => jo.CreatedByUserNavigation)
                 .Where(jo => jo.CreatedByUserId == userId)
                 .OrderByDescending(jo => jo.CreatedAt)
@@ -409,6 +414,7 @@ public class JobOfferService : IJobOfferService
     {
         var query = _context.JobOffers
             .Include(jo => jo.Organization)
+            .Include(jo => jo.Applications)
             .Include(jo => jo.CreatedByUserNavigation)
             .AsQueryable();
 
@@ -500,6 +506,7 @@ public class JobOfferService : IJobOfferService
                 jo.Title.ToLower().Contains(searchTerms) ||
                 jo.Description.ToLower().Contains(searchTerms) ||
                 jo.Requirements.ToLower().Contains(searchTerms) ||
+                jo.Benefits.ToLower().Contains(searchTerms) ||
                 (jo.Location != null && jo.Location.ToLower().Contains(searchTerms)));
         }
 
@@ -557,7 +564,7 @@ public class JobOfferService : IJobOfferService
         // If no user is authenticated, return empty query
         if (!_currentUserService.UserId.HasValue)
         {
-            return query.Where(jo => false);
+            return query;
         }
 
         var currentUserId = _currentUserService.UserId.Value;

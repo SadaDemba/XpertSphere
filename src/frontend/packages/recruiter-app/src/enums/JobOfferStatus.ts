@@ -9,3 +9,16 @@ export const jobOfferStatusLabels = {
   [JobOfferStatus.Published]: 'Publié',
   [JobOfferStatus.Closed]: 'Clôturé',
 };
+
+export function getJobOfferStatusName(status: JobOfferStatus): string {
+  switch (status) {
+    case JobOfferStatus.Draft:
+      return 'Draft';
+    case JobOfferStatus.Published:
+      return 'Published';
+    case JobOfferStatus.Closed:
+      return 'Closed';
+    default:
+      return '';
+  }
+}

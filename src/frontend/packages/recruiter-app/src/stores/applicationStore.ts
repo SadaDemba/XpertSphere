@@ -128,14 +128,13 @@ export const useApplicationStore = defineStore('application', () => {
       const response = await applicationService.getPaginatedApplications(paginationFilter);
 
       if (response?.isSuccess) {
-        applications.value = response.items || [];
-        totalCount.value = response.pagination?.totalItems || 0;
-        currentPage.value = response.pagination?.currentPage || 1;
-        pageSize.value = response.pagination?.pageSize || 10;
-        totalPages.value = response.pagination?.totalPages || 0;
-        hasPrevious.value = response.pagination?.hasPrevious || false;
-        hasNext.value = response.pagination?.hasNext || false;
-
+        applications.value = response.data;
+        totalCount.value = response.pagination.totalItems;
+        currentPage.value = response.pagination.currentPage;
+        pageSize.value = response.pagination.pageSize;
+        totalPages.value = response.pagination.totalPages;
+        hasPrevious.value = response.pagination.hasPrevious;
+        hasNext.value = response.pagination.hasNext;
         notification.showSuccessNotification('Candidatures chargées avec succès');
       } else {
         applications.value = [];
@@ -468,6 +467,7 @@ export const useApplicationStore = defineStore('application', () => {
       const response = await applicationService.getApplicationsByOrganization(organizationId);
       if (response?.isSuccess) {
         applications.value = response.data || [];
+        console.log('Response from API:', response);
       } else {
         applications.value = [];
         setError('Erreur lors du chargement des candidatures');

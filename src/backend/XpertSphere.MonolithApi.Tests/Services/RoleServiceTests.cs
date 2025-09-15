@@ -35,9 +35,9 @@ public class RoleServiceTests : IDisposable
         // Arrange
         var createRoleDto = new CreateRoleDto
         {
-            Name = "TestRole",
-            DisplayName = "Test Role",
-            Description = "A test role"
+            Name = "TestRole2",
+            DisplayName = "Test Role2",
+            Description = "A test role2"
         };
 
         _mockCreateRoleValidator.Setup(x => x.ValidateAsync(createRoleDto, default))

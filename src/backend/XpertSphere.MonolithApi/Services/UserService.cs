@@ -26,6 +26,7 @@ public class UserService : IUserService
     private readonly ILogger<UserService> _logger;
     private readonly UserManager<User> _userManager;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IResumeService _resumeService;
 
     public UserService(
         XpertSphereDbContext context,
@@ -36,7 +37,8 @@ public class UserService : IUserService
         IValidator<UploadCvDto> uploadCvValidator,
         ILogger<UserService> logger,
         UserManager<User> userManager,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IResumeService resumeService)
     {
         _context = context;
         _mapper = mapper;
@@ -47,6 +49,7 @@ public class UserService : IUserService
         _logger = logger;
         _userManager = userManager;
         _currentUserService = currentUserService;
+        _resumeService = resumeService;
     }
 
     public async Task<ServiceResult<UserDto>> GetByIdAsync(Guid id)
@@ -193,7 +196,14 @@ public class UserService : IUserService
             user.UserName = dto.Email; // UserManager requires UserName
             user.CalculateProfileCompletion();
 
-            await _userManager.CreateAsync(user);
+            var result = await _userManager.CreateAsync(user, dto.Password);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to create user {Email}: {Errors}", dto.Email, errors);
+                return ServiceResult<UserDto>.Failure($"User creation failed: {errors}");
+            }
 
             _logger.LogInformation("Created new user with ID {UserId} and email {Email}", user.Id, user.Email);
 
@@ -335,35 +345,21 @@ public class UserService : IUserService
                 return ServiceResult<UploadCvResponseDto>.NotFound($"User with ID {userId} not found");
             }
 
-            // Generate unique filename
-            var fileExtension = Path.GetExtension(dto.CvFile.FileName);
-            var fileName = $"{userId}_{Guid.NewGuid()}{fileExtension}";
-            var filePath = Path.Combine("uploads", "cvs", fileName);
-
-            // Ensure directory exists
-            var directory = Path.GetDirectoryName(filePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            // Save file
-            await using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.CvFile.CopyToAsync(stream);
-            }
-
-            // Update user CV path
+            // Delete existing CV from blob storage if replacing
             if (dto.ReplaceExisting && !string.IsNullOrEmpty(user.CvPath))
             {
-                // Delete an old CV file if it exists
-                if (File.Exists(user.CvPath))
-                {
-                    File.Delete(user.CvPath);
-                }
+                await _resumeService.DeleteResumeAsync(user.CvPath);
             }
 
-            user.CvPath = filePath;
+            // Upload CV to Azure Blob Storage
+            var uploadResult = await _resumeService.UploadResumeAsync(dto.CvFile, userId);
+            if (!uploadResult.IsSuccess)
+            {
+                return ServiceResult<UploadCvResponseDto>.Failure($"Failed to upload CV: {uploadResult.Message}");
+            }
+
+            // Update user CV path with the blob URL
+            user.CvPath = uploadResult.Data;
             user.UpdatedAt = DateTime.UtcNow;
             user.CalculateProfileCompletion();
 
@@ -373,8 +369,8 @@ public class UserService : IUserService
             {
                 Success = true,
                 Message = "CV uploaded successfully",
-                CvPath = filePath,
-                FileName = fileName,
+                CvPath = uploadResult.Data, // This is now the Azure Blob Storage URL
+                FileName = Path.GetFileName(new Uri(uploadResult.Data).LocalPath),
                 FileSizeBytes = dto.CvFile.Length,
                 UploadedAt = DateTime.UtcNow
             };
@@ -387,7 +383,7 @@ public class UserService : IUserService
                 // response.ExtractedInfo = await ExtractCvInformation(filePath);
             }
 
-            _logger.LogInformation("Uploaded CV for user {UserId}: {FileName}", userId, fileName);
+            _logger.LogInformation("Uploaded CV to Blob Storage for user {UserId}: {CvPath}", userId, uploadResult.Data);
             return ServiceResult<UploadCvResponseDto>.Success(response, "CV uploaded successfully");
         }
         catch (Exception ex)

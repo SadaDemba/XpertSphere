@@ -61,7 +61,7 @@ public class ApplicationConfiguration : AuditableEntityConfiguration<Application
         // Relationships
         builder
             .HasOne(a => a.JobOffer)
-            .WithMany()
+            .WithMany(jo => jo.Applications)
             .HasForeignKey(a => a.JobOfferId)
             .OnDelete(DeleteBehavior.Restrict);
 

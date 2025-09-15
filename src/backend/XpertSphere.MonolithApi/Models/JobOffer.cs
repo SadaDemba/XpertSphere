@@ -10,9 +10,11 @@ public class JobOffer : AuditableEntity
 {
     [Required] [MaxLength(200)] public required string Title { get; set; }
 
-    [Required] public required string Description { get; set; }
+    [Required] public string Description { get; set; }
 
-    [Required] public required string Requirements { get; set; }
+    [Required] public string Requirements { get; set; }
+
+    [Required] public string Benefits { get; set; }
 
     [MaxLength(200)] public string? Location { get; set; }
 
@@ -44,6 +46,9 @@ public class JobOffer : AuditableEntity
     [ForeignKey("CreatedByUserId")]
     [JsonIgnore]
     public virtual User CreatedByUserNavigation { get; set; } = null!;
+
+    [JsonIgnore]
+    public virtual ICollection<Application> Applications { get; set; } = new List<Application>();
 
     // Computed properties
     [NotMapped]

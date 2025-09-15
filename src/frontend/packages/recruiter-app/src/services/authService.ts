@@ -49,22 +49,6 @@ class AuthService extends BaseClient {
    */
   public async getCurrentUser(): Promise<ResponseResult<User> | null> {
     return this.get<ResponseResult<User>>('/me');
-    /*try {
-
-      if (response) {
-        // Add compatibility fields
-        const userInfo: UserInfo = {
-          ...response.data!,
-          name: response.data?.fullName ?? "",
-          roles: response.data!.roles ?? [],
-        };
-        return userInfo;
-      }
-      return null;
-    } catch (error) {
-      console.error('Failed to get current user:', error);
-      return null;
-    }*/
   }
 
   /**

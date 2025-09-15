@@ -1,5 +1,17 @@
 <template>
   <q-page padding>
+    <!-- Breadcrumbs -->
+    <div class="breadcrumb-container q-pa-md q-mb-lg">
+      <div class="breadcrumb-content">
+        <q-breadcrumbs class="text-grey-7" active-color="primary">
+          <q-breadcrumbs-el label="Accueil" icon="home" to="/" />
+          <q-breadcrumbs-el label="Candidatures" icon="folder" to="/applications" />
+          <q-breadcrumbs-el v-if="application" :label="application.candidateName" icon="person" />
+        </q-breadcrumbs>
+      </div>
+    </div>
+
+    <!-- Loading -->
     <div v-if="loading" class="flex flex-center q-pa-lg">
       <q-spinner size="xl" />
     </div>
@@ -8,7 +20,6 @@
       <!-- Header -->
       <div class="row items-center justify-between q-mb-lg">
         <div>
-          <q-btn flat icon="arrow_back" label="Retour" class="q-mb-sm" @click="goBack" />
           <h4 class="q-my-none">{{ application.candidateName }}</h4>
           <p class="text-grey-6 q-mb-none">Candidature pour {{ application.jobOfferTitle }}</p>
         </div>
@@ -55,29 +66,62 @@
         <!-- Colonne gauche -->
         <div class="col-12 col-md-8">
           <!-- Informations candidat -->
-          <q-card class="q-mb-lg">
+          <q-card class="q-mb-lg candidate-card">
             <q-card-section>
-              <div class="text-h6 q-mb-md">
-                <q-icon name="person" class="q-mr-sm" />
-                Informations du candidat
-              </div>
-
-              <div class="row q-col-gutter-md">
-                <div class="col-12 col-sm-6">
-                  <div class="text-weight-medium">Nom complet</div>
-                  <div>{{ application.candidateName }}</div>
-                </div>
-                <div class="col-12 col-sm-6">
-                  <div class="text-weight-medium">Email</div>
-                  <div>{{ application.candidateEmail }}</div>
+              <div class="row items-center q-mb-lg">
+                <q-avatar size="60px" color="primary" text-color="white" class="q-mr-md">
+                  <span class="text-h5">{{
+                    application.candidateName
+                      ? application.candidateName.charAt(0).toUpperCase()
+                      : '?'
+                  }}</span>
+                </q-avatar>
+                <div>
+                  <div class="text-h5 text-weight-medium">{{ application.candidateName }}</div>
+                  <div class="text-subtitle1 text-grey-7">Candidat</div>
                 </div>
               </div>
 
-              <div class="q-mt-md">
+              <q-separator class="q-mb-lg" />
+
+              <div class="row q-col-gutter-lg">
+                <div class="col-12 col-sm-6">
+                  <div class="info-group">
+                    <q-icon name="person" color="primary" size="sm" class="q-mr-sm" />
+                    <div>
+                      <div class="text-caption text-grey-7">Nom complet</div>
+                      <div class="text-body1 text-weight-medium">
+                        {{ application.candidateName }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-sm-6">
+                  <div class="info-group">
+                    <q-icon name="email" color="primary" size="sm" class="q-mr-sm" />
+                    <div class="flex-1">
+                      <div class="text-caption text-grey-7">Adresse email</div>
+                      <div class="text-body1">
+                        <a
+                          :href="`mailto:${application.candidateEmail}`"
+                          class="text-primary text-decoration-none"
+                        >
+                          {{ application.candidateEmail }}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <q-separator class="q-my-lg" />
+
+              <div class="row items-center justify-between">
+                <div class="text-caption text-grey-7">Profil candidat complet disponible</div>
                 <q-btn
                   color="primary"
-                  flat
-                  icon="visibility"
+                  unelevated
+                  icon-right="arrow_forward"
                   label="Voir le profil complet"
                   @click="viewCandidate"
                 />
@@ -86,30 +130,52 @@
           </q-card>
 
           <!-- Informations du poste -->
-          <q-card class="q-mb-lg">
+          <q-card class="q-mb-lg job-card">
             <q-card-section>
-              <div class="text-h6 q-mb-md">
-                <q-icon name="work" class="q-mr-sm" />
-                Informations du poste
-              </div>
-
-              <div class="row q-col-gutter-md">
-                <div class="col-12 col-sm-6">
-                  <div class="text-weight-medium">Titre du poste</div>
-                  <div>{{ application.jobOfferTitle }}</div>
-                </div>
-                <div class="col-12 col-sm-6">
-                  <div class="text-weight-medium">Organisation</div>
-                  <div>{{ application.organizationName }}</div>
+              <div class="row items-center q-mb-lg">
+                <q-icon name="work" color="secondary" size="40px" class="q-mr-md" />
+                <div>
+                  <div class="text-h6">Informations du poste</div>
+                  <div class="text-caption text-grey-7">Détails de l'offre d'emploi</div>
                 </div>
               </div>
 
-              <div class="q-mt-md">
+              <div class="job-info-content q-pa-md bg-grey-1 rounded-borders">
+                <div class="row q-col-gutter-lg q-mb-md">
+                  <div class="col-12">
+                    <div class="info-group">
+                      <q-icon name="description" color="secondary" size="sm" class="q-mr-sm" />
+                      <div class="flex-1">
+                        <div class="text-caption text-grey-7">Titre du poste</div>
+                        <div class="text-h6 text-weight-medium">
+                          {{ application.jobOfferTitle }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row q-col-gutter-lg">
+                  <div class="col-12">
+                    <div class="info-group">
+                      <q-icon name="business" color="secondary" size="sm" class="q-mr-sm" />
+                      <div class="flex-1">
+                        <div class="text-caption text-grey-7">Organisation</div>
+                        <div class="text-body1 text-weight-medium">
+                          {{ application.organizationName }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="q-mt-lg text-center">
                 <q-btn
-                  color="primary"
-                  flat
+                  color="secondary"
+                  unelevated
                   icon="visibility"
-                  label="Voir l'offre d'emploi"
+                  label="Voir l'offre complète"
                   @click="viewJobOffer"
                 />
               </div>
@@ -395,6 +461,7 @@ const goBack = () => {
 };
 
 const viewCandidate = () => {
+  console.log('', application.value);
   if (application.value) {
     router.push(`/candidates/${application.value.candidateId}`);
   }
@@ -431,3 +498,67 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style lang="scss" scoped>
+.breadcrumb-container {
+  background: white;
+  border: 1px solid #e0e0e0;
+  width: fit-content;
+  border-radius: 22px;
+}
+
+.breadcrumb-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.candidate-card {
+  border-left: 4px solid var(--q-primary);
+
+  .info-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+.job-card {
+  border-left: 4px solid var(--q-secondary);
+
+  .job-info-content {
+    border-left: 2px solid var(--q-secondary);
+    margin-left: 20px;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: -7px;
+      top: 20px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--q-secondary);
+      border: 2px solid white;
+    }
+  }
+
+  .info-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+.text-decoration-none {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.rounded-borders {
+  border-radius: 8px;
+}
+</style>

@@ -472,12 +472,24 @@
                     @click="downloadCV"
                   />
                   <q-btn
-                    v-else
                     color="primary"
-                    icon="upload"
-                    label="Ajouter un CV"
+                    :icon="user?.cvPath ? 'refresh' : 'upload'"
+                    :label="user?.cvPath ? 'Remplacer le CV' : 'Ajouter un CV'"
                     class="full-width"
-                    disabled
+                    :loading="userStore.isLoading"
+                    @click="triggerFileUpload"
+                  />
+                  <!-- Hidden file input -->
+                  <label for="cv-file-input" style="display: none"
+                    >Sélectionner un fichier CV</label
+                  >
+                  <input
+                    id="cv-file-input"
+                    ref="fileInput"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    style="display: none"
+                    @change="handleFileUpload"
                   />
                   <q-btn
                     outline
@@ -637,6 +649,55 @@ const downloadCV = () => {
   if (user.value?.cvPath) {
     // Open CV in a new tab/window for download
     window.open(user.value.cvPath, '_blank');
+  }
+};
+
+// CV Upload methods
+const fileInput = ref<HTMLInputElement | null>(null);
+
+const triggerFileUpload = () => {
+  fileInput.value?.click();
+};
+
+const handleFileUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+
+  if (!file) return;
+
+  // Validate file type
+  const allowedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ];
+  if (!allowedTypes.includes(file.type)) {
+    notification.showErrorNotification('Seuls les fichiers PDF, DOC et DOCX sont acceptés.');
+    return;
+  }
+
+  // Validate file size (max 5MB)
+  const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSizeInBytes) {
+    notification.showErrorNotification('Le fichier ne doit pas dépasser 5 MB.');
+    return;
+  }
+
+  if (!user.value?.id) {
+    notification.showErrorNotification('Utilisateur non identifié.');
+    return;
+  }
+
+  const success = await userStore.uploadCv(user.value.id, file);
+
+  if (success) {
+    // Refresh user data to get updated CV info
+    await authStore.loadCurrentUser();
+  }
+
+  // Reset the file input
+  if (target) {
+    target.value = '';
   }
 };
 

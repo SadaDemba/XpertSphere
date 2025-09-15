@@ -11,6 +11,8 @@ public class CreateJobOfferDto
 
     [Required] public required string Requirements { get; set; }
 
+    [Required] public string Benefits { get; set; }
+
     [MaxLength(200)] public string? Location { get; set; }
 
     [Required] public WorkMode WorkMode { get; set; }

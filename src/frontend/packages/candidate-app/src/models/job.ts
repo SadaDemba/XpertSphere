@@ -6,6 +6,7 @@ export interface JobOffer {
   title: string;
   description: string;
   requirements: string;
+  benefits: string;
   location?: string;
   workMode: WorkMode;
   contractType: ContractType;
@@ -23,6 +24,8 @@ export interface JobOffer {
   createdByUserName: string;
   isActive: boolean;
   isExpired: boolean;
+
+  applicationsCount: number;
 }
 
 export interface JobOfferDto {
@@ -30,6 +33,7 @@ export interface JobOfferDto {
   title: string;
   description: string;
   requirements: string;
+  benefits: string;
   location?: string;
   workMode: WorkMode;
   contractType: ContractType;
@@ -47,6 +51,7 @@ export interface JobOfferDto {
   createdByUserName: string;
   isActive: boolean;
   isExpired: boolean;
+  applicationsCount: number;
 }
 
 export interface JobOfferFilterDto extends Filter {

@@ -11,6 +11,8 @@ public class UpdateJobOfferDto
 
     public string? Requirements { get; set; }
 
+    public string? Benefits { get; set; }
+
     [MaxLength(200)] public string? Location { get; set; }
 
     public WorkMode? WorkMode { get; set; }

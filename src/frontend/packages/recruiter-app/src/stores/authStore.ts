@@ -137,22 +137,22 @@ export const useAuthStore = defineStore('auth', () => {
    * Logout user
    */
   const logout = async () => {
+    // Try to call logout API first while we still have tokens
     try {
       await authService.logoutUser();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Échec de la déconnexion');
-      notification.showWarningNotification(
-        'La demande de déconnexion a échoué, mais vous avez été déconnecté localement',
-      );
-    } finally {
-      // Clear state regardless of API call success
-      user.value = null;
-      token.value = null;
-      refreshToken.value = null;
-      error.value = null;
-      // Clear tokens from localStorage
-      authService.clearJwtTokens();
+      // Log error but continue with local logout
+      console.warn('Logout API call failed (will continue with local logout):', error);
     }
+
+    // Clear state and tokens regardless of API call result
+    user.value = null;
+    token.value = null;
+    refreshToken.value = null;
+    error.value = null;
+
+    // Clear tokens from localStorage
+    authService.clearJwtTokens();
   };
 
   /**

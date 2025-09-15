@@ -7,24 +7,6 @@ export enum ContractType {
   Temporary = 5,
 }
 
-export function getContractTypeValue(contractTpe: ContractType): number {
-  switch (contractTpe) {
-    case ContractType.FullTime:
-      return 0;
-    case ContractType.PartTime:
-      return 1;
-    case ContractType.Contract:
-      return 2;
-    case ContractType.Freelance:
-      return 3;
-    case ContractType.Internship:
-      return 4;
-
-    default:
-      return 5;
-  }
-}
-
 export const contractTypeLabels = {
   [ContractType.FullTime]: 'Temps plein',
   [ContractType.PartTime]: 'Temps partiel',
@@ -33,3 +15,22 @@ export const contractTypeLabels = {
   [ContractType.Internship]: 'Stage',
   [ContractType.Temporary]: 'Intérim',
 };
+
+export function getContractTypeName(contractType: ContractType): string {
+  switch (contractType) {
+    case ContractType.FullTime:
+      return 'FullTime';
+    case ContractType.PartTime:
+      return 'PartTime';
+    case ContractType.Contract:
+      return 'Contract';
+    case ContractType.Freelance:
+      return 'Freelance';
+    case ContractType.Internship:
+      return 'Internship';
+    case ContractType.Temporary:
+      return 'Temporary';
+    default:
+      return '';
+  }
+}
