@@ -9,6 +9,11 @@ Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
+Activate virtual environment:
+
+```bash
+source .venv/bin/activate
+```
 
 ## Running Tests
 
