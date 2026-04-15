@@ -56,7 +56,7 @@ Ces outils ont des atouts évidents. Ils ont été éprouvés, disposent souvent
 
 À côté de ces plateformes, on trouve des solutions open source et des outils plus légers. Elles peuvent être intéressantes lorsqu’on veut garder la main sur l’hébergement et sur la personnalisation. Mais la liberté s’accompagne presque toujours d’un effort : maintenir la solution, sécuriser les mises à jour, documenter, former, corriger. Sans ressources techniques disponibles dans la durée, cette approche peut devenir fragile.
 
-### 1.2.2 Focus Sénégal et Afrique : entre diffusion d’offres et suivi “artisanale”
+### 1.2.2 Focus Sénégal et Afrique : entre diffusion d’offres et suivi “artisanal”
 
 Au Sénégal, le recrutement s’appuie sur une diversité de canaux. La candidature par email reste très répandue, en grande partie parce qu’elle est simple et accessible. Les réseaux sociaux jouent aussi un rôle important, notamment via des relais communautaires. Des plateformes locales d’annonces emploi existent également et contribuent à la visibilité des offres.
 
