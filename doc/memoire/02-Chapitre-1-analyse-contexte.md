@@ -36,13 +36,13 @@ Enfin, la sécurité des données reste structurante. Un ATS manipule des inform
 
 ### 1.1.4 Spécificités du contexte sénégalais : adoption, pratiques et diversité des canaux
 
-Ces enjeux prennent une forme particulière au Sénégal. La digitalisation des processus RH progresse, mais de manière inégale selon les secteurs et la taille des organisations. Beaucoup d’entreprises utilisent déjà internet pour publier et recevoir des candidatures. En revanche, le suivi reste souvent manuel.
+Ces enjeux prennent une forme particulière au Sénégal. La digitalisation des processus RH progresse, mais de manière inégale selon les secteurs et la taille des organisations. Beaucoup d’entreprises utilisent déjà internet pour publier et recevoir des candidatures. En revanche, le suivi reste souvent manuel [À SOURCER].
 
-Les recrutements par recommandation, réseau et bouche-à-oreille occupent une place importante. Ils s’inscrivent dans des mécanismes de confiance et de proximité. Le défi apparaît surtout lorsque l’organisation grandit et que les volumes augmentent. Sans méthodes plus reproductibles, une grande partie du processus repose sur quelques individus. Les décisions deviennent plus difficiles à tracer, et la cohérence dépend davantage de la mémoire collective que d’un cadre formalisé.
+Les recrutements par recommandation, réseau et bouche-à-oreille occupent une place importante [À SOURCER]. Ils s’inscrivent dans des mécanismes de confiance et de proximité. Le défi apparaît surtout lorsque l’organisation grandit et que les volumes augmentent. Sans méthodes plus reproductibles, une grande partie du processus repose sur quelques individus. Les décisions deviennent plus difficiles à tracer, et la cohérence dépend davantage de la mémoire collective que d’un cadre formalisé.
 
 Les modalités de candidature restent également hétérogènes. L’email est très présent. Le dépôt physique existe encore dans certains contextes. Les réseaux sociaux servent parfois de relais importants. Une plateforme ATS adaptée doit donc rester accessible. Elle doit aussi accepter une transition progressive, et produire de la valeur même lorsque les pratiques initiales ne sont pas totalement standardisées.
 
-Ce point guidera la suite du mémoire. L’enjeu n’est pas d’imposer un modèle idéal de recrutement. Il s’agit plutôt de proposer un cadre capable de structurer progressivement les pratiques, de les rendre plus lisibles et de faciliter une collaboration propre entre les acteurs.
+Ce point guidera la suite du mémoire. L’enjeu n’est pas d’imposer un modèle idéal de recrutement. La plateforme propose un cadre capable de structurer progressivement les pratiques, de les rendre plus lisibles et de faciliter une collaboration propre entre les acteurs.
 
 ## 1.2 Analyse des solutions du marché
 
@@ -58,11 +58,11 @@ On trouve aussi des ATS plus spécialisés, centrés sur le pilotage du pipeline
 
 ### 1.2.2 Focus Sénégal et Afrique : entre diffusion d’offres et suivi artisanal
 
-Au Sénégal, le recrutement s’appuie sur une diversité de canaux. L’email reste très présent, en grande partie parce qu’il est simple et accessible. Les réseaux sociaux jouent aussi un rôle important, notamment via des relais communautaires et des groupes dédiés. Des plateformes locales de diffusion existent et structurent surtout la mise en relation, comme Jobberman ou Emploi.sn, qui illustrent une logique largement orientée publication d’offres et réception de candidatures.
+Au Sénégal, le recrutement s’appuie sur une diversité de canaux. L’email reste très présent, en grande partie parce qu’il est simple et accessible [À SOURCER]. Les réseaux sociaux jouent aussi un rôle important, notamment via des relais communautaires et des groupes dédiés. Des plateformes locales de diffusion existent et structurent surtout la mise en relation, comme Jobberman ou Emploi.sn, qui illustrent une logique largement orientée publication d’offres et réception de candidatures.
 
 Dans beaucoup de cas, la difficulté commence après la réception des candidatures. Les dossiers s’accumulent, les échanges se multiplient, et le suivi se fait avec des outils génériques. Tant que le recrutement est ponctuel, cette organisation reste supportable. Lorsqu’il devient régulier ou qu’il implique plusieurs acteurs, elle devient coûteuse. Les informations se dispersent, la traçabilité est limitée, et une partie de la décision se construit dans des échanges qui ne laissent pas de traces exploitables.
 
-Cette situation se retrouve dans d’autres pays d’Afrique subsaharienne, avec des variations selon les secteurs. Les canaux changent, mais la logique reste proche. La diffusion existe, parfois de manière efficace. En revanche, le suivi, la collaboration et la capitalisation sur un vivier restent souvent “artisanaux”, car ils reposent sur des pratiques manuelles et sur des outils qui n’ont pas été conçus pour le recrutement.
+Cette situation se retrouve dans d’autres pays d’Afrique subsaharienne, avec des variations selon les secteurs [À SOURCER]. Les canaux changent, mais la logique reste proche. La diffusion existe, parfois de manière efficace. En revanche, le suivi, la collaboration et la capitalisation sur un vivier restent souvent “artisanaux”, car ils reposent sur des pratiques manuelles et sur des outils qui n’ont pas été conçus pour le recrutement.
 
 ### 1.2.3 Critères d’analyse : ce qui compte réellement pour l’adoption
 
@@ -80,13 +80,13 @@ L’ancrage sénégalais sert ici de terrain de référence. Il met en évidence
 
 ## 1.3 Limites observées et problématiques techniques
 
-Les constats présentés dans les sections précédentes mettent en évidence un décalage fréquent entre les promesses des solutions ATS, les contraintes d’adoption, et la réalité des pratiques. Ce décalage ne signifie pas que les outils existants sont inefficaces. Il montre plutôt que leur valeur dépend fortement du contexte, des moyens disponibles et du niveau de formalisation du recrutement. Dans ce cadre, l’analyse des limites observées permet de formuler une problématique technique cohérente avec les objectifs de XpertSphere.
+Un décalage fréquent apparaît entre les promesses des solutions ATS, les contraintes d’adoption, et la réalité des pratiques. Cela ne signifie pas que les outils existants sont inefficaces. Leur valeur dépend fortement du contexte, des moyens disponibles et du niveau de formalisation du recrutement. L’analyse des limites observées permet ainsi de formuler une problématique technique cohérente avec les objectifs de XpertSphere.
 
 ### 1.3.1 Limites des solutions internationales dans un contexte de déploiement contraint
 
 Une première limite concerne le coût total et l’effort de mise en œuvre. Au-delà de la licence, un ATS impose souvent un paramétrage, une définition plus formelle du processus et une conduite du changement. Lorsque ces ressources ne sont pas disponibles, l’outil peut rester sous-utilisé, ou être détourné vers des pratiques parallèles. Dans ce cas, l’organisation retrouve rapidement les mêmes problèmes qu’auparavant, malgré un outil pourtant riche.
 
-La seconde limite tient à l’écart entre un workflow standard et la variabilité des pratiques locales. Certaines organisations recrutent de manière très structurée. D’autres alternent entre campagnes ponctuelles, recommandations et candidatures spontanées. Lorsque l’outil impose un cadre trop rigide, il pousse soit à contourner le système, soit à multiplier des statuts et des étapes qui finissent par perdre leur sens. Le recrutement n’est alors plus lisible, et la traçabilité devient superficielle.
+À cela s’ajoute l’écart entre un workflow standard et la variabilité des pratiques locales. Certaines organisations recrutent de manière très structurée. D’autres alternent entre campagnes ponctuelles, recommandations et candidatures spontanées. Lorsque l’outil impose un cadre trop rigide, il pousse soit à contourner le système, soit à multiplier des statuts et des étapes qui finissent par perdre leur sens. Le recrutement n’est alors plus lisible, et la traçabilité devient superficielle.
 
 Enfin, un point plus technique concerne la dépendance à l’écosystème de l’éditeur. Les intégrations, la personnalisation, la gestion des rôles ou certaines fonctions avancées deviennent vite des éléments structurants. Cela peut être un avantage dans un contexte mature. Cela peut aussi créer une forme de verrouillage lorsque l’organisation souhaite adapter l’outil à ses contraintes, ou lorsqu’elle veut faire évoluer progressivement son système sans repartir de zéro.
 
@@ -100,7 +100,7 @@ Cette situation a aussi un effet direct sur l’expérience candidat. Les délai
 
 ### 1.3.3 Problématique technique et justification de XpertSphere
 
-Ces limites conduisent à une problématique technique précise. Il devient nécessaire de concevoir une solution qui structure le recrutement sans exiger, dès le départ, un niveau de formalisation élevé. Cette solution doit aussi permettre une adoption progressive, tout en améliorant rapidement la lisibilité du pipeline et la collaboration entre les acteurs.
+Ces limites conduisent à une problématique technique précise. La conception doit donc viser une solution qui structure le recrutement sans exiger, dès le départ, un niveau de formalisation élevé. Cette solution doit aussi permettre une adoption progressive, tout en améliorant rapidement la lisibilité du pipeline et la collaboration entre les acteurs.
 
 Dans XpertSphere, cette problématique se traduit par deux orientations fortes. La première concerne la gestion multi-entreprises. L’objectif est de mutualiser une plateforme tout en garantissant l’isolation des données propres à chaque organisation. Une approche fondée sur un identifiant d’organisation, associé aux entités qui relèvent de l’entreprise, permet de répondre à ce besoin. Elle simplifie le déploiement et favorise un modèle viable, tout en posant des exigences claires en matière d’autorisation et de filtrage.
 
@@ -132,6 +132,6 @@ Ce contexte est particulièrement important pour une plateforme multi-entreprise
 
 Dans XpertSphere, le cadre réglementaire se traduit par des exigences techniques dès le niveau du modèle de données et des règles d’autorisation. La première exigence concerne la gestion des accès. Les rôles, les permissions et la logique d’organisation doivent être suffisamment explicites pour éviter les accès implicites. L’application doit également être en mesure de journaliser les actions critiques, en particulier lorsque des informations personnelles sont consultées, modifiées ou exportées.
 
-La seconde exigence concerne le cycle de vie des données. Un ATS n’est pas une simple boîte de réception. Il s’agit d’un système qui accumule des dossiers dans la durée. Sans règles et mécanismes adaptés, cette accumulation devient un risque. La conception doit donc prévoir des durées de conservation, ainsi que des actions automatisables ou guidées, comme l’anonymisation, l’archivage ou la suppression. Ces mécanismes doivent s’appliquer aux données structurées, mais aussi aux documents, car les CV et pièces jointes concentrent une grande partie de la sensibilité.
+Un autre point concerne le cycle de vie des données. Un ATS n’est pas une simple boîte de réception. Le système accumule des dossiers dans la durée. Sans règles et mécanismes adaptés, cette accumulation devient un risque. La conception doit donc prévoir des durées de conservation, ainsi que des actions automatisables ou guidées, comme l’anonymisation, l’archivage ou la suppression. Ces mécanismes doivent s’appliquer aux données structurées, mais aussi aux documents, car les CV et pièces jointes concentrent une grande partie de la sensibilité.
 
 Enfin, la notion de vivier partagé impose un cadrage précis. Le référentiel candidat peut se construire dans le temps, mais il ne doit pas créer de confusion entre des données de profil et des données liées à une candidature dans une organisation donnée. Cette distinction conditionne à la fois l’isolation entre entreprises et la gestion des droits. Elle facilite aussi la mise en conformité lorsque certaines informations doivent être retirées, corrigées ou anonymisées à la demande de la personne concernée.
