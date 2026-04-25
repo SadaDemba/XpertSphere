@@ -1,32 +1,33 @@
 # copilot-instructions.md — Guide de style (mémoire XpertSphere)
 
-Ce document fixe des règles simples pour garantir une rédaction académique, naturelle et “humaine”, sans marqueurs typiques de textes générés.  
-Chaque agent ou contributeur qui rédige une partie du mémoire doit s’y conformer.
+Ce document propose des principes de rédaction pour conserver un style académique clair et naturel, tout en évitant les marqueurs courants de textes générés.  
+Il sert de repère commun. Les règles ci-dessous ne sont pas des interdictions absolues : l’objectif est d’éviter les automatismes.
 
-## 1) Ponctuation et structures à éviter
+## 1) Ponctuation et structures
 
-### 1.1 Limiter fortement l’usage du deux-points « : »
-Le deux-points est autorisé, mais il ne doit pas devenir un mécanisme pour annoncer des listes ou des catégories.
+### 1.1 Deux-points « : » (usage raisonnable)
+Le deux-points est parfaitement acceptable en rédaction académique.  
+En revanche, il vaut mieux éviter de s’en servir systématiquement pour introduire des listes ou des catégories, car cela donne un rythme trop mécanique.
 
-**À éviter**
+**À éviter lorsque c’est répétitif**
 - « Les enjeux sont : A, B, C. »
 - « On distingue : X et Y. »
 
-**Préférer**
-- Intégrer l’énumération dans la phrase, ou enchaîner sur deux phrases courtes.
-- « Les enjeux se manifestent par A et B. C devient également déterminant lorsque… »
+**Préférer (selon le contexte)**
+- Intégrer l’énumération dans la phrase.
+- Répartir l’idée sur deux phrases courtes.
+- Utiliser ponctuellement un deux-points quand il apporte réellement de la clarté.
 
-### 1.2 Éviter les structures trop mécaniques
-Réduire les enchaînements visibles du type :
-- « premier / second / troisième / enfin »
-- « d’une part / d’autre part »
-- « non seulement / mais aussi »
-- « à la fois / et »
+### 1.2 Structures ordonnées (à utiliser sans automatisme)
+Les structures de type « premier / second / enfin » ou « d’une part / d’autre part » sont naturelles et humaines.  
+Elles deviennent problématiques lorsqu’elles s’enchaînent trop souvent et donnent l’impression d’une trame répétée.
 
-Ces tournures sont correctes, mais répétées elles donnent un rythme artificiel.
+**Bon réflexe**
+- Varier les transitions.
+- Alterner entre structure ordonnée, reformulation libre, et transitions plus narratives.
 
-**Préférer des transitions plus souples**
-- « Un autre point important… »
+Exemples de transitions utiles :
+- « Un autre point important concerne… »
 - « On retrouve aussi… »
 - « À cela s’ajoute… »
 - « Dans le même mouvement… »
@@ -35,17 +36,17 @@ Ces tournures sont correctes, mais répétées elles donnent un rythme artificie
 ## 2) Organisation du texte
 
 ### 2.1 Une idée principale par paragraphe
-Un paragraphe porte un seul message central.  
-Si deux idées fortes apparaissent, scinder le paragraphe.
+Un paragraphe porte un message central.  
+Si deux idées fortes apparaissent, scinder le paragraphe, puis relier les deux par une transition.
 
 ### 2.2 Varier la longueur des phrases
-Mélanger des phrases longues (explication) et des phrases courtes (mise en relief).  
-Si un paragraphe enchaîne plusieurs phrases longues, en couper une.
+Un texte naturel alterne des phrases plus longues (explication) et des phrases plus courtes (mise en relief).  
+Quand un paragraphe devient trop dense, couper une phrase ou simplifier une énumération.
 
 ### 2.3 Transitions naturelles
-Relier les paragraphes avec des phrases-ponts plutôt que repartir de zéro.
+Relier les paragraphes avec des phrases-ponts. Cela évite l’effet “blocs thématiques” trop réguliers.
 
-Exemples utiles :
+Exemples :
 - « Cette évolution a une conséquence directe… »
 - « Dans ce contexte… »
 - « Cela devient encore plus vrai lorsque… »
@@ -53,66 +54,65 @@ Exemples utiles :
 
 ## 3) Listes, tableaux et annexes
 
-### 3.1 Éviter les listes à puces dans le corps des chapitres
-Les listes à puces sont acceptables dans :
-- les annexes,
-- les tableaux,
-- les encadrés méthodologiques ponctuels.
+### 3.1 Listes à puces
+Dans le corps des chapitres, privilégier un style narratif.  
+Les listes à puces restent possibles, mais elles doivent rester rares et motivées par un besoin de lisibilité.
 
-Dans le texte principal, privilégier des paragraphes narratifs.
+Elles sont particulièrement adaptées aux annexes, tableaux, ou encadrés méthodologiques.
 
-### 3.2 Mettre les grilles de comparaison en annexe
-Le chapitre reste narratif, et renvoie à l’annexe pour les tableaux ou grilles.
+### 3.2 Comparaisons et grilles
+Quand une comparaison devient très structurée, un tableau en annexe est souvent préférable.  
+Dans le texte, on garde une comparaison narrative et on renvoie à l’annexe si besoin.
 
 Formule recommandée :
 - « Une grille de comparaison est proposée en annexe. »
 
 ## 4) Ton et choix des mots
 
-### 4.1 Réduire les phrases “méta” répétitives
-Limiter les formulations qui décrivent ce que le texte va faire.
+### 4.1 Formulations “méta” (usage ponctuel)
+Les formulations du type « L’objectif de cette section est de… » sont académiques et parfois utiles.  
+Le point de vigilance porte sur la répétition. Si chaque sous-partie commence par une phrase méta, le texte devient prévisible.
 
-**À limiter**
-- « L’objectif de cette section est de… »
-- « Dans cette partie, nous allons… »
+**Recommandation**
+- Les utiliser quand elles clarifient réellement la structure.
+- Éviter d’en faire un réflexe automatique.
 
-**Préférer**
-- Entrer directement dans le sujet.
-- Utiliser une phrase d’ouverture contextuelle.
+### 4.2 Verbes concrets
+Éviter les enchaînements de « il s’agit de », « cela consiste à », « ceci permet de ».
+Alterner avec des verbes plus concrets selon le sens.
 
-### 4.2 Privilégier des verbes concrets
-Éviter la répétition de « il s’agit de », « cela consiste à », « ceci permet de ».
-
-Alternatives :
+Exemples :
 - « on observe », « on retrouve », « cela se traduit par », « cela conduit à »
 - « cela réduit », « cela complique », « cela renforce », « cela facilite »
 
-### 4.3 Rester académique, éviter le marketing
-Éviter :
-- « révolutionner », « solution ultime », « transforme radicalement »
-
-Préférer :
-- « vise à », « cherche à », « apporte », « réduit », « facilite »
+### 4.3 Rester académique (sans ton marketing)
+Éviter un vocabulaire trop promotionnel (« révolutionner », « solution ultime »).  
+Préférer un ton mesuré : « vise à », « cherche à », « contribue à », « facilite », « limite ».
 
 ## 5) Références et exemples
 
-### 5.1 Ne pas affirmer des noms d’acteurs locaux sans source solide
-Pour le contexte Sénégal/Afrique, privilégier des réalités stables :
-- candidatures par email,
-- réseaux sociaux,
-- plateformes locales d’annonces,
-- outils génériques (tableurs, dossiers partagés).
+### 5.1 Contexte local (prudence sur les noms propres)
+Pour le contexte Sénégal/Afrique, privilégier d’abord des réalités stables et observables : email, réseaux sociaux, plateformes locales d’annonces, outils génériques (tableurs, dossiers partagés).  
+Les noms propres peuvent être cités lorsqu’une source fiable est disponible ou lorsqu’ils sont directement observés dans le terrain d’étude.
 
-Les noms propres peuvent être cités si une source fiable est disponible, sinon rester générique.
-
-## 6) Règle finale de cohérence
+## 6) Cohérence d’ensemble
 Un lecteur doit avoir l’impression qu’un seul auteur a rédigé tout le mémoire.  
-Quand un nouveau texte est ajouté, il doit relire rapidement les deux sections précédentes et ajuster :
+Quand un nouveau texte est ajouté, relire rapidement les deux sections précédentes et ajuster :
 - le rythme,
 - le vocabulaire,
 - les transitions,
-- l’usage du deux-points,
-- la densité des phrases.
+- la densité des phrases,
+- l’usage des structures ordonnées.
+
+## 7) Variations naturelles (signal humain)
+Un texte académique crédible n’est pas parfaitement “optimisé”. Il peut respirer, varier, et parfois se répéter légèrement.
+
+Il est acceptable de :
+- conserver quelques répétitions légères si elles sont naturelles,
+- utiliser ponctuellement des structures classiques (deux-points, « d’une part/d’autre part », etc.),
+- varier la densité entre deux paragraphes.
+
+Un texte trop homogène, trop lissé, ou trop systématique peut paraître artificiel, même s’il est correct.
 
 ---
 Fin du guide.
