@@ -116,15 +116,15 @@ Un texte trop homogène, trop lissé, ou trop systématique peut paraître artif
 
 ## 8) Rigueur factuelle et sources (obligatoire)
 
-Le mémoire doit rester factuel. Aucun agent ne doit inventer des informations, des chiffres, des scénarios, des usages locaux, ou des éléments juridiques.
+Le mémoire doit rester factuel. Aucun agent ne doit inventer des informations, des chiffres, des exemples d’entreprises, des usages locaux, ou des éléments juridiques.
 
-Règles à respecter
+Règles à respecter :
 - Ne jamais créer de statistiques, pourcentages, classements, volumes ou tendances chiffrées sans source explicite.
 - Ne pas attribuer à un outil une adoption locale, une “popularité”, ou des fonctionnalités précises si cela n’a pas été observé dans le projet ou documenté par une source.
-- Les exemples d’outils (ATS, plateformes d’emploi, services) peuvent être cités, mais sans affirmation non vérifiée sur leur présence, leurs fonctionnalités ou leurs parts de marché.
+- Les exemples d’outils (ATS, plateformes d’emploi, services) peuvent être cités, mais sans affirmation non vérifiée sur leur présence ou leurs parts de marché.
 - En cas d’incertitude, rester générique ou formuler comme une hypothèse clairement indiquée, puis marquer le passage comme “à sourcer”.
 
-Bon réflexe
+Bon réflexe :
 - Ajouter un marqueur interne `[À SOURCER]` quand une référence devra être vérifiée lors de la phase bibliographie.
 ---
 Fin du guide.
