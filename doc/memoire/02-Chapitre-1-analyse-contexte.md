@@ -16,9 +16,7 @@ Il apporte ensuite un bénéfice de coordination. Un recrutement mobilise rareme
 
 ### 1.1.2 Enjeux globaux : volume, multicanal, traçabilité, expérience candidat
 
-La montée en puissance des ATS s’explique par l’évolution du recrutement lui-même. Le volume de candidatures a d’abord changé d’échelle. La candidature en ligne facilite l’accès aux offres, ce qui augmente le nombre de dossiers reçus. Une partie est pertinente, une autre l’est moins. Sans organisation, cette masse dégrade rapidement la qualité du traitement. Les réponses arrivent tard. Certains profils intéressants passent entre les mailles du filet. Les recruteurs passent davantage de temps à trier et à retrouver qu’à évaluer.
-
-La diversification des canaux accentue encore ce phénomène. Les candidatures peuvent venir d’un site carrière, de plateformes d’emploi, de réseaux sociaux, de candidatures spontanées ou de recommandations internes. Le vrai défi n’est pas seulement de publier. Il consiste à regrouper ces flux et à conserver une vision cohérente du pipeline, malgré la diversité des points d’entrée.
+La montée en puissance des ATS s’explique par l’évolution du recrutement lui-même. Le volume de candidatures a changé d’échelle, et la multiplication des canaux a accentué ce phénomène. Les dossiers arrivent désormais d’un site carrière, de plateformes d’emploi, de réseaux sociaux, de candidatures spontanées ou de recommandations internes. Le défi ne se limite plus à publier une offre. Il consiste à regrouper ces flux, à maintenir une vision cohérente du pipeline, et à éviter que la masse ne dégrade la qualité du traitement. Sans organisation, les réponses arrivent tard, certains profils pertinents passent entre les mailles, et les recruteurs passent davantage de temps à trier qu’à évaluer.
 
 La traçabilité prend ensuite une place centrale. Lorsqu’un recrutement implique plusieurs personnes, il devient important de pouvoir reconstituer le parcours de décision. On ne cherche pas à surveiller, mais à comprendre et à justifier. Qui a évalué un candidat. Sur quels éléments. À quel moment. Et comment l’organisation est arrivée à un arbitrage final. Cette mémoire améliore la cohérence interne et facilite le pilotage. Elle devient aussi précieuse lorsque l’entreprise doit expliciter ses choix.
 
@@ -42,11 +40,11 @@ Les recrutements par recommandation, réseau et bouche-à-oreille occupent une p
 
 Les modalités de candidature restent également hétérogènes. L’email est très présent. Le dépôt physique existe encore dans certains contextes. Les réseaux sociaux servent parfois de relais importants. Une plateforme ATS adaptée doit donc rester accessible. Elle doit aussi accepter une transition progressive, et produire de la valeur même lorsque les pratiques initiales ne sont pas totalement standardisées.
 
-Ce point guidera la suite du mémoire. L’enjeu n’est pas d’imposer un modèle idéal de recrutement. La plateforme propose un cadre capable de structurer progressivement les pratiques, de les rendre plus lisibles et de faciliter une collaboration propre entre les acteurs.
+Ce point guidera la suite du mémoire. L’enjeu n’est pas d’imposer un modèle idéal de recrutement. La plateforme propose un cadre qui permet aux organisations de gagner en lisibilité et en cohérence, tout en s’adaptant à un niveau de maturité numérique variable — sans exiger une transformation immédiate des pratiques.
 
 ## 1.2 Analyse des solutions du marché
 
-L’analyse des solutions ATS vise à situer les grandes familles d’outils existants et à comprendre ce qu’ils apportent réellement lorsqu’on les confronte à des contraintes d’usage. L’objectif n’est pas de dresser un catalogue. Il s’agit plutôt de repérer des logiques de conception, puis d’identifier les écarts qui apparaissent au moment de l’adoption, notamment dans des contextes où les pratiques sont encore hétérogènes.
+Le marché des ATS se structure autour de plusieurs familles d’outils, dont les logiques de conception varient fortement. Comprendre ce qu’ils proposent réellement — et comment ils se comportent face à des contraintes d’adoption concrètes — permet d’identifier les écarts qui apparaissent dans des contextes où les pratiques ne sont pas encore totalement homogènes.
 
 ### 1.2.1 Solutions internationales : plateformes commerciales et alternatives open source
 
@@ -58,7 +56,7 @@ On trouve aussi des ATS plus spécialisés, centrés sur le pilotage du pipeline
 
 ### 1.2.2 Focus Sénégal et Afrique : entre diffusion d’offres et suivi artisanal
 
-Au Sénégal, le recrutement s’appuie sur une diversité de canaux. L’email reste très présent, en grande partie parce qu’il est simple et accessible [À SOURCER]. Les réseaux sociaux jouent aussi un rôle important, notamment via des relais communautaires et des groupes dédiés. Des plateformes locales de diffusion existent et structurent surtout la mise en relation, comme Jobberman ou Emploi.sn, qui illustrent une logique largement orientée publication d’offres et réception de candidatures.
+Au Sénégal, le recrutement s’appuie sur les canaux déjà évoqués — email, réseaux sociaux, recommandations — qui structurent surtout la diffusion et la réception des candidatures. Des plateformes locales comme Jobberman ou Emploi.sn prolongent cette logique en facilitant la mise en relation, sans toujours couvrir le suivi.
 
 Dans beaucoup de cas, la difficulté commence après la réception des candidatures. Les dossiers s’accumulent, les échanges se multiplient, et le suivi se fait avec des outils génériques. Tant que le recrutement est ponctuel, cette organisation reste supportable. Lorsqu’il devient régulier ou qu’il implique plusieurs acteurs, elle devient coûteuse. Les informations se dispersent, la traçabilité est limitée, et une partie de la décision se construit dans des échanges qui ne laissent pas de traces exploitables.
 
@@ -72,11 +70,13 @@ L’accessibilité et la prise en main comptent, car un outil perçu comme compl
 
 La viabilité économique dépasse enfin la question du prix affiché. Elle inclut l’effort de mise en œuvre, la formation, la maintenance, et la dépendance éventuelle à des prestataires. Un outil peut être fonctionnellement riche et pourtant difficile à déployer si son coût total, au sens large, ne correspond pas aux moyens de l’organisation.
 
+[À FAIRE — tableau/grille de comparaison]
+
 ### 1.2.4 Positionnement de XpertSphere
 
 XpertSphere s’inscrit dans l’objectif de structurer le cœur du processus de recrutement sans exiger d’emblée une maturité numérique élevée. L’ambition n’est pas de reproduire l’ensemble des fonctionnalités des suites RH internationales. Le projet vise plutôt à rendre le pipeline lisible, à réduire la dispersion des informations, et à rendre la collaboration plus simple entre les rôles qui participent au recrutement.
 
-L’ancrage sénégalais sert ici de terrain de référence. Il met en évidence des contraintes concrètes, notamment l’hétérogénéité des canaux d’entrée et le besoin d’adopter progressivement un cadre plus structurant. La section suivante approfondit ces constats en identifiant les limites observées, afin de formuler une problématique technique cohérente avec la conception de XpertSphere.
+L’ancrage sénégalais sert ici de terrain de référence. Il met en évidence des contraintes concrètes, notamment l’hétérogénéité des canaux d’entrée et la nécessité d’intégrer un cadre par étapes, en partant des pratiques existantes plutôt qu’en les remplaçant. La section suivante approfondit ces constats en identifiant les limites observées, afin de formuler une problématique technique cohérente avec la conception de XpertSphere.
 
 ## 1.3 Limites observées et problématiques techniques
 
@@ -100,7 +100,7 @@ Cette situation a aussi un effet direct sur l’expérience candidat. Les délai
 
 ### 1.3.3 Problématique technique et justification de XpertSphere
 
-Ces limites conduisent à une problématique technique précise. La conception doit donc viser une solution qui structure le recrutement sans exiger, dès le départ, un niveau de formalisation élevé. Cette solution doit aussi permettre une adoption progressive, tout en améliorant rapidement la lisibilité du pipeline et la collaboration entre les acteurs.
+Ces limites conduisent à une problématique technique précise. La conception doit donc viser une solution qui structure le recrutement sans imposer une rupture avec les pratiques existantes. L’objectif est d’améliorer rapidement la lisibilité du pipeline et la collaboration entre les acteurs, tout en s’intégrant dans un contexte où le niveau de formalisation peut varier d’une organisation à l’autre.
 
 Dans XpertSphere, cette problématique se traduit par deux orientations fortes. La première concerne la gestion multi-entreprises. L’objectif est de mutualiser une plateforme tout en garantissant l’isolation des données propres à chaque organisation. Une approche fondée sur un identifiant d’organisation, associé aux entités qui relèvent de l’entreprise, permet de répondre à ce besoin. Elle simplifie le déploiement et favorise un modèle viable, tout en posant des exigences claires en matière d’autorisation et de filtrage.
 
