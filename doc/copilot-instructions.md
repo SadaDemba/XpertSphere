@@ -126,5 +126,21 @@ Règles à respecter :
 
 Bon réflexe :
 - Ajouter un marqueur interne `[À SOURCER]` quand une référence devra être vérifiée lors de la phase bibliographie.
+
+## 9) Gestion des répétitions inter-sections
+
+### 9.1 Introduire un fait une fois, y faire allusion ensuite
+Quand un fait contextuel est présenté dans une section (par exemple : l'usage dominant de l'email, la place du réseau dans le recrutement), les sections suivantes n'ont pas à le redémontrer. Une allusion courte suffit à rappeler le contexte sans alourdir. La démonstration se fait une fois, à l'endroit le plus logique du texte.
+
+Exemples d'allusions courtes :
+- « dans la continuité des canaux déjà évoqués… »
+- « comme mentionné précédemment… »
+- « ce qui rejoint les pratiques décrites plus haut »
+
+### 9.2 Varier l'angle quand une idée centrale revient
+Si une idée forte (par exemple : « structurer progressivement les pratiques ») traverse plusieurs sections, chaque occurrence doit apporter un angle différent — contextuel, positionnel ou technique. Répéter la même formulation sans variation donne l'impression que le texte tourne en rond, même si l'idée est juste.
+
+Bon réflexe : se demander, avant chaque occurrence, ce qu'elle apporte de neuf par rapport à la précédente.
+
 ---
 Fin du guide.
