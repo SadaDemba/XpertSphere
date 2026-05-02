@@ -114,7 +114,7 @@ Un ATS traite des données personnelles qui relèvent directement de la vie priv
 
 ### 1.4.1 RGPD comme référence structurante
 
-Le Règlement Général sur la Protection des Données (RGPD) constitue aujourd’hui une référence majeure, y compris en dehors de l’Union européenne. Il impose des principes de traitement qui s’appliquent pleinement au recrutement. La finalité doit être déterminée et explicite, ce qui implique de collecter des données pertinentes au regard du poste et d’éviter une collecte excessive. La transparence est également attendue. Le candidat doit pouvoir comprendre quelles données sont collectées, dans quel but, et pendant combien de temps elles seront conservées.
+Le Règlement Général sur la Protection des Données (RGPD) constitue aujourd’hui une référence majeure partout dnaans le monde. Il impose des principes de traitement qui s’appliquent pleinement au recrutement. La finalité doit être déterminée et explicite, ce qui implique de collecter des données pertinentes au regard du poste et d’éviter une collecte excessive. La transparence est également attendue. Le candidat doit pouvoir comprendre quelles données sont collectées, dans quel but, et pendant combien de temps elles seront conservées.
 
 Le RGPD met aussi l’accent sur la sécurité et sur la responsabilité du responsable de traitement. Cela se traduit par des exigences concrètes. L’accès aux dossiers doit être contrôlé, la consultation et la modification doivent être traçables, et des mesures de protection doivent limiter les risques de fuite ou de traitement non autorisé. Dans un ATS, ces exigences se traduisent autant dans la gestion des rôles que dans l’architecture applicative et dans la manière de stocker les pièces jointes.
 
