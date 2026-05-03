@@ -42,11 +42,19 @@ L'architecture de XpertSphere adopte une approche moderne et scalable, structur�
 
 Le diagramme suivant illustre l'organisation globale du système et son intégration dans l'écosystème cloud Azure.
 
-![Architecture globale de XpertSphere](figures/architecture_diagram.png)
+![Figure 3.1 — Architecture globale de XpertSphere](figures/architecture_diagram.png)
 
 *Figure 3.1 — Architecture globale et écosystème cloud de XpertSphere*
 
-Le schéma met en évidence une structure en couches protégée par une passerelle API (*Azure API Management*). On y observe la séparation entre les utilisateurs internes (recruteurs) et externes (candidats), chacun accédant à son application dédiée. Le backend est composé d'une API monolithique principale complétée par des services spécialisés pour le reporting, l'analyse de CV et la communication. L'ensemble s'appuie sur une infrastructure de données robuste comprenant SQL Database pour la persistance structurée, Azure Blob Storage pour les documents, et Redis pour les performances de cache. La sécurité est assurée par une gestion d'identité hybride via Microsoft Entra ID (B2B pour les entreprises, B2C pour les candidats).
+Le schéma met en évidence un point d'entrée unique pour l'ensemble du trafic entrant : *Azure API Management* joue le rôle de passerelle, assurant le routage des requêtes, la protection contre les abus et l'exposition d'une interface unifiée. Deux applications Vue.js distinctes se placent en amont — la *RecruiterApp* pour les utilisateurs internes (recruteurs et managers) et la *CandidateApp* pour les candidats externes.
+
+La gestion des identités adopte une stratégie hybride adaptée à la dualité des utilisateurs. Les collaborateurs internes s'authentifient via *Microsoft Entra ID B2B*, qui tire parti de l'annuaire de l'organisation. Les candidats passent par *Microsoft Entra ID B2C*, conçu pour les utilisateurs externes, avec la possibilité de se connecter via des fournisseurs d'identité tiers (Google, LinkedIn, Facebook).
+
+Derrière la passerelle, le cœur applicatif repose sur une *API Monolith .NET* entourée de services spécialisés : un *service d'intégration externe* connecté à des plateformes d'offres d'emploi (HelloWork, LinkedIn Jobs, Welcome to the Jungle) et à Google Calendar, un *service de reporting* interfacé avec Power BI, un *analyseur de CV* en FastAPI s'appuyant sur Azure OpenAI, et un *service de communication* pour les échanges sortants.
+
+La couche de persistance repose sur trois briques complémentaires. *Azure SQL Database* assure le stockage des données structurées (offres, candidatures, utilisateurs), *Azure Blob Storage* héberge les documents (CV, photos de profil), et *Redis Cache* optimise les lectures fréquentes en réduisant la latence des requêtes SQL répétitives.
+
+La messagerie asynchrone et les notifications temps réel s'appuient sur *Azure Service Bus* pour les événements pub/sub, *Azure SignalR* pour les notifications in-app et *Azure Email Communication Service* pour les e-mails transactionnels. La supervision transversale de l'ensemble est assurée par des services de monitoring décrits dans la section 3.2.5.
 
 ### 3.2.2 Choix technologiques
 
@@ -62,21 +70,25 @@ Le backend de XpertSphere est conçu comme une API monolithique modulaire, déve
 
 La couche backend distingue plusieurs responsabilités bien délimitées. Les contrôleurs constituent le point d'entrée des requêtes. Chacun gère un périmètre fonctionnel précis : gestion des offres, des candidatures, des utilisateurs, des organisations, des rôles et permissions, ou encore de l'historique des statuts. Les services applicatifs concentrent la logique de traitement. Ils coordonnent les accès aux données, appliquent les règles métier et produisent les réponses que les contrôleurs renvoient aux clients. Le contexte de données, fondé sur Entity Framework Core, assure la persistance.
 
-En dehors du noyau monolithique, plusieurs services spécialisés existent dans la structure du projet. Un service de communication, un service d'intégration, un service d'analyse de CV et un service de rapports sont identifiés comme modules distincts. Ces modules restent indépendants du cœur applicatif et peuvent évoluer à leur propre rythme. Leur présence dans l'architecture traduit une anticipation des besoins futurs, sans imposer une complexité prématurée dans la phase courante.
+En dehors du noyau monolithique, plusieurs services spécialisés existent dans la structure du projet. Le *service d'intégration externe*, développé en .NET, assure la synchronisation avec des plateformes tierces d'annonces d'emploi (HelloWork, LinkedIn Jobs, Welcome to the Jungle) ainsi qu'avec des outils de planification comme Google Calendar, afin de relier XpertSphere à l'écosystème numérique existant des recruteurs. Le *service de reporting*, également en .NET, produit les analyses de KPI et s'interface avec Power BI pour les tableaux de bord avancés. L'*analyseur de CV*, implémenté en FastAPI, s'appuie sur Azure OpenAI pour l'extraction sémantique des compétences et des expériences professionnelles. Enfin, le *service de communication* orchestre l'ensemble des échanges sortants à destination des utilisateurs. Ces modules restent indépendants du cœur applicatif et peuvent évoluer à leur propre rythme.
 
-### 3.2.3 Couche frontend : deux applications distinctes
+### 3.2.4 Couche frontend : deux applications distinctes
 
 Le frontend est organisé en deux applications Vue.js indépendantes, développées dans un dépôt monorepo. La première est orientée candidat : elle couvre la découverte des offres, le dépôt de candidature et le suivi des candidatures déposées. La seconde est orientée recruteur et organisation : elle permet de gérer les offres, de suivre les candidatures, de piloter les rôles et de consulter les tableaux de bord.
 
 Cette séparation présente plusieurs avantages. Elle limite la surface d'exposition de chaque application aux fonctionnalités réellement utiles à son audience. Elle réduit le risque de confusion entre des écrans et des permissions destinés à des rôles différents. Elle permet également de faire évoluer chaque interface à son propre rythme, selon les retours des utilisateurs correspondants.
 
-### 3.2.4 Infrastructure et services transverses
+### 3.2.5 Infrastructure et services transverses
 
 La couche d'infrastructure couvre la persistance des données, la gestion des fichiers et les mécanismes d'authentification. En développement local, la persistance repose sur une base de données SQL Server, configurée via Docker Compose pour simplifier la mise en place de l'environnement. Les fichiers, tels que les CV, sont stockés via un service de blob, dont l'interface est abstraite de manière à pouvoir s'appuyer sur Azure Blob Storage dans un environnement de production sans modifier le code applicatif.
 
 L'authentification est configurable. Deux modes coexistent dans la codebase : un mode local basé sur ASP.NET Identity, utilisé en développement, et un mode s'appuyant sur Microsoft Entra ID (anciennement Azure Active Directory), activé pour les environnements non locaux. Cette dualité permet de ne pas imposer une dépendance cloud pendant les phases de développement, tout en maintenant une trajectoire cohérente vers une infrastructure managée.
 
-Dans les environnements hors développement, des services complémentaires s'ajoutent : Azure Key Vault pour la gestion des secrets, Application Insights pour la télémétrie et la supervision. Ces services ne sont pas simulés en local, mais leur intégration est préparée dans le code de configuration, de sorte que l'activation reste peu invasive.
+Dans les environnements hors développement, des services complémentaires s'ajoutent : Azure Key Vault pour la gestion des secrets, Application Insights pour la télémétrie applicative (latence, erreurs, dépendances). Ces services ne sont pas simulés en local, mais leur intégration est préparée dans le code de configuration, de sorte que l'activation reste peu invasive.
+
+La couche de messagerie et de communication temps réel apporte une dimension asynchrone à l'architecture. *Azure Service Bus* prend en charge les événements pub/sub qui découplent les services producteurs des services consommateurs, notamment lors des transitions de statut d'une candidature ou de la finalisation d'un parsing de CV. *Azure SignalR* assure la diffusion des notifications in-app en temps réel, permettant à un candidat de suivre l'évolution de son dossier sans recharger la page. *Azure Email Communication Service* centralise l'envoi des e-mails transactionnels, tels que les confirmations de candidature, les relances et les notifications de décision.
+
+La supervision est assurée à deux niveaux complémentaires. *Application Insights* collecte la télémétrie applicative et permet de diagnostiquer les lenteurs ou les erreurs à chaud. *Azure Monitor* offre une vision plus large des métriques d'infrastructure, facilitant la mise en place d'alertes proactives. *Azure Container Registry* héberge les images Docker des services et garantit la traçabilité des versions déployées. *Cost Management* permet enfin de suivre et d'optimiser les dépenses cloud tout au long du cycle de vie de la plateforme, ce qui est particulièrement pertinent dans un contexte où la maîtrise des coûts conditionne l'accessibilité de la solution.
 
 ## 3.3 Modélisation UML
 
