@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
@@ -8,7 +7,6 @@ using XpertSphere.MonolithApi.DTOs.User;
 using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
-using XpertSphere.MonolithApi.Models.Base;
 using XpertSphere.MonolithApi.Utils;
 using XpertSphere.MonolithApi.Utils.Results;
 using XpertSphere.MonolithApi.Utils.Results.Pagination;

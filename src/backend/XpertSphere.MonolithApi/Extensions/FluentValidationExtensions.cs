@@ -1,5 +1,4 @@
 using FluentValidation;
-using XpertSphere.MonolithApi.Validators.User;
 
 namespace XpertSphere.MonolithApi.Extensions;
 
@@ -16,7 +15,7 @@ public static class FluentValidationExtensions
     public static IServiceCollection AddFluentValidationConfiguration(this IServiceCollection services)
     {
         // Add validators from the current assembly (new approach)
-        services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>(ServiceLifetime.Scoped);
+        services.AddValidatorsFromAssembly(typeof(FluentValidationExtensions).Assembly);
 
         // Configure global validation behavior
         ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
