@@ -19,12 +19,12 @@ Spécificité sénégalaise : faible taux d'adoption des outils RH numériques, 
 Présenter et comparer les solutions existantes à l'international (Workday, Greenhouse, Lever, solutions open source)
 Focus Afrique/Sénégal : état des outils utilisés localement (Jobberman, Emploi.sn, solutions maison), faible pénétration des ATS structurés
 Grille de comparaison sur des critères techniques et fonctionnels
-Positionnement de XpertSphere par rapport à l'existant local et international
+Pistes pour une solution adaptée : identification des critères d'une solution réaliste pour le contexte local
 
 1.3) Limites observées et problématiques techniques
 Limites des solutions internationales : coût élevé, interface en langue étrangère, inadaptation aux pratiques locales, dépendance vendor
 Limites des pratiques locales : absence de traçabilité, perte d'information, inégalité de traitement des candidats, délais longs
-Formuler la problématique technique et contextuelle qui justifie la conception de XpertSphere
+Problématique technique résultante : formuler les exigences de conception qui découlent des limites observées
 
 1.4) Cadre réglementaire
 RGPD comme référence internationale et son influence croissante
@@ -37,23 +37,29 @@ Positionnement de XpertSphere vis-à-vis de ces contraintes
 
 Chapitre 2 : Spécifications et positionnement de la solution proposée
 
-2.1) Exigences fonctionnelles
+2.1) Positionnement de XpertSphere face aux solutions existantes
+Synthèse des écarts observés (allusion aux constats du Ch1, sans re-démonstration)
+Orientations stratégiques : progressivité, mutualisation, ancrage local
+Mécanisme du lien partageable : unifier la collecte des candidatures sans remplacer les canaux existants
+Tableau de positionnement comparatif
+
+2.2) Exigences fonctionnelles
 Lister les fonctionnalités attendues : gestion des offres, suivi des candidatures, espace candidat, tableau de bord recruteur
 Adaptations au contexte sénégalais : interface simple et accessible (utilisateurs peu habitués aux outils RH), support du français, processus guidés pour accompagner la prise en main
 Prioriser avec la méthode MoSCoW (Must, Should, Could, Won't)
 Présenter les acteurs du système et leurs interactions
 
-2.2) Exigences non fonctionnelles
+2.3) Exigences non fonctionnelles
 Performance, disponibilité, sécurité, maintenabilité, portabilité
 Spécificité locale : tolérance aux connexions intermittentes, légèreté de l'interface, compatibilité avec des configurations matérielles modestes
-Critères de qualité logicielle retenus (ISO 25010 si possible)
+Critères de qualité logicielle retenus (ISO 25010)
 
-2.3) Contraintes techniques et hypothèses de conception
-Stack technologique retenu (C/.NET, frameworks front, base de données)
-Choix de l'environnement local pour le développement et la démonstration
-Architecture cible sur Azure présentée comme perspective (sans déploiement effectif)
-Hypothèses posées pour la conception (ex : nombre d'entreprises simulées, volume de données)
-Hypothèse de transition : la plateforme est conçue pour des entreprises en phase de transition vers le numérique, pas uniquement pour des organisations déjà matures
+2.4) Contraintes techniques et hypothèses de conception
+Stack technologique retenu (.NET, Vue.js, SQL Server, Python/FastAPI) — choix énoncés comme contraintes, justification architecturale en Ch3
+Environnement local (Docker) pour le développement et la démonstration
+Architecture cible sur Azure présentée comme perspective (sans déploiement effectif) — détail en Ch4
+Hypothèses de volumétrie et d'usage (nombre d'organisations simulées, volume de données)
+Hypothèse de transition : plateforme conçue pour des organisations en phase de numérisation, pas uniquement pour des structures déjà matures
 
 Chapitre 3 : Conception et architecture logicielle
 
@@ -71,8 +77,7 @@ Présentation de l'architecture cible Azure (schéma sans implémentation)
 3.3) Modélisation UML
 Diagrammes de cas d'utilisation (par acteur)
 Diagramme de classes du domaine métier
-Diagrammes de séquence pour les flux principaux (dépôt de candidature, parsing CV, validation offre)
-Diagramme de déploiement (environnement local + cible Azure)
+Diagrammes de séquence pour les flux principaux (création de compte candidat avec analyse de CV, dépôt de candidature)
 
 3.4) Stratégie de gestion multi-entreprises
 Présenter les patterns de multi-tenancy (base partagée, schéma par tenant, base par tenant)
@@ -127,7 +132,7 @@ Ce que le déploiement Azure apporterait concrètement
 Déploiement cloud et passage à l'échelle
 Stratégie d'adoption locale : accompagnement au changement, formation des équipes RH, version mobile (usage fort du mobile)
 Enrichissement de l'IA (matching CV/offre, scoring automatique, support multilingue français/wolof à terme)
-Intégration avec des acteurs locaux (plateformes d'emploi sénégalaises, ANPEM, agences de recrutement)
+Intégration avec des acteurs locaux (plateformes d'emploi sénégalaises, ANPEJ, agences de recrutement)
 Ouverture vers une API publique pour les entreprises clientes
 
 

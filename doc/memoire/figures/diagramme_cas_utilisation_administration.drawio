@@ -1,0 +1,128 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Cas d'utilisation - Administration" id="admin-uc-diagram">
+    <mxGraphModel dx="1400" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Container -->
+        <mxCell id="container" value="XpertSphere - Administration" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;verticalAlign=top;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="280" y="40" width="700" height="520" as="geometry" />
+        </mxCell>
+
+        <!-- Actors -->
+        <mxCell id="actorSuperAdmin" value="Super Administrateur" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#351c75;strokeColor=#351c75;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="70" y="60" width="30" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="actorPlatAdmin" value="Administrateur de plateforme" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#674ea7;strokeColor=#674ea7;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="70" y="240" width="30" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="actorOrgAdmin" value="Administrateur d'organisation" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#e69138;strokeColor=#e69138;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="70" y="440" width="30" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Actor generalization: Super Administrateur generalizes Administrateur de plateforme -->
+        <mxCell id="genSuperAdmin" style="edgeStyle=none;html=1;endArrow=block;endFill=0;startArrow=none;strokeColor=#351c75;" edge="1" parent="1" source="actorSuperAdmin" target="actorPlatAdmin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Use cases -->
+        <mxCell id="ucLogin" value="Se connecter" style="ellipse;whiteSpace=wrap;html=1;fillColor=#3d85c6;strokeColor=#1155cc;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="600" y="60" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ucUsers" value="Gérer les utilisateurs" style="ellipse;whiteSpace=wrap;html=1;fillColor=#8e7cc3;strokeColor=#674ea7;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="350" y="160" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ucOrgsView" value="Consulter les organisations" style="ellipse;whiteSpace=wrap;html=1;fillColor=#8e7cc3;strokeColor=#674ea7;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="820" y="160" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ucReset" value="Réinitialiser mot de passe" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f1c232;strokeColor=#bf9000;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="350" y="260" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ucDeleteUser" value="Supprimer définitivement un utilisateur" style="ellipse;whiteSpace=wrap;html=1;fillColor=#674ea7;strokeColor=#351c75;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="330" y="360" width="210" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ucRoles" value="Gérer les rôles et permissions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#674ea7;strokeColor=#351c75;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="600" y="440" width="190" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ucOrgCreate" value="Créer une organisation" style="ellipse;whiteSpace=wrap;html=1;fillColor=#674ea7;strokeColor=#351c75;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="830" y="360" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ucOrgDelete" value="Supprimer une organisation" style="ellipse;whiteSpace=wrap;html=1;fillColor=#674ea7;strokeColor=#351c75;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="830" y="440" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Actor associations (plain lines, no arrowheads) -->
+        <mxCell id="assocPA1" style="edgeStyle=none;html=1;endArrow=none;startArrow=none;strokeColor=#674ea7;" edge="1" parent="1" source="actorPlatAdmin" target="ucLogin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assocPA2" style="edgeStyle=none;html=1;endArrow=none;startArrow=none;strokeColor=#674ea7;" edge="1" parent="1" source="actorPlatAdmin" target="ucUsers">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assocPA3" style="edgeStyle=none;html=1;endArrow=none;startArrow=none;strokeColor=#674ea7;" edge="1" parent="1" source="actorPlatAdmin" target="ucOrgsView">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assocPA4" style="edgeStyle=none;html=1;endArrow=none;startArrow=none;strokeColor=#674ea7;" edge="1" parent="1" source="actorPlatAdmin" target="ucReset">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="assocOA1" style="edgeStyle=none;html=1;endArrow=none;startArrow=none;strokeColor=#e69138;" edge="1" parent="1" source="actorOrgAdmin" target="ucLogin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assocOA2" style="edgeStyle=none;html=1;endArrow=none;startArrow=none;strokeColor=#e69138;" edge="1" parent="1" source="actorOrgAdmin" target="ucUsers">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assocOA3" style="edgeStyle=none;html=1;endArrow=none;startArrow=none;strokeColor=#e69138;" edge="1" parent="1" source="actorOrgAdmin" target="ucReset">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Super Administrateur: only its exclusive use cases (shared ones inherited via generalization) -->
+        <mxCell id="assocSA1" style="edgeStyle=none;html=1;endArrow=none;startArrow=none;strokeColor=#351c75;" edge="1" parent="1" source="actorSuperAdmin" target="ucRoles">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assocSA2" style="edgeStyle=none;html=1;endArrow=none;startArrow=none;strokeColor=#351c75;" edge="1" parent="1" source="actorSuperAdmin" target="ucOrgCreate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assocSA3" style="edgeStyle=none;html=1;endArrow=none;startArrow=none;strokeColor=#351c75;" edge="1" parent="1" source="actorSuperAdmin" target="ucOrgDelete">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="assocSA4" style="edgeStyle=none;html=1;endArrow=none;startArrow=none;strokeColor=#351c75;" edge="1" parent="1" source="actorSuperAdmin" target="ucDeleteUser">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Include / extend relationships (dashed, arrow toward base use case) -->
+        <mxCell id="incUsers" value="includes" style="edgeStyle=none;html=1;endArrow=open;dashed=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="ucUsers" target="ucLogin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="incOrgsView" value="includes" style="edgeStyle=none;html=1;endArrow=open;dashed=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="ucOrgsView" target="ucLogin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="incRoles" value="includes" style="edgeStyle=none;html=1;endArrow=open;dashed=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="ucRoles" target="ucLogin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="incOrgCreate" value="includes" style="edgeStyle=none;html=1;endArrow=open;dashed=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="ucOrgCreate" target="ucLogin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="incOrgDelete" value="includes" style="edgeStyle=none;html=1;endArrow=open;dashed=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="ucOrgDelete" target="ucLogin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="extReset" value="extends" style="edgeStyle=none;html=1;endArrow=open;dashed=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="ucReset" target="ucLogin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="extDeleteUser" value="extends" style="edgeStyle=none;html=1;endArrow=open;dashed=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="ucDeleteUser" target="ucUsers">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

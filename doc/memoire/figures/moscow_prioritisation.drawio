@@ -1,0 +1,76 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="MoSCoW" id="moscow-xpertsphere">
+    <mxGraphModel dx="1200" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="0" arrows="0" fold="0" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ══ MUST HAVE ══ -->
+        <mxCell id="10" value="MUST HAVE" style="rounded=1;arcSize=10;fillColor=#C00000;strokeColor=none;fontColor=#ffffff;fontSize=13;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="Gestion des offres et pipeline candidatures" style="rounded=1;arcSize=8;fillColor=#FCE4D6;strokeColor=#C00000;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="76" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="Isolation des données par organisation" style="rounded=1;arcSize=8;fillColor=#FCE4D6;strokeColor=#C00000;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="138" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="13" value="Authentification et gestion des rôles" style="rounded=1;arcSize=8;fillColor=#FCE4D6;strokeColor=#C00000;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="200" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="Historique des statuts de candidature" style="rounded=1;arcSize=8;fillColor=#FCE4D6;strokeColor=#C00000;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="262" width="180" height="52" as="geometry" />
+        </mxCell>
+
+        <!-- ══ SHOULD HAVE ══ -->
+        <mxCell id="20" value="SHOULD HAVE" style="rounded=1;arcSize=10;fillColor=#E36C09;strokeColor=none;fontColor=#ffffff;fontSize=13;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="220" y="20" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="21" value="Profil candidat enrichi et progressif" style="rounded=1;arcSize=8;fillColor=#FDEBD0;strokeColor=#E36C09;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="220" y="76" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="22" value="Attribution des dossiers à évaluateurs ou managers" style="rounded=1;arcSize=8;fillColor=#FDEBD0;strokeColor=#E36C09;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="220" y="138" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="23" value="Filtres et recherche avancée" style="rounded=1;arcSize=8;fillColor=#FDEBD0;strokeColor=#E36C09;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="220" y="200" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="24" value="Retrait de candidature par le candidat" style="rounded=1;arcSize=8;fillColor=#FDEBD0;strokeColor=#E36C09;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="220" y="262" width="180" height="52" as="geometry" />
+        </mxCell>
+
+        <!-- ══ COULD HAVE ══ -->
+        <mxCell id="30" value="COULD HAVE" style="rounded=1;arcSize=10;fillColor=#17375E;strokeColor=none;fontColor=#ffffff;fontSize=13;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="20" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="31" value="Cooptation par les collaborateurs" style="rounded=1;arcSize=8;fillColor=#D6E4F0;strokeColor=#17375E;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="420" y="76" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="32" value="Analyse automatique de CV" style="rounded=1;arcSize=8;fillColor=#D6E4F0;strokeColor=#17375E;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="420" y="138" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="33" value="Notifications internes" style="rounded=1;arcSize=8;fillColor=#D6E4F0;strokeColor=#17375E;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="420" y="200" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="34" value="Tableaux de bord et indicateurs de pilotage" style="rounded=1;arcSize=8;fillColor=#D6E4F0;strokeColor=#17375E;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="420" y="262" width="180" height="52" as="geometry" />
+        </mxCell>
+
+        <!-- ══ WON'T HAVE ══ -->
+        <mxCell id="40" value="WON'T HAVE" style="rounded=1;arcSize=10;fillColor=#7F7F7F;strokeColor=none;fontColor=#ffffff;fontSize=13;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="620" y="20" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="41" value="Gestion de la paie et des contrats" style="rounded=1;arcSize=8;fillColor=#EDEDED;strokeColor=#7F7F7F;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="620" y="76" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="42" value="Intégration native avec les plateformes d'emploi" style="rounded=1;arcSize=8;fillColor=#EDEDED;strokeColor=#7F7F7F;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="620" y="138" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="43" value="Gestion multilingue poussée" style="rounded=1;arcSize=8;fillColor=#EDEDED;strokeColor=#7F7F7F;strokeWidth=1;fontSize=11;verticalAlign=middle;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="620" y="200" width="180" height="52" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

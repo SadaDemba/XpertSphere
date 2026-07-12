@@ -1,0 +1,136 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Exigences non fonctionnelles" id="enf-xpertsphere">
+    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="0" arrows="0" fold="0" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- COL GAUCHE — SÉCURITÉ (#C00000)           -->
+        <!-- Fond du bloc : x=20, y=20, w=340, h=388   -->
+        <!-- ══════════════════════════════════════════ -->
+        <mxCell id="sec-bg" value="" style="rounded=1;arcSize=4;fillColor=#FCE4D6;strokeColor=#C00000;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="340" height="388" as="geometry" />
+        </mxCell>
+        <mxCell id="sec-header" value="Sécurité" style="rounded=1;arcSize=4;fillColor=#C00000;strokeColor=none;fontColor=#ffffff;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="340" height="40" as="geometry" />
+        </mxCell>
+        <!-- Carte 1 -->
+        <mxCell id="sec-1" value="&lt;b&gt;Authentification robuste&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;mots de passe hachés, protection force brute&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#C00000;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="30" y="70" width="320" height="54" as="geometry" />
+        </mxCell>
+        <!-- Carte 2 -->
+        <mxCell id="sec-2" value="&lt;b&gt;Autorisation granulaire&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;permissions par rôle, périmètre limité&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#C00000;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="30" y="132" width="320" height="54" as="geometry" />
+        </mxCell>
+        <!-- Carte 3 -->
+        <mxCell id="sec-3" value="&lt;b&gt;Isolation des données&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;filtrage par organisation, vérifiable par test&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#C00000;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="30" y="194" width="320" height="54" as="geometry" />
+        </mxCell>
+        <!-- Carte 4 -->
+        <mxCell id="sec-4" value="&lt;b&gt;Traçabilité des actions&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;journal consultations / modifications / suppressions&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#C00000;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="30" y="256" width="320" height="54" as="geometry" />
+        </mxCell>
+        <!-- Carte 5 -->
+        <mxCell id="sec-5" value="&lt;b&gt;Cycle de vie des données&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;durées de conservation, suppression possible&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#C00000;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="30" y="318" width="320" height="54" as="geometry" />
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- COL GAUCHE — PERFORMANCE (#17375E)        -->
+        <!-- y = 20 + 388 + 20 = 428, h=246            -->
+        <!-- ══════════════════════════════════════════ -->
+        <mxCell id="perf-bg" value="" style="rounded=1;arcSize=4;fillColor=#D6E4F0;strokeColor=#17375E;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="20" y="428" width="340" height="246" as="geometry" />
+        </mxCell>
+        <mxCell id="perf-header" value="Performance" style="rounded=1;arcSize=4;fillColor=#17375E;strokeColor=none;fontColor=#ffffff;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="20" y="428" width="340" height="40" as="geometry" />
+        </mxCell>
+        <!-- Carte 1 -->
+        <mxCell id="perf-1" value="&lt;b&gt;Pagination systématique&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;aucune liste chargée en totalité&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#17375E;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="30" y="478" width="320" height="54" as="geometry" />
+        </mxCell>
+        <!-- Carte 2 -->
+        <mxCell id="perf-2" value="&lt;b&gt;Chargement différé&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;CV non téléchargés à l&apos;affichage d&apos;une liste&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#17375E;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="30" y="540" width="320" height="54" as="geometry" />
+        </mxCell>
+        <!-- Carte 3 -->
+        <mxCell id="perf-3" value="&lt;b&gt;Interface légère&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;fonctionnelle sur connexion lente ou intermittente&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#17375E;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="30" y="602" width="320" height="54" as="geometry" />
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- COL DROITE — UTILISABILITÉ (#375623)      -->
+        <!-- x=380, y=20, w=340, h=246                 -->
+        <!-- ══════════════════════════════════════════ -->
+        <mxCell id="util-bg" value="" style="rounded=1;arcSize=4;fillColor=#E2EFDA;strokeColor=#375623;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="380" y="20" width="340" height="246" as="geometry" />
+        </mxCell>
+        <mxCell id="util-header" value="Utilisabilité" style="rounded=1;arcSize=4;fillColor=#375623;strokeColor=none;fontColor=#ffffff;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="380" y="20" width="340" height="40" as="geometry" />
+        </mxCell>
+        <!-- Carte 1 -->
+        <mxCell id="util-1" value="&lt;b&gt;Parcours guidés&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;tâches réalisables sans documentation&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#375623;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="390" y="70" width="320" height="54" as="geometry" />
+        </mxCell>
+        <!-- Carte 2 -->
+        <mxCell id="util-2" value="&lt;b&gt;Retours explicites&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;messages d&apos;erreur avec cause et correction&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#375623;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="390" y="132" width="320" height="54" as="geometry" />
+        </mxCell>
+        <!-- Carte 3 -->
+        <mxCell id="util-3" value="&lt;b&gt;Accessibilité&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;clavier, contraste, technologies d&apos;assistance&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#375623;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="390" y="194" width="320" height="54" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- COL DROITE — MAINTENABILITÉ & ÉVOLUTIVITÉ (#7F6000)    -->
+        <!-- x=380, y=286, w=340, h=388 (aligne avec bas Sécurité) -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <mxCell id="maint-bg" value="" style="rounded=1;arcSize=4;fillColor=#FFF2CC;strokeColor=#7F6000;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="380" y="286" width="340" height="388" as="geometry" />
+        </mxCell>
+        <mxCell id="maint-header" value="Maintenabilité &amp; Évolutivité" style="rounded=1;arcSize=4;fillColor=#7F6000;strokeColor=none;fontColor=#ffffff;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="380" y="286" width="340" height="40" as="geometry" />
+        </mxCell>
+        <!-- Carte 1 -->
+        <mxCell id="maint-1" value="&lt;b&gt;Séparation des responsabilités&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;modification métier sans impact couche données&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#7F6000;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="390" y="336" width="320" height="54" as="geometry" />
+        </mxCell>
+        <!-- Carte 2 -->
+        <mxCell id="maint-2" value="&lt;b&gt;Lisibilité du code&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;compréhensible par un nouveau contributeur&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#7F6000;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="390" y="398" width="320" height="54" as="geometry" />
+        </mxCell>
+        <!-- Carte 3 -->
+        <mxCell id="maint-3" value="&lt;b&gt;Architecture ouverte&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;composants remplaçables sans refonte&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#7F6000;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="390" y="460" width="320" height="54" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- LIGNE DU BAS — QUALITÉ ISO 25010 (#595959)                    -->
+        <!-- y = 20 + 388 + 20 + 246 + 20 = 694                            -->
+        <!-- Largeur totale = 20 + 340 + 20 + 340 + 20 = 740px             -->
+        <!-- 3 cartes horizontales dans un bloc pleine largeur              -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <mxCell id="iso-bg" value="" style="rounded=1;arcSize=4;fillColor=#F2F2F2;strokeColor=#595959;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="20" y="694" width="700" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="iso-header" value="Qualité ISO 25010" style="rounded=1;arcSize=4;fillColor=#595959;strokeColor=none;fontColor=#ffffff;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="20" y="694" width="700" height="40" as="geometry" />
+        </mxCell>
+        <!-- Carte 1 — Fiabilité -->
+        <mxCell id="iso-1" value="&lt;b&gt;Fiabilité&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;cohérence transactionnelle, pas de données partielles&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#595959;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="30" y="744" width="214" height="90" as="geometry" />
+        </mxCell>
+        <!-- Carte 2 — Compatibilité -->
+        <mxCell id="iso-2" value="&lt;b&gt;Compatibilité&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;navigateurs courants, ouverture aux intégrations&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#595959;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="253" y="744" width="214" height="90" as="geometry" />
+        </mxCell>
+        <!-- Carte 3 — Portabilité -->
+        <mxCell id="iso-3" value="&lt;b&gt;Portabilité&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;reproductibilité locale (Docker), déploiement sans modification de code&lt;/i&gt;" style="rounded=1;arcSize=8;html=1;fillColor=#FFFFFF;strokeColor=#595959;strokeWidth=1;fontSize=11;whiteSpace=wrap;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="476" y="744" width="234" height="90" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
