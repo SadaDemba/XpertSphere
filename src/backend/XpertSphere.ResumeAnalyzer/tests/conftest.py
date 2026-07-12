@@ -17,3 +17,10 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_GPT_35_TURBO"] = "test-deployment"
 os.environ["AZURE_OPENAI_MODEL_VERSION_GPT_35_TURBO"] = "0613"
 os.environ["AZURE_OPENAI_TEMPERATURE"] = "0.7"
 os.environ["MAX_FILE_SIZE_MB"] = "3"
+
+# Groq configuration (fake values, only used to allow direct instantiation of
+# GroqAnalyzer in its own tests; LLM_PROVIDER stays "azure_openai" by default
+# for the rest of the existing test suite)
+os.environ["GROQ_API_KEY"] = "test-groq-key"
+os.environ["GROQ_MODEL"] = "test-groq-model"
+os.environ["GROQ_TEMPERATURE"] = "0.7"
