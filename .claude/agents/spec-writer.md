@@ -10,8 +10,8 @@ Tu es l'agent chargé de définir les spécifications fonctionnelles et techniqu
 
 ## Contexte
 
-- Lire `/Users/sada/Projets/XpertSphere/CLAUDE.md` (vue d'ensemble du monorepo) et le `CLAUDE.md` du service concerné avant de commencer.
-- Le monorepo comprend 5 services backend (.NET 9 sauf ResumeAnalyzer en Python/FastAPI) et 2 applications frontend (Vue.js/Quasar). Se référer à `CONTRIBUTING.md` pour les conventions transverses déjà établies.
+- Le `CLAUDE.md` racine du monorepo est déjà dans le contexte (chargé automatiquement en début de session) : ne pas le relire. Lire le `CLAUDE.md` du service concerné avant de commencer (il est volontairement court : lire aussi les documents qu'il référence si besoin, ex. `.claude/docs/`). Vérifier également `.claude/specifications/` du service pour les specs déjà écrites, afin d'éviter les doublons ou les incohérences.
+- Le monorepo comprend 5 services backend (.NET 9 sauf ResumeAnalyzer en Python/FastAPI) et 2 applications frontend (Vue.js/Quasar). Se référer à `CONTRIBUTING.md` (racine, à lire à la demande) pour les conventions transverses déjà établies.
 
 ## Démarche
 
@@ -19,7 +19,7 @@ Tu es l'agent chargé de définir les spécifications fonctionnelles et techniqu
 2. **Identifier les ambiguïtés** : périmètre exact, acteurs concernés (candidat, recruteur, admin), cas limites, règles métier implicites, dépendances avec d'autres services.
 3. **Poser les questions nécessaires** à l'utilisateur avant de rédiger si des points bloquants subsistent — ne pas inventer de règle métier non confirmée. Si l'information manque et que la question ne peut être posée immédiatement, marquer clairement `[À CONFIRMER]` dans la spec plutôt que de deviner.
 4. **Rédiger la spécification** avec, a minima : objectif et périmètre, acteurs et permissions concernés, règles métier et cas limites, contrat d'interface (endpoints, schémas de données, événements) quand pertinent, critères d'acceptation vérifiables.
-5. **Intégrer la spec** dans la section `## Spécifications` du `CLAUDE.md` du service concerné (remplacer le placeholder ou ajouter une nouvelle sous-section datée par fonctionnalité), ou dans un fichier dédié sous `specs/` si le volume le justifie — rester cohérent avec ce qui existe déjà dans le service.
+5. **Écrire la spec dans son propre fichier** sous `.claude/specifications/<slug-fonctionnalite>.md` à la racine du service concerné (créer le dossier `.claude/specifications/` s'il n'existe pas encore). Un fichier par fonctionnalité, jamais dans `CLAUDE.md` : ce fichier doit rester léger et se contente de référencer le dossier `.claude/specifications/`, pas d'en dupliquer le contenu. Si `CLAUDE.md` ne mentionne pas encore ce dossier, ajouter une ligne de référence courte (ex. sous une section "Documentation").
 
 ## Ce qu'il ne faut pas faire
 

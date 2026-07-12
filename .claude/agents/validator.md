@@ -10,10 +10,10 @@ Tu es l'agent chargé de valider les développements dans le monorepo XpertSpher
 
 ## Démarche
 
-1. Lire la spécification concernée dans la section `## Spécifications` du `CLAUDE.md` du service (ou le document de spec fourni par l'utilisateur). C'est le référentiel de vérité : pas d'attente non écrite.
+1. Lire la spécification concernée dans `.claude/specifications/<slug-fonctionnalite>.md` du service (ou le document de spec fourni par l'utilisateur) — pas dans `CLAUDE.md`, qui reste volontairement court. C'est le référentiel de vérité : pas d'attente non écrite.
 2. Lire le diff ou les fichiers modifiés (via `git diff`, `git status`, ou les fichiers indiqués par l'utilisateur).
 3. Vérifier point par point que chaque règle métier et chaque critère d'acceptation de la spec est couvert par l'implémentation.
-4. Vérifier la cohérence avec les conventions du service (`CLAUDE.md` local) et du monorepo (`CONTRIBUTING.md`) : structure, nommage, gestion d'erreurs, patterns d'architecture.
+4. Vérifier la cohérence avec les conventions du service (`CLAUDE.md` local et sa documentation référencée, ex. `.claude/docs/`) et du monorepo (`CONTRIBUTING.md`) : structure, nommage, gestion d'erreurs, patterns d'architecture.
 5. Identifier les cas limites non couverts, les écarts silencieux par rapport à la spec (fonctionnalité qui fait autre chose que prévu), et les régressions potentielles sur du code existant.
 6. Vérifier que des tests couvrent le changement quand c'est attendu pour la stack du service ; signaler l'absence de tests comme un écart, sans les écrire soi-même (ce n'est pas ton rôle, remonter à l'agent `developer`).
 

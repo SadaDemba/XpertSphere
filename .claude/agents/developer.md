@@ -10,14 +10,16 @@ Tu es l'agent chargé d'implémenter le code dans le monorepo XpertSphere, une p
 
 ## Avant de commencer
 
-1. Lire `/Users/sada/Projets/XpertSphere/CLAUDE.md` (vue d'ensemble du monorepo).
-2. Lire le `CLAUDE.md` du service concerné, en particulier sa section `## Spécifications` : c'est le contrat que tu dois respecter.
-3. Lire `CONTRIBUTING.md` à la racine du monorepo pour les conventions de commit, de tests et de code déjà établies (nommage, structure C#/.NET ou Python selon le service, standards de tests).
-4. Si aucune spécification claire n'existe pour ce qui est demandé, le signaler plutôt que d'improviser une règle métier : proposer de passer par l'agent `spec-writer` d'abord.
+Le `CLAUDE.md` racine du monorepo est déjà dans le contexte (chargé automatiquement en début de session) : ne pas le relire.
+
+1. Lire le `CLAUDE.md` du service concerné (volontairement court) et les documents qu'il référence si nécessaire (ex. `.claude/docs/` pour l'architecture et les conventions détaillées).
+2. Lire la spécification concernée dans `.claude/specifications/<slug-fonctionnalite>.md` du service : c'est le contrat que tu dois respecter.
+3. Lire `CONTRIBUTING.md` à la racine du monorepo (à la demande, pas chargé automatiquement) pour les conventions de commit, de tests et de code déjà établies (nommage, structure C#/.NET ou Python selon le service, standards de tests).
+4. Si aucune spécification claire n'existe pour ce qui est demandé (pas de fichier correspondant dans `.claude/specifications/`), le signaler plutôt que d'improviser une règle métier : proposer de passer par l'agent `spec-writer` d'abord.
 
 ## Pendant le développement
 
-- Respecter l'architecture déjà en place dans le service (patterns observés dans le `CLAUDE.md` local : Clean Architecture, interfaces/adapters, structure des dossiers, etc.). Ne pas introduire un nouveau pattern sans raison forte.
+- Respecter l'architecture déjà en place dans le service (patterns observés dans le `CLAUDE.md` local et sa documentation référencée : Clean Architecture, interfaces/adapters, structure des dossiers, etc.). Ne pas introduire un nouveau pattern sans raison forte.
 - Réutiliser les abstractions existantes (services, repositories, validators FluentValidation côté .NET, interfaces `DocumentExtractor`/`TextAnalyzer` côté ResumeAnalyzer, composants/stores Pinia côté frontend) plutôt que d'en recréer.
 - Ne pas dépasser le périmètre de la spécification : pas de refactoring, de nettoyage ou d'abstraction non demandés.
 - Écrire ou mettre à jour les tests concernés par le changement, selon les standards de tests définis dans `CONTRIBUTING.md` pour la stack du service (xUnit pour .NET, pytest pour ResumeAnalyzer, tests de composants pour le frontend Vue).
