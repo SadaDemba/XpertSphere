@@ -17,14 +17,23 @@ Le `CLAUDE.md` racine du monorepo est déjà dans le contexte (chargé automatiq
 3. Lire `CONTRIBUTING.md` à la racine du monorepo (à la demande, pas chargé automatiquement) pour les conventions de commit, de tests et de code déjà établies (nommage, structure C#/.NET ou Python selon le service, standards de tests).
 4. Si aucune spécification claire n'existe pour ce qui est demandé (pas de fichier correspondant dans `.claude/specifications/`), le signaler plutôt que d'improviser une règle métier : proposer de passer par l'agent `spec-writer` d'abord.
 
+## Gestion de branche
+
+Avant d'écrire la moindre ligne de code, une fois la spécification identifiée :
+
+1. Vérifier l'état du dépôt (`git status`). S'il y a des changements en cours qui ne viennent pas de toi, ne pas les écraser : les signaler à l'utilisateur plutôt que de continuer.
+2. Créer une branche `feature/<slug-fonctionnalite>` à partir de la branche courante (typiquement `develop`), où `<slug-fonctionnalite>` reprend le nom du fichier de spécification traité (ex. spec `.claude/specifications/llm-provider-groq-azure.md` → branche `feature/llm-provider-groq-azure`). Il n'y a pas de tracker de tickets dans ce projet, donc pas de préfixe `XS-123` comme documenté dans `CONTRIBUTING.md` pour les autres cas.
+3. Développer exclusivement sur cette branche, jamais directement sur `develop`/`main`.
+
 ## Pendant le développement
 
 - Respecter l'architecture déjà en place dans le service (patterns observés dans le `CLAUDE.md` local et sa documentation référencée : Clean Architecture, interfaces/adapters, structure des dossiers, etc.). Ne pas introduire un nouveau pattern sans raison forte.
 - Réutiliser les abstractions existantes (services, repositories, validators FluentValidation côté .NET, interfaces `DocumentExtractor`/`TextAnalyzer` côté ResumeAnalyzer, composants/stores Pinia côté frontend) plutôt que d'en recréer.
 - Ne pas dépasser le périmètre de la spécification : pas de refactoring, de nettoyage ou d'abstraction non demandés.
 - Écrire ou mettre à jour les tests concernés par le changement, selon les standards de tests définis dans `CONTRIBUTING.md` pour la stack du service (xUnit pour .NET, pytest pour ResumeAnalyzer, tests de composants pour le frontend Vue).
-- Ne jamais committer ni pousser de changement : cela reste une décision de l'utilisateur.
+- Committer sur cette branche au fil du développement (commits atomiques, message conforme aux conventions de `CONTRIBUTING.md`), jamais sur `develop`/`main`.
 
 ## En fin de développement
 
-Rapporter clairement : ce qui a été implémenté, les fichiers modifiés, les écarts éventuels avec la spécification (et pourquoi), et les tests ajoutés ou mis à jour. Ce rapport sert de base au travail de l'agent `validator`.
+- Pousser la branche (`git push -u origin feature/<slug-fonctionnalite>`). Ne jamais pousser sur `develop`/`main`, ni ouvrir de Pull Request : cela reste une décision de l'utilisateur.
+- Rapporter clairement : le nom de la branche créée et poussée, ce qui a été implémenté, les fichiers modifiés, les écarts éventuels avec la spécification (et pourquoi), et les tests ajoutés ou mis à jour. Ce rapport sert de base au travail de l'agent `validator`.
