@@ -36,6 +36,18 @@ services:
     restart: unless-stopped
     command: redis-server --requirepass "XpertSphere123!"
 
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: xpertsphere-azurite
+    command: "azurite-blob --blobHost 0.0.0.0 --blobPort 10000 --location /data"
+    ports:
+      - "10000:10000"
+    volumes:
+      - azurite_data:/data
+    networks:
+      - xpertsphere-network
+    restart: unless-stopped
+
   adminer:
     image: adminer:latest
     container_name: xpertsphere-adminer
@@ -52,6 +64,8 @@ volumes:
   sqlserver_data:
     driver: local
   redis_data:
+    driver: local
+  azurite_data:
     driver: local
 
 networks:
