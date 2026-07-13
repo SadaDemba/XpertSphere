@@ -48,7 +48,7 @@ if (!builder.Environment.IsDevelopment())
 // Infrastructure Services
 builder.Services.AddDatabase(builder.Configuration, builder.Environment);
 builder.Services.AddSecurity(builder.Configuration, builder.Environment, useEntraId);
-builder.Services.AddBlobStorage(builder.Configuration);
+builder.Services.AddBlobStorage(builder.Configuration, builder.Environment);
 
 // AutoMapper Configuration
 builder.Services.AddAutoMapperConfiguration();

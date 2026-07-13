@@ -4,7 +4,11 @@ namespace XpertSphere.MonolithApi.Extensions;
 
 public static class BlobStorageExtensions
 {
-    public static IServiceCollection AddBlobStorage(this IServiceCollection services, IConfiguration configuration)
+    private const string AzuriteConnectionString =
+        "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;";
+
+    public static IServiceCollection AddBlobStorage(this IServiceCollection services, IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         // Try to get from configuration first (includes Key Vault for staging/prod)
         var connectionString = configuration.GetConnectionString("BlobStorage");
@@ -13,6 +17,12 @@ public static class BlobStorageExtensions
         if (string.IsNullOrEmpty(connectionString))
         {
             connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__BlobStorage");
+        }
+
+        // Fallback to the canonical Azurite connection string in Development only
+        if (string.IsNullOrEmpty(connectionString) && environment.IsDevelopment())
+        {
+            connectionString = AzuriteConnectionString;
         }
 
         if (string.IsNullOrEmpty(connectionString))
