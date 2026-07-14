@@ -535,6 +535,7 @@ import type { Experience, Training, User } from '../models/auth';
 import type { CreateExperienceDto } from '../models/experience';
 import { useNotification } from 'src/composables/notification';
 import EditProfileDialog from '../components/EditProfileDialog.vue';
+import { userService } from '../services/userService';
 
 // Use real user data from auth store
 const $q = useQuasar();
@@ -645,10 +646,32 @@ const formatSalary = (salary?: number) => {
   );
 };
 
-const downloadCV = () => {
-  if (user.value?.cvPath) {
-    // Open CV in a new tab/window for download
-    window.open(user.value.cvPath, '_blank');
+const downloadCV = async () => {
+  if (!user.value?.id || !user.value?.cvPath) {
+    return;
+  }
+
+  try {
+    const blob = await userService.downloadCv(user.value.id);
+    const objectUrl = URL.createObjectURL(blob);
+
+    // Derive the real file extension from cvPath (never hardcode it: a CV can
+    // be .pdf, .doc or .docx).
+    const extension = user.value.cvPath.split('.').pop() || 'pdf';
+    const fileName = `CV_${user.value.firstName}_${user.value.lastName}.${extension}`;
+
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(objectUrl);
+  } catch (error) {
+    notification.showErrorNotification(
+      error instanceof Error ? error.message : 'Erreur lors du téléchargement du CV.',
+    );
   }
 };
 
