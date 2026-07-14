@@ -102,7 +102,7 @@ public class ResumeService : IResumeService
 
             // Extract blob name from URL
             var uri = new Uri(resumePath);
-            var blobName = uri.Segments.Skip(2).Aggregate((a, b) => a + b); // Skip /container/
+            var blobName = new BlobUriBuilder(uri).BlobName;
 
             var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
             var blobClient = containerClient.GetBlobClient(blobName);
@@ -138,7 +138,7 @@ public class ResumeService : IResumeService
 
             // Extract blob name from URL
             var uri = new Uri(resumePath);
-            var blobName = uri.Segments.Skip(2).Aggregate((a, b) => a + b);
+            var blobName = new BlobUriBuilder(uri).BlobName;
 
             var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
             var blobClient = containerClient.GetBlobClient(blobName);
@@ -169,7 +169,7 @@ public class ResumeService : IResumeService
             }
 
             var uri = new Uri(resumePath);
-            var blobName = uri.Segments.Skip(2).Aggregate((a, b) => a + b);
+            var blobName = new BlobUriBuilder(uri).BlobName;
 
             var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
             var blobClient = containerClient.GetBlobClient(blobName);
