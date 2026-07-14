@@ -116,8 +116,12 @@ JobOfferService(); export default jobOfferService;`). Les méthodes
   (`BaseClient` construit `baseURL = ${settings.webApi.baseUrl}/api${url}`).
 - Une deuxième URL de service est configurée pour un composant d'analyse de
   CV : `VITE_RESUME_ANALYZER_BASE_URL` (`settings.resumeAnalyzer.baseUrl`,
-  ex. `http://localhost:8001` en local). Une URL de stockage Azure Blob est
-  également prévue (`VITE_STORAGE_BASE_URL` / `settings.storage.baseUrl`).
+  ex. `http://localhost:8001` en local). Il n'y a pas d'URL de stockage Azure
+  Blob configurée côté frontend : le container `resumes` est privé, et la
+  consultation/téléchargement d'un CV passe par l'endpoint proxy authentifié
+  `GET /api/users/{id}/cv` (voir
+  `src/backend/XpertSphere.MonolithApi/.claude/specifications/secure-cv-download.md`),
+  jamais par une URL de blob ouverte directement.
 - **Authentification hybride** gérée dans `BaseClient` et
   `settings.auth.mode` (`jwt` ou `entraid`) :
   - mode `jwt` : jeton et refresh token stockés en `localStorage`

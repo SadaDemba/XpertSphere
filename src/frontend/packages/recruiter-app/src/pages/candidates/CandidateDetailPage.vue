@@ -560,15 +560,16 @@
       v-model="showCvPreview"
       :candidate-id="candidate.id"
       :candidate-name="candidate.fullName"
-      :cv-url="candidate.cvPath!"
+      :cv-url="cvObjectUrl ?? undefined"
     />
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '../../stores/userStore';
+import userService from '../../services/userService';
 import type { UserDto } from '../../models/user';
 import { date } from 'quasar';
 import CvPreviewDialog from 'src/components/candidates/CvPreviewDialog.vue';
@@ -579,6 +580,13 @@ const userStore = useUserStore();
 
 const showCvPreview = ref(false);
 let hoverTimer: NodeJS.Timeout | null = null;
+
+// Object URL for the CV preview/full view, obtained from the secure download
+// endpoint (candidate.cvPath is never opened directly - see
+// secure-cv-download.md). Cached so hovering the button repeatedly does not
+// re-download the CV every time.
+const cvObjectUrl = ref<string | null>(null);
+let cvObjectUrlPromise: Promise<void> | null = null;
 
 const candidate = ref<UserDto | null>(null);
 
@@ -611,7 +619,31 @@ function formatDate(dateString: string): string {
   return date.formatDate(dateString, 'DD/MM/YYYY');
 }
 
+async function ensureCvObjectUrl(): Promise<void> {
+  if (cvObjectUrl.value || cvObjectUrlPromise || !candidate.value?.cvPath) {
+    return;
+  }
+
+  cvObjectUrlPromise = (async () => {
+    try {
+      const blob = await userService.downloadCv(candidate.value!.id);
+      cvObjectUrl.value = URL.createObjectURL(blob);
+    } catch (error) {
+      // No CV uploaded, or the file is no longer available in storage (404):
+      // CvPreviewDialog already handles an undefined cv-url with a
+      // "CV non disponible" state.
+      console.error('Error downloading CV preview:', error);
+    }
+  })();
+
+  await cvObjectUrlPromise;
+}
+
 function startHoverTimer() {
+  // Start fetching the CV in parallel with the hover delay, so it is
+  // typically ready by the time the preview dialog opens.
+  void ensureCvObjectUrl();
+
   hoverTimer = setTimeout(() => {
     showCvPreview.value = true;
   }, 1000); // 1 second delay
@@ -634,6 +666,13 @@ function contactCandidate() {
     window.open(`mailto:${candidate.value.email}`, '_blank');
   }
 }
+
+onUnmounted(() => {
+  clearHoverTimer();
+  if (cvObjectUrl.value) {
+    URL.revokeObjectURL(cvObjectUrl.value);
+  }
+});
 </script>
 
 <style lang="scss" scoped>
