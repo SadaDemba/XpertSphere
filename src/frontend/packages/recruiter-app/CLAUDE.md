@@ -28,6 +28,11 @@ hybride JWT / Microsoft Entra ID (MSAL).
   backend : voir `.claude/docs/architecture.md`.
 - Spécifications fonctionnelles (une par fonctionnalité) : voir
   `.claude/specifications/` (vide pour l'instant).
+- La consultation/téléchargement sécurisée du CV (fiche candidat, candidatures)
+  est pilotée par une spécification backend qui impacte directement ce
+  package : voir
+  `src/backend/XpertSphere.MonolithApi/.claude/specifications/secure-cv-download.md`,
+  section « Coordination frontend — recruiter-app ».
 
 ## Commandes
 

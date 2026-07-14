@@ -200,6 +200,7 @@ public class UsersController : ControllerBase
     /// <param name="uploadCvDto">CV upload data</param>
     /// <returns>Upload result with file details</returns>
     [HttpPost("{id:guid}/cv")]
+    [Authorize(Policy = "CandidateOwnDataAccess")]
     [ProducesResponseType(typeof(UploadCvResponseDto), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -207,6 +208,31 @@ public class UsersController : ControllerBase
     {
         var result = await _userService.UploadCvAsync(id, uploadCvDto);
         return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Download/consult the CV of a user
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <returns>The CV file content</returns>
+    [HttpGet("{id:guid}/cv")]
+    [Authorize(Policy = "CandidateOwnDataAccess")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> DownloadCv(Guid id)
+    {
+        var result = await _userService.GetCvForDownloadAsync(id);
+        if (!result.IsSuccess)
+        {
+            return result.StatusCode switch
+            {
+                404 => NotFound(new { message = result.Message }),
+                _ => StatusCode(result.StatusCode ?? 500, new { message = result.Message })
+            };
+        }
+
+        var cv = result.Data!;
+        return File(cv.Content, cv.ContentType, cv.FileName);
     }
 
     #endregion

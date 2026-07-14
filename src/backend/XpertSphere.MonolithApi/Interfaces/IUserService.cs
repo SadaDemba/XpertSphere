@@ -118,4 +118,19 @@ public interface IUserService
     /// Update user profile general information
     /// </summary>
     Task<ServiceResult<UserDto>> UpdateProfileAsync(Guid id, UpdateUserProfileDto dto);
+
+    /// <summary>
+    /// Get the CV content of a user for download/consultation
+    /// </summary>
+    Task<ServiceResult<CvDownloadResult>> GetCvForDownloadAsync(Guid userId);
+}
+
+/// <summary>
+/// Transport object for a CV download/consultation
+/// </summary>
+public class CvDownloadResult
+{
+    public Stream Content { get; set; } = default!;
+    public string FileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
 }
