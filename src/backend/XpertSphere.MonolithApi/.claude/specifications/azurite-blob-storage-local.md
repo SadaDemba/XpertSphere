@@ -79,25 +79,12 @@ DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02x
 Ordre de résolution de la connection string, dans cet ordre (le premier trouvé gagne) :
 1. `configuration.GetConnectionString("BlobStorage")` (inclut Key Vault en Staging/Production, et `appsettings.Development.json` en Development) — comportement actuel, inchangé.
 2. Variable d'environnement `ConnectionStrings__BlobStorage` — comportement actuel, inchangé.
-3. **[CONFIRMÉ]** Nouveau repli, uniquement si `IWebHostEnvironment.IsDevelopment()` est vrai : si les deux étapes précédentes n'ont rien trouvé, utiliser par défaut la connection string Azurite canonique (section 2 ci-dessus) plutôt que de lever une exception.
-4. Si toujours vide (Staging/Production, ou Development avec le repli désactivé) : lever `InvalidOperationException` comme aujourd'hui.
+3. **[RETIRÉ]** Un repli automatique vers la connection string Azurite canonique (si `IWebHostEnvironment.IsDevelopment()` et aucune valeur trouvée aux étapes 1/2) a été implémenté puis retiré : il dupliquait la même chaîne de caractères à la fois dans `appsettings.Development.json` et en dur dans `BlobStorageExtensions.cs`. Décision finale de l'utilisateur : source unique de vérité = `appsettings.Development.json`, pas de duplication en code, même si la valeur n'est pas un secret. Si cette valeur est absente en Development, l'application échoue au démarrage — pas de filet de sécurité supplémentaire.
+4. Si toujours vide (tout environnement, y compris Development) : lever `InvalidOperationException` comme aujourd'hui.
 
-Décision utilisateur : implémenter l'étape 3. Elle rapproche `AddBlobStorage()` du traitement déjà réservé à Key Vault/CORS (comportement explicitement différencié en Development), et rend le service utilisable "out of the box" après un simple `docker compose up` même si `appsettings.Development.json` a été localement modifié/supprimé.
+La signature de la méthode reste inchangée (`AddBlobStorage(this IServiceCollection services, IConfiguration configuration)`), sans paramètre `IWebHostEnvironment` — celui-ci n'aurait servi qu'au repli de l'étape 3, retiré.
 
-La signature de la méthode change et l'appel dans `Program.cs` doit être mis à jour en conséquence :
-
-```csharp
-public static IServiceCollection AddBlobStorage(
-    this IServiceCollection services,
-    IConfiguration configuration,
-    IWebHostEnvironment environment)
-```
-```csharp
-// Program.cs
-builder.Services.AddBlobStorage(builder.Configuration, builder.Environment);
-```
-
-Dans tous les cas (étape 3 retenue ou non) : **aucun changement** à la façon dont `BlobServiceClient` est construit (`new BlobServiceClient(connectionString)` reste valide pour une connection string Azurite comme pour une connection string Azure réelle — le comportement de bascule est entièrement porté par la valeur de configuration, pas par une branche de code différente selon l'environnement). Le constructeur de `BlobServiceClient` ne se connecte pas immédiatement : une chaîne syntaxiquement valide mais pointant vers un Azurite non démarré ne fait pas échouer le démarrage de l'application ; l'erreur ne surviendra qu'au premier appel réel (`CreateIfNotExistsAsync`, upload, etc.) dans `ResumeService`. Ce comportement est inchangé et hors périmètre d'un fail-fast réseau (voir Hors périmètre).
+Dans tous les cas : **aucun changement** à la façon dont `BlobServiceClient` est construit (`new BlobServiceClient(connectionString)` reste valide pour une connection string Azurite comme pour une connection string Azure réelle — le comportement de bascule est entièrement porté par la valeur de configuration, pas par une branche de code différente selon l'environnement). Le constructeur de `BlobServiceClient` ne se connecte pas immédiatement : une chaîne syntaxiquement valide mais pointant vers un Azurite non démarré ne fait pas échouer le démarrage de l'application ; l'erreur ne surviendra qu'au premier appel réel (`CreateIfNotExistsAsync`, upload, etc.) dans `ResumeService`. Ce comportement est inchangé et hors périmètre d'un fail-fast réseau (voir Hors périmètre).
 
 ### 4. `Services/ResumeService.cs`
 
@@ -117,8 +104,8 @@ Aucun changement sur `UploadResumeAsync` (la création du container via `CreateI
 - `docker-compose.yml` (racine) : nouveau service `azurite`, nouveau volume `azurite_data`.
 - `src/backend/XpertSphere.MonolithApi/appsettings.Development.json` : nouvelle valeur de `ConnectionStrings:BlobStorage`.
 - `src/backend/XpertSphere.MonolithApi/.env.example` : nouvelle valeur de `ConnectionStrings__BlobStorage` (gabarit versionné uniquement ; un `.env` local existant doit être mis à jour manuellement par chaque développeur, voir encadré de précédence).
-- `src/backend/XpertSphere.MonolithApi/Extensions/BlobStorageExtensions.cs` : ajout du repli Development de l'étape 3 (§3).
-- `src/backend/XpertSphere.MonolithApi/Program.cs` : mise à jour de l'appel à `AddBlobStorage(...)` (nouvelle signature avec `IWebHostEnvironment`).
+- `src/backend/XpertSphere.MonolithApi/Extensions/BlobStorageExtensions.cs` : inchangé dans sa signature et son comportement fail-fast (le repli de l'étape 3 envisagé puis retiré, voir §3).
+- `src/backend/XpertSphere.MonolithApi/Program.cs` : appel à `AddBlobStorage(...)` inchangé.
 - `src/backend/XpertSphere.MonolithApi/Services/ResumeService.cs` : remplacement du parsing d'URL par `BlobUriBuilder` dans les 3 méthodes citées (§4). **Ce changement est requis indépendamment de la décision sur l'étape 3.**
 - Aucun changement dans `appsettings.json`, `appsettings.Staging.json`, `appsettings.Production.json`, `KeyVaultExtensions.cs`.
 
@@ -132,8 +119,8 @@ Aucun changement sur `UploadResumeAsync` (la création du container via `CreateI
    - la récupération de métadonnées retourne le nom de fichier original et la date d'upload (pas de `NotFound`) ;
    - la suppression retourne un succès, et une tentative de téléchargement suivante retourne `NotFound`.
 4. Le container `resumes` est créé automatiquement dans Azurite lors du premier upload, sans étape manuelle (`az storage container create` ou équivalent) — comportement déjà porté par `CreateIfNotExistsAsync` dans `ResumeService`, à vérifier non régressé.
-5. Si la variable de configuration `ConnectionStrings:BlobStorage` est totalement absente en Staging/Production : le démarrage échoue avec le même message d'erreur qu'aujourd'hui (`InvalidOperationException: BlobStorage connection string is not configured...`) — non-régression du comportement fail-fast actuel, le repli de l'étape 3 étant réservé à Development.
-6. Supprimer `ConnectionStrings:BlobStorage` de `appsettings.Development.json` puis démarrer en Development doit malgré tout permettre un upload/download réussi contre Azurite (valeur de repli de l'étape 3 appliquée), sans modification de code au moment du test.
+5. Si la variable de configuration `ConnectionStrings:BlobStorage` est totalement absente, quel que soit l'environnement (y compris Development) : le démarrage échoue avec le même message d'erreur qu'aujourd'hui (`InvalidOperationException: BlobStorage connection string is not configured...`) — non-régression du comportement fail-fast actuel, sans repli automatique.
+6. Supprimer `ConnectionStrings:BlobStorage` de `appsettings.Development.json` et démarrer en Development doit désormais échouer au démarrage (pas de filet de sécurité) — comportement volontaire, `appsettings.Development.json` étant l'unique source de vérité pour cette valeur en local.
 7. Aucune régression sur `ResumeService` en environnement Staging/Production : une URL Azure réelle existante (virtual-hosted-style, ex. `https://xpertspheredev.blob.core.windows.net/resumes/{userId}/f.pdf`) doit continuer à être correctement parsée par `BlobUriBuilder` (test unitaire recommandé, ex. dans `XpertSphere.MonolithApi.Tests`, vérifiant que `new BlobUriBuilder(new Uri(url)).BlobName` retourne bien `{userId}/f.pdf` pour ce style d'URL et `{userId}/f.pdf` également pour l'équivalent Azurite path-style).
 
 ## Hors périmètre
