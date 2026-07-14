@@ -53,7 +53,7 @@ Le linting utilise le fichier `eslint.config.mjs` partagé à la racine `src/fro
 
 ## Intégration avec le backend
 
-La configuration des URLs d'API se trouve dans `src/settings/index.ts`, alimentée par les variables d'environnement (`VITE_WEB_API_BASE_URL`, `VITE_RESUME_ANALYZER_BASE_URL`, `VITE_STORAGE_BASE_URL`, `VITE_APIM_SUBSCRIPTION_KEY`). En développement local (`.env.example`), l'API monolithique est attendue sur `http://localhost:5001` et le service d'analyse de CV sur `http://localhost:8000`.
+La configuration des URLs d'API se trouve dans `src/settings/index.ts`, alimentée par les variables d'environnement (`VITE_WEB_API_BASE_URL`, `VITE_RESUME_ANALYZER_BASE_URL`, `VITE_APIM_SUBSCRIPTION_KEY`). En développement local (`.env.example`), l'API monolithique est attendue sur `http://localhost:5001` et le service d'analyse de CV sur `http://localhost:8000`. Il n'y a pas d'URL de stockage Azure Blob configurée côté frontend : le container `resumes` est privé, et la consultation/téléchargement d'un CV passe par l'endpoint proxy authentifié `GET /api/users/{id}/cv` (voir `src/backend/XpertSphere.MonolithApi/.claude/specifications/secure-cv-download.md`), jamais par une URL de blob ouverte directement.
 
 Deux backends distincts sont consommés :
 
