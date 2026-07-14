@@ -76,6 +76,7 @@ appsettings.Staging.json
 # Docker volumes and data
 .docker/
 docker-compose.override.yml
+__azurite_db_*.json
 
 # Python
 __pycache__/
