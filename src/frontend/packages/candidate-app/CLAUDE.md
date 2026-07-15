@@ -11,7 +11,7 @@ Stack technique : Vue 3 (Composition API) + Quasar Framework 2 + TypeScript + Pi
 ## Documentation
 
 - Structure détaillée, conventions de code et intégration avec le backend : voir `.claude/docs/architecture.md`
-- Spécifications fonctionnelles (une par fonctionnalité, actuellement vide) : voir `.claude/specifications/`
+- Spécifications fonctionnelles (une par fonctionnalité) : voir `.claude/specifications/`. Actuellement : `candidate-registration-training-validation-error.md` (gating de l'étape "Formations" du formulaire d'inscription et normalisation des réponses d'erreur backend dans `authStore`).
 - Le téléchargement sécurisé du CV (`ProfilePage.vue`) est piloté par une spécification backend qui impacte directement ce package : voir `src/backend/XpertSphere.MonolithApi/.claude/specifications/secure-cv-download.md`, section « Coordination frontend — candidate-app ».
 
 ## Commandes
