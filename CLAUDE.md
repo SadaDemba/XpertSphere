@@ -42,15 +42,21 @@ Le détail ne vit jamais dans `CLAUDE.md` lui-même, seulement dans les fichiers
 - `.claude/specifications/<slug-fonctionnalite>.md` : une spécification par fonctionnalité, rédigée par l'agent `spec-writer` avant tout développement.
 - `.claude/docs/` : architecture, structure détaillée, conventions observées.
 
+### Fonctionnalités transverses
+
+Certaines fonctionnalités ne relèvent d'aucun service en particulier (ex. orchestration Docker Compose de plusieurs services, CI/CD globale). Leur spécification vit dans `.claude/specifications/<slug-fonctionnalite>.md` à la racine du monorepo, sur le même modèle que les specs par service, plutôt que d'être rattachée arbitrairement à l'un des services concernés. Voir `.claude/specifications/README.md` pour l'index. Actuellement : `dockerize-full-stack.md` (stack applicative complète via `docker compose up`).
+
 ## Agents disponibles à la racine
 
 Trois agents sont définis dans `.claude/agents/` pour structurer le cycle spec → développement → validation, quel que soit le service concerné :
 
 - **spec-writer** : aide à définir et rédiger les spécifications fonctionnelles/techniques d'une fonctionnalité avant tout développement. Le résultat est écrit dans `.claude/specifications/` du service concerné.
-- **developer** : implémente une fonctionnalité en suivant la spécification déjà rédigée et les conventions du service concerné (`CONTRIBUTING.md` + `CLAUDE.md` local).
+- **developer** : implémente une fonctionnalité en suivant la spécification déjà rédigée et les conventions du service concerné (`CONTRIBUTING.md` + `CLAUDE.md` local). **Toujours invoqué avec isolation de worktree git** (paramètre `isolation: "worktree"` de l'outil Agent) : chaque fonctionnalité se développe dans son propre worktree, jamais dans le répertoire de travail principal. Ça permet de développer/tester plusieurs fonctionnalités indépendantes en parallèle sans qu'un agent n'écrase les changements en cours d'un autre (branches, commits, fichiers partagés comme les hooks git).
 - **validator** : relit un développement terminé et vérifie sa conformité à la spécification et aux conventions du projet, sans se substituer aux tests automatisés.
 
-Workflow attendu : spec-writer rédige la spec dans `.claude/specifications/` → developer implémente → validator vérifie la conformité au regard de la spec et signale les écarts.
+Workflow attendu : spec-writer rédige la spec dans `.claude/specifications/` (avec clarifications auprès de l'utilisateur si besoin) → l'utilisateur demande à l'agent principal de développer une spec donnée → developer implémente de bout en bout, sans interrompre son travail pour poser une question en cours de route → validator vérifie la conformité au regard de la spec et signale les écarts.
+
+Le developer travaille toujours jusqu'au bout de sa tâche sans s'arrêter : il regroupe toute question de clarification et toute remarque/trouvaille en cours de route, et ne les soumet qu'une fois son travail terminé. L'agent principal tranche alors lui-même les questions qui relèvent de son propre contexte (sans redemander à l'utilisateur) et ne relaie à l'utilisateur que celles qui l'exigent réellement. Sur les remarques/trouvailles/points à corriger, l'agent principal et le developer bouclent (l'agent principal renvoie ses retours, le developer ajuste) jusqu'à ce que le résultat convienne aux deux, avant de considérer la tâche terminée.
 
 ## Notes de cohérence
 

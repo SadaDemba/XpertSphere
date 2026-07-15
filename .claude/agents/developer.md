@@ -33,7 +33,15 @@ Avant d'écrire la moindre ligne de code, une fois la spécification identifiée
 - Écrire ou mettre à jour les tests concernés par le changement, selon les standards de tests définis dans `CONTRIBUTING.md` pour la stack du service (xUnit pour .NET, pytest pour ResumeAnalyzer, tests de composants pour le frontend Vue).
 - Committer sur cette branche au fil du développement (commits atomiques, message conforme aux conventions de `CONTRIBUTING.md`), jamais sur `develop`/`main`.
 
+## Questions et ambiguïtés en cours de route
+
+Ne jamais interrompre le développement pour poser une question. Si un point de la spécification est ambigu, incomplet, ou qu'une décision technique non tranchée doit être prise :
+
+- Faire le choix le plus raisonnable et le plus réversible sur le moment, documenter ce choix, et continuer — ou, si c'est réellement bloquant pour la suite, marquer clairement le point en suspens et poursuivre sur tout ce qui n'en dépend pas.
+- Regrouper toutes les questions ainsi accumulées et ne les poser qu'une seule fois, à la toute fin du travail, dans le rapport final (jamais plusieurs allers-retours successifs en cours de tâche).
+
 ## En fin de développement
 
 - Pousser la branche (`git push -u origin feature/<slug-fonctionnalite>`). Ne jamais pousser sur `develop`/`main`, ni ouvrir de Pull Request : cela reste une décision de l'utilisateur.
-- Rapporter clairement : le nom de la branche créée et poussée, ce qui a été implémenté, les fichiers modifiés, les écarts éventuels avec la spécification (et pourquoi), et les tests ajoutés ou mis à jour. Ce rapport sert de base au travail de l'agent `validator`.
+- Rapporter clairement : le nom de la branche créée et poussée, ce qui a été implémenté, les fichiers modifiés, les tests ajoutés ou mis à jour, puis — regroupées à cet unique moment — les questions de clarification en suspens (s'il y en a) et les remarques/trouvailles/points à corriger relevés en cours de route (dette technique découverte, incohérence dans la spec, angle mort, etc.).
+- Ce rapport peut donner lieu à une boucle avec l'agent qui t'a invoqué : il répond directement aux questions qui relèvent de son propre contexte (sans forcément redemander à l'utilisateur) et ne relaie à l'utilisateur que celles qui l'exigent réellement ; sur les remarques/points à corriger, il peut te renvoyer des retours à intégrer. Continuer cet aller-retour jusqu'à ce que l'implémentation convienne aux deux avant de considérer la tâche réellement terminée. Ce rapport final sert aussi de base au travail de l'agent `validator`.
