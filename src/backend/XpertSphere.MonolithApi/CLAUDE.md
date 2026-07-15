@@ -11,7 +11,7 @@ Stack : .NET 9 / ASP.NET Core Web API, Entity Framework Core 9 + SQL Server, ASP
 ## Documentation
 
 - Architecture, structure du projet, conventions de code, points d'attention : `.claude/docs/architecture.md` — à lire avant toute modification non triviale.
-- Spécifications fonctionnelles : `.claude/specifications/` (un fichier par fonctionnalité). Actuellement : `azurite-blob-storage-local.md` (stockage Blob local via Azurite, coexistant avec Azure Storage en Staging/Production) et `secure-cv-download.md` (endpoint proxy authentifié pour consulter/télécharger un CV déjà uploadé, avec coordination frontend `candidate-app`/`recruiter-app`).
+- Spécifications fonctionnelles : `.claude/specifications/` (un fichier par fonctionnalité). Actuellement : `azurite-blob-storage-local.md` (stockage Blob local via Azurite, coexistant avec Azure Storage en Staging/Production), `secure-cv-download.md` (endpoint proxy authentifié pour consulter/télécharger un CV déjà uploadé, avec coordination frontend `candidate-app`/`recruiter-app`), `candidate-registration-experience-description-error.md` (blocage effectif + message d'erreur explicite sur une description d'expérience vide à l'inscription candidat, avec coordination frontend `candidate-app`) et `login-response-missing-experiences-trainings.md` (`LoginAsync`/`RefreshTokenAsync` ne chargent pas `Experiences`/`Trainings`/`Address` contrairement à `GetCurrentUserAsync` — profil candidat visuellement incomplet jusqu'à un reload, avec coordination frontend `candidate-app`).
 
 ## Commandes
 
