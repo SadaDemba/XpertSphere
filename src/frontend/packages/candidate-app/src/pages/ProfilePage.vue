@@ -639,10 +639,8 @@ const formatSalary = (salary?: number) => {
   if (!salary) return 'Non renseigné';
   return (
     new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
       maximumFractionDigits: 0,
-    }).format(salary) + ' / an'
+    }).format(salary) + ' FCFA / an'
   );
 };
 
