@@ -42,6 +42,10 @@ Le détail ne vit jamais dans `CLAUDE.md` lui-même, seulement dans les fichiers
 - `.claude/specifications/<slug-fonctionnalite>.md` : une spécification par fonctionnalité, rédigée par l'agent `spec-writer` avant tout développement.
 - `.claude/docs/` : architecture, structure détaillée, conventions observées.
 
+### Fonctionnalités transverses
+
+Certaines fonctionnalités ne relèvent d'aucun service en particulier (ex. orchestration Docker Compose de plusieurs services, CI/CD globale). Leur spécification vit dans `.claude/specifications/<slug-fonctionnalite>.md` à la racine du monorepo, sur le même modèle que les specs par service, plutôt que d'être rattachée arbitrairement à l'un des services concernés. Voir `.claude/specifications/README.md` pour l'index. Actuellement : `dockerize-full-stack.md` (stack applicative complète via `docker compose up`).
+
 ## Agents disponibles à la racine
 
 Trois agents sont définis dans `.claude/agents/` pour structurer le cycle spec → développement → validation, quel que soit le service concerné :
