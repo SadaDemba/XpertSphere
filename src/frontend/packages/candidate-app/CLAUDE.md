@@ -12,6 +12,7 @@ Stack technique : Vue 3 (Composition API) + Quasar Framework 2 + TypeScript + Pi
 
 - Structure détaillée, conventions de code et intégration avec le backend : voir `.claude/docs/architecture.md`
 - Spécifications fonctionnelles (une par fonctionnalité, actuellement vide) : voir `.claude/specifications/`
+- Le téléchargement sécurisé du CV (`ProfilePage.vue`) est piloté par une spécification backend qui impacte directement ce package : voir `src/backend/XpertSphere.MonolithApi/.claude/specifications/secure-cv-download.md`, section « Coordination frontend — candidate-app ».
 
 ## Commandes
 

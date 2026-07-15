@@ -979,6 +979,49 @@ public class UserService : IUserService
         }
     }
 
+    public async Task<ServiceResult<CvDownloadResult>> GetCvForDownloadAsync(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return ServiceResult<CvDownloadResult>.NotFound($"User with ID {userId} not found");
+            }
+
+            if (string.IsNullOrEmpty(user.CvPath))
+            {
+                return ServiceResult<CvDownloadResult>.NotFound("No CV uploaded for this user");
+            }
+
+            var metadataResult = await _resumeService.GetResumeMetadataAsync(user.CvPath);
+            if (!metadataResult.IsSuccess)
+            {
+                return ServiceResult<CvDownloadResult>.NotFound("CV file not found in storage");
+            }
+
+            var downloadResult = await _resumeService.DownloadResumeAsync(user.CvPath);
+            if (!downloadResult.IsSuccess)
+            {
+                return ServiceResult<CvDownloadResult>.NotFound("CV file not found in storage");
+            }
+
+            var cvDownloadResult = new CvDownloadResult
+            {
+                Content = downloadResult.Data!,
+                FileName = metadataResult.Data!.FileName,
+                ContentType = metadataResult.Data!.ContentType
+            };
+
+            return ServiceResult<CvDownloadResult>.Success(cvDownloadResult);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving CV for download for user {UserId}", userId);
+            return ServiceResult<CvDownloadResult>.InternalError("An error occurred while retrieving the CV");
+        }
+    }
+
     private static bool HasAddressData(UpdateUserProfileDto dto)
     {
         return !string.IsNullOrEmpty(dto.StreetNumber) ||

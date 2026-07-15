@@ -138,6 +138,7 @@
 import type { Application } from '../../models';
 import { applicationStatusConfig, applicationSourceLabels } from '../../models';
 import { formatDate } from '../../helpers';
+import { useRouter } from 'vue-router';
 
 interface Props {
   application: Application;
@@ -150,11 +151,13 @@ interface Emits {
   (e: 'delete', application: Application): void;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 defineEmits<Emits>();
 
+const router = useRouter();
+
 function viewResume() {
-  window.open('/resume-viewer', '_blank');
+  void router.push(`/candidates/${props.application.candidateId}/cv`);
 }
 </script>
 

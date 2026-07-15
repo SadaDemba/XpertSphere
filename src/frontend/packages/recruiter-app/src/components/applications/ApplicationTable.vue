@@ -115,7 +115,7 @@
                 </q-item-section>
                 <q-item-section>Voir détails</q-item-section>
               </q-item>
-              <q-item clickable @click="viewResume()">
+              <q-item clickable @click="viewResume(props.row)">
                 <q-item-section avatar>
                   <q-icon name="description" />
                 </q-item-section>
@@ -157,8 +157,10 @@ import type { Application } from '../../models';
 import { applicationStatusConfig, applicationSourceLabels } from '../../models';
 import { formatDate } from '../../helpers';
 import { useDataTable } from 'src/composables/datatable';
+import { useRouter } from 'vue-router';
 
 const dataTable = useDataTable();
+const router = useRouter();
 
 interface Props {
   applications: Application[];
@@ -228,8 +230,8 @@ const columns: Ref<QTableColumn<any>[]> = ref([
   },
 ]);
 
-function viewResume() {
-  window.open('/resume-viewer', '_blank');
+function viewResume(application: Application) {
+  void router.push(`/candidates/${application.candidateId}/cv`);
 }
 </script>
 

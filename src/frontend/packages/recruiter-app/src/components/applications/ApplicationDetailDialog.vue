@@ -184,6 +184,7 @@ import type { ApplicationSource, ApplicationStatus } from 'src/enums';
 import { sourceLabels } from 'src/enums/ApplicationSource';
 import { statusOptions } from 'src/enums/ApplicationStatus';
 import { ref, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
 interface Application {
   id: string;
@@ -215,6 +216,8 @@ interface Emits {
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
+
+const router = useRouter();
 
 const saving = ref(false);
 const internalNotes = ref('');
@@ -253,7 +256,10 @@ function formatDateTime(dateString: string): string {
 }
 
 function viewResume() {
-  window.open('/resume-viewer', '_blank');
+  if (!props.application) {
+    return;
+  }
+  void router.push(`/candidates/${props.application.candidateId}/cv`);
 }
 
 function updateStatus() {

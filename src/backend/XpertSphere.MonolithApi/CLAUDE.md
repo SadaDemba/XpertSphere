@@ -11,7 +11,7 @@ Stack : .NET 9 / ASP.NET Core Web API, Entity Framework Core 9 + SQL Server, ASP
 ## Documentation
 
 - Architecture, structure du projet, conventions de code, points d'attention : `.claude/docs/architecture.md` — à lire avant toute modification non triviale.
-- Spécifications fonctionnelles : `.claude/specifications/` (un fichier par fonctionnalité). Actuellement : `azurite-blob-storage-local.md` (stockage Blob local via Azurite, coexistant avec Azure Storage en Staging/Production).
+- Spécifications fonctionnelles : `.claude/specifications/` (un fichier par fonctionnalité). Actuellement : `azurite-blob-storage-local.md` (stockage Blob local via Azurite, coexistant avec Azure Storage en Staging/Production) et `secure-cv-download.md` (endpoint proxy authentifié pour consulter/télécharger un CV déjà uploadé, avec coordination frontend `candidate-app`/`recruiter-app`).
 
 ## Commandes
 

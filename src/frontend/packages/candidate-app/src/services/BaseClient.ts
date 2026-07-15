@@ -32,6 +32,7 @@ export class BaseClient {
 
     this.loadJwtTokensFromStorage();
     this.apiClient.interceptors.request.use(this.requestInterceptor.bind(this));
+    this.apiClient.interceptors.response.use(undefined, this.blobErrorResponseInterceptor);
     this.apiClient.interceptors.response.use(undefined, this.errorResponseInterceptor.bind(this));
   }
 
@@ -105,6 +106,46 @@ export class BaseClient {
       }
       throw new Error(error instanceof Error ? error.message : errorMessage);
     }
+  }
+
+  protected async downloadFile(
+    service: string,
+    config?: AxiosRequestConfig,
+    errorMessage?: string,
+  ): Promise<Blob> {
+    try {
+      const response = await this.apiClient.get(service, {
+        responseType: 'blob',
+        timeout: 60_000,
+        ...config,
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : errorMessage);
+    }
+  }
+
+  private blobErrorResponseInterceptor(error: AxiosError): Promise<AxiosError> {
+    const contentType: string = error.response?.headers['content-type']?.toLowerCase() ?? '';
+    if (error.request.responseType === 'blob' && contentType.includes('json')) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = (): void => {
+          if (error.response) {
+            error.response.data = JSON.parse(reader.result as string);
+            resolve(Promise.reject(error));
+          }
+        };
+
+        reader.onerror = (): void => reject(error);
+
+        reader.readAsText(error.response?.data as Blob);
+      });
+    }
+
+    return Promise.reject(error);
   }
 
   private async requestInterceptor(

@@ -64,10 +64,10 @@
       <!-- CV Viewer -->
       <q-card class="cv-viewer-card">
         <q-card-section class="q-pa-none">
-          <div v-if="candidate.cvPath" class="cv-viewer">
+          <div v-if="cvObjectUrl" class="cv-viewer">
             <iframe
               ref="cvIframe"
-              :src="candidate.cvPath"
+              :src="cvObjectUrl"
               class="cv-iframe"
               title="CV Viewer"
               @load="adjustIframeHeight"
@@ -111,9 +111,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '../../stores/userStore';
+import userService from '../../services/userService';
 import type { UserDto } from '../../models/user';
 
 const route = useRoute();
@@ -122,6 +123,7 @@ const userStore = useUserStore();
 
 const candidate = ref<UserDto | null>(null);
 const cvIframe = ref<HTMLIFrameElement | null>(null);
+const cvObjectUrl = ref<string | null>(null);
 
 const goBack = () => {
   router.push(`/candidates/${candidate.value?.id}`);
@@ -161,14 +163,29 @@ const adjustIframeHeight = () => {
 };
 
 const downloadCV = () => {
-  if (candidate.value?.cvPath) {
-    // Create a temporary link to download the file
+  if (cvObjectUrl.value && candidate.value?.cvPath) {
+    // Derive the real file extension from cvPath (never hardcode it: a CV can
+    // be .pdf, .doc or .docx).
+    const extension = candidate.value.cvPath.split('.').pop() || 'pdf';
+
     const link = document.createElement('a');
-    link.href = candidate.value.cvPath;
-    link.download = `CV_${candidate.value.fullName}.pdf`;
+    link.href = cvObjectUrl.value;
+    link.download = `CV_${candidate.value.fullName}.${extension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+};
+
+const loadCvObjectUrl = async (candidateId: string) => {
+  try {
+    const blob = await userService.downloadCv(candidateId);
+    cvObjectUrl.value = URL.createObjectURL(blob);
+  } catch (error) {
+    // No CV uploaded, or the file is no longer available in storage (404):
+    // fall back to the "CV non disponible" state below.
+    console.error('Error downloading CV:', error);
+    cvObjectUrl.value = null;
   }
 };
 
@@ -180,6 +197,16 @@ onMounted(async () => {
     } catch (error) {
       console.error('Error fetching candidate:', error);
     }
+
+    if (candidate.value?.cvPath) {
+      await loadCvObjectUrl(candidateId);
+    }
+  }
+});
+
+onUnmounted(() => {
+  if (cvObjectUrl.value) {
+    URL.revokeObjectURL(cvObjectUrl.value);
   }
 });
 </script>

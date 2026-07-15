@@ -104,6 +104,10 @@ export class UserService extends BaseClient {
       params: { days },
     });
   }
+
+  async downloadCv(userId: string): Promise<Blob> {
+    return this.downloadFile(`/${userId}/cv`, {}, 'Erreur lors du téléchargement du CV');
+  }
 }
 
 export const userService = new UserService();

@@ -26,11 +26,6 @@ export const settings = {
     baseUrl: import.meta.env.VITE_RESUME_ANALYZER_BASE_URL as string,
   },
 
-  // Azure Blob Storage
-  storage: {
-    baseUrl: import.meta.env.VITE_STORAGE_BASE_URL as string,
-  },
-
   // App config
   app: {
     name: 'XpertSphere Candidate',
