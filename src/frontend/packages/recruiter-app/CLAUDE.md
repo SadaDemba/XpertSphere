@@ -33,6 +33,10 @@ hybride JWT / Microsoft Entra ID (MSAL).
   package : voir
   `src/backend/XpertSphere.MonolithApi/.claude/specifications/secure-cv-download.md`,
   section « Coordination frontend — recruiter-app ».
+- L'affichage du salaire souhaité du candidat (`CandidatesPage.vue`,
+  `CandidateDetailPage.vue`) est piloté par une spécification côté
+  `candidate-app` (le champ y est saisi) : voir
+  `src/frontend/packages/candidate-app/.claude/specifications/fix-devise-salaire-souhaite-eur-vers-xof.md`.
 
 ## Commandes
 
