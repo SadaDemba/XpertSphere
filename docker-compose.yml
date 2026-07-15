@@ -74,7 +74,7 @@ services:
       Jwt__Key: ${JWT_KEY}
       CORS__ALLOWED_ORIGINS: "http://localhost:${CANDIDATE_APP_PORT:-3000},http://localhost:${RECRUITER_APP_PORT:-3001}"
     ports:
-      - "${API_PORT:-5000}:8080"
+      - "${API_PORT:-5050}:8080"
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -113,7 +113,7 @@ services:
       args:
         VITE_APP_ENV: development
         VITE_AUTH_MODE: jwt
-        VITE_WEB_API_BASE_URL: http://localhost:${API_PORT:-5000}
+        VITE_WEB_API_BASE_URL: http://localhost:${API_PORT:-5050}
         VITE_APP_VERSION: docker-local
     container_name: xpertsphere-recruiter-app
     ports:
@@ -131,7 +131,7 @@ services:
       dockerfile: docker/candidate-app/Dockerfile
       args:
         VITE_APP_ENV: development
-        VITE_WEB_API_BASE_URL: http://localhost:${API_PORT:-5000}
+        VITE_WEB_API_BASE_URL: http://localhost:${API_PORT:-5050}
         VITE_RESUME_ANALYZER_BASE_URL: http://localhost:${RESUME_ANALYZER_PORT:-8001}
         VITE_APP_VERSION: docker-local
     container_name: xpertsphere-candidate-app

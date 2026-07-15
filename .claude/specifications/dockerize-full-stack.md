@@ -51,7 +51,7 @@ Chaque service backend a déjà son propre `.env`/`.env.example` (`src/backend/X
 
 Un fichier `.env.example` existe déjà à la **racine** du monorepo (`/.env.example`), avec des variables (`DB_SERVER`, `SQLSERVER_PORT`, `REDIS_PORT`, `ADMINER_PORT`, `API_PORT`, `AZURE_CLIENT_ID`, `JWT_SECRET`, ...) qui ne sont **actuellement référencées par aucun `${...}` dans `docker-compose.yml`** — un fichier gabarit resté sans effet depuis sa création. **Décision : réutiliser et étendre ce fichier racine plutôt que d'en créer un second.** Il devient la source unique de vérité pour paramétrer `docker-compose.yml` (ports publiés, arguments de build frontend, secrets injectés dans les conteneurs backend), via le mécanisme natif de Docker Compose (`.env` au même niveau que `docker-compose.yml`, substitution `${VAR}` dans le fichier compose lui-même). Ceci est indépendant et ne remplace pas les `.env` par service, qui continuent de servir exclusivement les usages non conteneurisés (`dotnet run`, `npm run dev`, `uvicorn`).
 
-Les variables déjà présentes dans `.env.example` racine mais non reprises par cette spec (`DB_SERVER`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PASSWORD`, `SQLSERVER_PORT`, `REDIS_PORT`, `ADMINER_PORT`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID`, `JWT_SECRET`, `JWT_ISSUER`, `JWT_AUDIENCE`, `ENABLE_ENTRAID_IN_DEV`) restent **inchangées et toujours sans effet sur `docker-compose.yml`** (elles concernent l'infra `sqlserver`/`redis`/`adminer`, dont les valeurs restent en dur dans le fichier compose, ou une authentification Entra ID hors périmètre ici) : ni suppression ni câblage, pour ne pas élargir le périmètre. Seule `API_PORT` (déjà existante, `5000`) est réutilisée telle quelle pour `monolith-api` (voir §4).
+Les variables déjà présentes dans `.env.example` racine mais non reprises par cette spec (`DB_SERVER`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PASSWORD`, `SQLSERVER_PORT`, `REDIS_PORT`, `ADMINER_PORT`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID`, `JWT_SECRET`, `JWT_ISSUER`, `JWT_AUDIENCE`, `ENABLE_ENTRAID_IN_DEV`) restent **inchangées et toujours sans effet sur `docker-compose.yml`** (elles concernent l'infra `sqlserver`/`redis`/`adminer`, dont les valeurs restent en dur dans le fichier compose, ou une authentification Entra ID hors périmètre ici) : ni suppression ni câblage, pour ne pas élargir le périmètre. Seule `API_PORT` (déjà existante) est réutilisée pour `monolith-api` (voir §4) — sa valeur par défaut est passée de `5000` à `5050` (conflit constaté avec le port 5000, occupé par défaut par AirPlay Receiver/ControlCenter sur macOS) ; vérifier qu'aucune valeur explicite `API_PORT=5000` ne subsiste dans son propre `.env` local, qui primerait sur ce nouveau défaut.
 
 ### 3. Configuration runtime des conteneurs backend
 
@@ -101,7 +101,7 @@ CORS : `app/main.py` configure `CORSMiddleware(allow_origins=["*"], ...)` sans c
       Jwt__Key: ${JWT_KEY}
       CORS__ALLOWED_ORIGINS: "http://localhost:${CANDIDATE_APP_PORT:-3000},http://localhost:${RECRUITER_APP_PORT:-3001}"
     ports:
-      - "${API_PORT:-5000}:8080"
+      - "${API_PORT:-5050}:8080"
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -140,7 +140,7 @@ CORS : `app/main.py` configure `CORSMiddleware(allow_origins=["*"], ...)` sans c
       args:
         VITE_APP_ENV: development
         VITE_AUTH_MODE: jwt
-        VITE_WEB_API_BASE_URL: http://localhost:${API_PORT:-5000}
+        VITE_WEB_API_BASE_URL: http://localhost:${API_PORT:-5050}
         VITE_APP_VERSION: docker-local
     container_name: xpertsphere-recruiter-app
     ports:
@@ -158,7 +158,7 @@ CORS : `app/main.py` configure `CORSMiddleware(allow_origins=["*"], ...)` sans c
       dockerfile: docker/candidate-app/Dockerfile
       args:
         VITE_APP_ENV: development
-        VITE_WEB_API_BASE_URL: http://localhost:${API_PORT:-5000}
+        VITE_WEB_API_BASE_URL: http://localhost:${API_PORT:-5050}
         VITE_RESUME_ANALYZER_BASE_URL: http://localhost:${RESUME_ANALYZER_PORT:-8001}
         VITE_APP_VERSION: docker-local
     container_name: xpertsphere-candidate-app
@@ -180,7 +180,7 @@ Points à noter sur ce contenu :
 - `monolith-api` et `resume-analyzer` ont déjà un `HEALTHCHECK` défini dans leur Dockerfile (`curl -f http://localhost:8080/health` / `curl -f http://localhost:8000/api/health`) : réutilisé directement par `condition: service_healthy`, sans redéfinition dans `docker-compose.yml`.
 - Aucun healthcheck pour `recruiter-app`/`candidate-app` (pas défini dans leurs Dockerfiles, pas ajouté ici — cohérent avec l'absence de healthcheck déjà observée pour `redis` dans ce fichier). Aucun autre service n'en dépend.
 - `azurite` (§ Prérequis) : pas de healthcheck prévu par `azurite-blob-storage-local.md` ; `condition: service_started` (pas `service_healthy`, qui exigerait un healthcheck absent) suffit ici, l'accès au Blob Storage n'étant sollicité qu'au premier upload (`CreateIfNotExistsAsync` dans `ResumeService`), pas au démarrage de `monolith-api`.
-- Ports par défaut choisis pour ne **pas** entrer en conflit avec l'usage non conteneurisé existant, permettant en théorie de faire tourner les deux en parallèle si besoin (`dotnet run` sur `5001`/`7001` + Docker sur `5000` ; `uvicorn` sur `8000` + Docker sur `8001` ; `quasar dev` sur `9000`/`9200` + Docker sur `3000`/`3001`) : `API_PORT` réutilise la valeur déjà présente (`5000`) dans le `.env.example` racine existant (jusqu'ici sans effet) ; `RESUME_ANALYZER_PORT` (`8001`), `RECRUITER_APP_PORT` (`3001`) et `CANDIDATE_APP_PORT` (`3000`) sont nouveaux. `3000`/`3001` correspondent aux ports déjà `EXPOSE`-és dans les Dockerfiles frontend respectifs (`docker/candidate-app/Dockerfile` : `EXPOSE 3000`, script `preview` → `serve dist/spa -l 3000` ; `docker/recruiter-app/Dockerfile` : `EXPOSE 3001`, `serve dist/spa -l 3001`) : aucun autre choix ne serait cohérent avec ce que le conteneur écoute réellement en interne.
+- Ports par défaut choisis pour ne **pas** entrer en conflit avec l'usage non conteneurisé existant, permettant en théorie de faire tourner les deux en parallèle si besoin (`dotnet run` sur `5001`/`7001` + Docker sur `5050` ; `uvicorn` sur `8000` + Docker sur `8001` ; `quasar dev` sur `9000`/`9200` + Docker sur `3000`/`3001`) : `API_PORT` valait initialement `5000` (valeur déjà présente dans le `.env.example` racine existant, jusque-là sans effet), changé en `5050` en pratique — le port 5000 étant par défaut occupé par AirPlay Receiver/ControlCenter sur macOS, un conflit systématique plutôt qu'un cas limite ; `RESUME_ANALYZER_PORT` (`8001`), `RECRUITER_APP_PORT` (`3001`) et `CANDIDATE_APP_PORT` (`3000`) sont nouveaux. `3000`/`3001` correspondent aux ports déjà `EXPOSE`-és dans les Dockerfiles frontend respectifs (`docker/candidate-app/Dockerfile` : `EXPOSE 3000`, script `preview` → `serve dist/spa -l 3000` ; `docker/recruiter-app/Dockerfile` : `EXPOSE 3001`, `serve dist/spa -l 3001`) : aucun autre choix ne serait cohérent avec ce que le conteneur écoute réellement en interne.
 - `ports:` mappe toujours `<port hôte>:<port interne réel>`, pas `<port hôte>:<port hôte>` — attention à ne pas confondre lors de l'implémentation (ex. `monolith-api` écoute sur `8080` en interne quel que soit `API_PORT`, cf. `ENV ASPNETCORE_URLS=http://+:8080` fixé dans le Dockerfile, non modifié).
 - `VITE_APIM_SUBSCRIPTION_KEY` (déclaré comme `ARG`/`ENV` dans `docker/recruiter-app/Dockerfile` et `docker/candidate-app/Dockerfile`) et `VITE_AUTH_MODE` (déclaré uniquement côté `recruiter-app`) sont **volontairement omis** des `build.args` ci-dessus pour `VITE_APIM_SUBSCRIPTION_KEY` : cette clé sert à authentifier les appels passant par Azure API Management (chemin Staging/Production), non pertinent en mode `jwt` 100% local. `VITE_AUTH_MODE` reste fourni (`jwt`) car `recruiter-app` en a besoin quel que soit l'environnement. Ne pas interpréter cette omission comme un oubli.
 
@@ -244,10 +244,10 @@ AZURE_OPENAI_TEMPERATURE=0.1
 
 1. Depuis un clone propre du repo sur `develop`, après avoir copié `.env.example` (racine) vers `.env` et renseigné au minimum `ADMIN_EMAIL`/`ADMIN_PASSWORD`/`JWT_KEY` et un jeu de clés LLM valide (Groq ou Azure OpenAI), `docker compose up --build` démarre sans erreur les 8 services (`sqlserver`, `redis`, `adminer`, `azurite`, `monolith-api`, `resume-analyzer`, `recruiter-app`, `candidate-app`).
 2. `docker compose ps` montre `monolith-api` et `resume-analyzer` en état `healthy` (pas seulement `running`) après un délai raisonnable (`start_period` des healthchecks déjà définis dans leurs Dockerfiles).
-3. `curl http://localhost:5000/health` (ou le port choisi via `API_PORT`) répond `200` **sans redirection vers HTTPS** (pas de code `307`/`308`) — le conteneur ne sert que du HTTP (`ASPNETCORE_URLS=http://+:8080`), `app.UseHttpsRedirection()` ne doit pas casser les appels du navigateur faute de port HTTPS configuré.
+3. `curl http://localhost:5050/health` (ou le port choisi via `API_PORT`) répond `200` **sans redirection vers HTTPS** (pas de code `307`/`308`) — le conteneur ne sert que du HTTP (`ASPNETCORE_URLS=http://+:8080`), `app.UseHttpsRedirection()` ne doit pas casser les appels du navigateur faute de port HTTPS configuré.
 4. `curl http://localhost:8001/api/health` (ou le port choisi via `RESUME_ANALYZER_PORT`) répond `200`.
 5. `http://localhost:3001` (recruiter-app) et `http://localhost:3000` (candidate-app) sont accessibles dans un navigateur.
-6. Depuis `candidate-app` dans le navigateur : un scénario d'inscription candidat avec upload d'un CV (PDF) réussit de bout en bout — l'appel réseau visible dans les DevTools cible `http://localhost:5000/...` (jamais `http://monolith-api:...`), reçoit un `200`/`201` sans erreur CORS, et le compte est créé (vérifiable via `adminer` sur la base `XpertSphereDb`, table `Users`).
+6. Depuis `candidate-app` dans le navigateur : un scénario d'inscription candidat avec upload d'un CV (PDF) réussit de bout en bout — l'appel réseau visible dans les DevTools cible `http://localhost:5050/...` (ou le port choisi via `API_PORT`, jamais `http://monolith-api:...`), reçoit un `200`/`201` sans erreur CORS, et le compte est créé (vérifiable via `adminer` sur la base `XpertSphereDb`, table `Users`).
 7. Le compte `PlatformSuperAdmin` seedé (email/mot de passe = `ADMIN_EMAIL`/`ADMIN_PASSWORD` du `.env`) permet une connexion réussie via `recruiter-app`.
 8. Un CV uploadé via `candidate-app` peut être soumis à l'analyse via `resume-analyzer` (appel visible ciblant `http://localhost:8001/...`) et retourne des données structurées (identité, expériences, formations, compétences).
 9. Arrêter puis relancer la stack (`docker compose down` puis `docker compose up`, sans `-v`) conserve les données (base SQL Server, blobs Azurite) grâce aux volumes nommés déjà en place/ajoutés — pas de re-seed en doublon (le seed vérifie déjà l'existence avant insertion, comportement inchangé).
