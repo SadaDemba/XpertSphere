@@ -181,6 +181,27 @@ public class AuthenticationService : IAuthenticationService
                     return AuthResult.ValidationError(["You must accept the terms and privacy policy"]);
                 }
 
+                // Each experience, once added, must have a non-empty description
+                if (registerDto.Experiences?.Count > 0)
+                {
+                    var experienceErrors = new List<string>();
+                    for (var i = 0; i < registerDto.Experiences.Count; i++)
+                    {
+                        var experience = registerDto.Experiences[i];
+                        if (string.IsNullOrWhiteSpace(experience.Description))
+                        {
+                            experienceErrors.Add(string.IsNullOrWhiteSpace(experience.Title)
+                                ? $"Experience #{i + 1} is missing a description."
+                                : $"Experience #{i + 1} (\"{experience.Title}\") is missing a description.");
+                        }
+                    }
+
+                    if (experienceErrors.Count > 0)
+                    {
+                        return AuthResult.ValidationError(experienceErrors);
+                    }
+                }
+
                 var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
                 if (existingUser != null)
                 {

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using XpertSphere.MonolithApi.DTOs.Auth;
+using XpertSphere.MonolithApi.DTOs.ExperienceDtos;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Services;
@@ -412,6 +413,205 @@ public class AuthenticationServiceTests : IDisposable
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
         result.Message.Should().Contain("Password reset successful");
+    }
+
+    [Fact]
+    public async Task RegisterCandidateAsync_WithExperienceMissingDescription_ShouldReturnValidationError()
+    {
+        // Arrange
+        var registerDto = CreateValidRegisterCandidateDto(
+        [
+            new CreateExperienceDto
+            {
+                Title = "Backend Developer",
+                Company = "Acme",
+                Location = "Paris",
+                Date = "2020-2022",
+                Description = ""
+            }
+        ]);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.RegisterCandidateAsync(registerDto);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.StatusCode.Should().Be(422);
+        result.Errors.Should().Contain("Experience #1 (\"Backend Developer\") is missing a description.");
+    }
+
+    [Fact]
+    public async Task RegisterCandidateAsync_WithExperienceWhitespaceDescription_ShouldReturnValidationError()
+    {
+        // Arrange
+        var registerDto = CreateValidRegisterCandidateDto(
+        [
+            new CreateExperienceDto
+            {
+                Title = "Backend Developer",
+                Company = "Acme",
+                Location = "Paris",
+                Date = "2020-2022",
+                Description = "   "
+            }
+        ]);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.RegisterCandidateAsync(registerDto);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.StatusCode.Should().Be(422);
+        result.Errors.Should().Contain("Experience #1 (\"Backend Developer\") is missing a description.");
+    }
+
+    [Fact]
+    public async Task RegisterCandidateAsync_WithExperienceMissingTitleAndDescription_ShouldReturnValidationErrorWithoutTitle()
+    {
+        // Arrange
+        var registerDto = CreateValidRegisterCandidateDto(
+        [
+            new CreateExperienceDto
+            {
+                Title = "",
+                Company = "Acme",
+                Location = "Paris",
+                Date = "2020-2022",
+                Description = ""
+            }
+        ]);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.RegisterCandidateAsync(registerDto);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.StatusCode.Should().Be(422);
+        result.Errors.Should().Contain("Experience #1 is missing a description.");
+    }
+
+    [Fact]
+    public async Task RegisterCandidateAsync_WithTwoExperiencesMissingDescription_ShouldReturnBothErrors()
+    {
+        // Arrange
+        var registerDto = CreateValidRegisterCandidateDto(
+        [
+            new CreateExperienceDto
+            {
+                Title = "Backend Developer",
+                Company = "Acme",
+                Location = "Paris",
+                Date = "2020-2022",
+                Description = ""
+            },
+            new CreateExperienceDto
+            {
+                Title = "Frontend Developer",
+                Company = "Beta",
+                Location = "Lyon",
+                Date = "2018-2020",
+                Description = "   "
+            }
+        ]);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.RegisterCandidateAsync(registerDto);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.StatusCode.Should().Be(422);
+        result.Errors.Should().Contain("Experience #1 (\"Backend Developer\") is missing a description.");
+        result.Errors.Should().Contain("Experience #2 (\"Frontend Developer\") is missing a description.");
+    }
+
+    [Fact]
+    public async Task RegisterCandidateAsync_WithOneValidAndOneInvalidExperience_ShouldReturnOnlyInvalidOneError()
+    {
+        // Arrange
+        var registerDto = CreateValidRegisterCandidateDto(
+        [
+            new CreateExperienceDto
+            {
+                Title = "Backend Developer",
+                Company = "Acme",
+                Location = "Paris",
+                Date = "2020-2022",
+                Description = "Built and maintained backend services."
+            },
+            new CreateExperienceDto
+            {
+                Title = "Frontend Developer",
+                Company = "Beta",
+                Location = "Lyon",
+                Date = "2018-2020",
+                Description = ""
+            }
+        ]);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.RegisterCandidateAsync(registerDto);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.StatusCode.Should().Be(422);
+        result.Errors.Should().ContainSingle();
+        result.Errors.Should().Contain("Experience #2 (\"Frontend Developer\") is missing a description.");
+    }
+
+    [Fact]
+    public async Task RegisterCandidateAsync_WithNoExperiences_ShouldReturnSuccess()
+    {
+        // Arrange - empty experiences list must remain a non-regression: the step stays optional overall
+        var registerDto = CreateValidRegisterCandidateDto();
+
+        _mockUserManager.Setup(x => x.FindByEmailAsync(registerDto.Email))
+            .ReturnsAsync((User?)null);
+        _mockUserManager.Setup(x => x.CreateAsync(It.IsAny<User>(), registerDto.Password))
+            .ReturnsAsync(IdentityResult.Success);
+        _mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>()))
+            .ReturnsAsync(IdentityResult.Success);
+        _mockUserManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<User>()))
+            .ReturnsAsync("test-token");
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.RegisterCandidateAsync(registerDto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Message.Should().Contain("Registration successful");
+    }
+
+    private static RegisterCandidateDto CreateValidRegisterCandidateDto(List<CreateExperienceDto>? experiences = null)
+    {
+        return new RegisterCandidateDto
+        {
+            Email = "candidate@example.com",
+            Password = "Test123!",
+            ConfirmPassword = "Test123!",
+            FirstName = "Test",
+            LastName = "Candidate",
+            AcceptTerms = true,
+            AcceptPrivacyPolicy = true,
+            Experiences = experiences
+        };
     }
 
     private AuthenticationService CreateAuthenticationService(AutoMapper.IMapper mapper)
