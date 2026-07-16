@@ -75,7 +75,11 @@ export const useAuthStore = defineStore('auth', () => {
         setAuth(response);
         return true;
       } else {
-        setError(response?.message || 'Erreur lors de la connexion');
+        const errorMessage =
+          response?.errors && response.errors.length > 0
+            ? response.errors.join(' ')
+            : response?.message || 'Erreur lors de la connexion';
+        setError(errorMessage);
         return false;
       }
     } catch (error) {
@@ -99,7 +103,11 @@ export const useAuthStore = defineStore('auth', () => {
         setAuth(response);
         return true;
       } else {
-        setError(response?.message || "Erreur lors de l'inscription");
+        const errorMessage =
+          response?.errors && response.errors.length > 0
+            ? response.errors.join(' ')
+            : response?.message || "Erreur lors de l'inscription";
+        setError(errorMessage);
         return false;
       }
     } catch (error) {

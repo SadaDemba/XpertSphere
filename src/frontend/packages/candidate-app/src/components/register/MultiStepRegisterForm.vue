@@ -473,7 +473,7 @@
               currentStep === 1 && cvFile && shouldAnalyzeCV ? 'Analyser et continuer' : 'Suivant'
             "
             :loading="isAnalyzing || isLoading"
-            :disable="!canProceed"
+            :disable="nextButtonDisabled"
             @click="nextStep"
           />
 
@@ -482,7 +482,7 @@
             color="primary"
             label="Créer mon compte"
             :loading="isLoading"
-            :disable="!canSubmit"
+            :disable="!canProceed"
             @click="submitForm"
           />
         </q-stepper-navigation>
@@ -601,6 +601,17 @@ const canAddExperience = computed(() => {
   );
 });
 
+// Returns, for each experience with an empty/blank description, its 1-based
+// position in the list and its title (recalculated on every call so that
+// removing an experience never leaves a stale/cached index behind).
+const getInvalidExperiences = (): { index: number; title: string }[] => {
+  if (!formData.experiences) return [];
+  return formData.experiences
+    .map((experience, index) => ({ experience, index: index + 1 }))
+    .filter(({ experience }) => !experience.description?.trim())
+    .map(({ experience, index }) => ({ index, title: experience.title ?? '' }));
+};
+
 const canProceed = computed(() => {
   switch (currentStep.value) {
     case 1:
@@ -612,7 +623,9 @@ const canProceed = computed(() => {
     case 4:
       return true; // Training is optional
     case 5:
-      return true; // Experience is optional
+      // Experience remains optional overall, but once an experience is added its
+      // description becomes mandatory.
+      return getInvalidExperiences().length === 0;
     case 6:
       return !!(
         formData.email &&
@@ -627,9 +640,26 @@ const canProceed = computed(() => {
   }
 });
 
-const canSubmit = computed(() => {
-  return canProceed.value && currentStep.value === 6;
+// Governs whether the "Suivant" button is rendered disabled. The experience
+// description rule (case 5 of canProceed) is intentionally excluded here: it
+// is enforced via a click + explicit notification (see nextStep) rather than
+// a silent hard disable, so that the candidate is told exactly which
+// experience is incomplete instead of the button simply refusing to react.
+const nextButtonDisabled = computed(() => {
+  if (currentStep.value === 5) return false;
+  return !canProceed.value;
 });
+
+const canSubmit = computed(() => {
+  return canProceed.value && currentStep.value === 6 && getInvalidExperiences().length === 0;
+});
+
+const notifyInvalidExperiences = (invalidExperiences: { index: number; title: string }[]) => {
+  invalidExperiences.forEach(({ index, title }) => {
+    const label = title ? `l'expérience ${index} ("${title}")` : `l'expérience ${index}`;
+    notification.showErrorNotification(`La description de ${label} est obligatoire.`);
+  });
+};
 
 // Methods
 const addTraining = () => {
@@ -717,6 +747,16 @@ const nextStep = async () => {
     }
   }
 
+  if (currentStep.value === 5) {
+    const invalidExperiences = getInvalidExperiences();
+    if (invalidExperiences.length > 0) {
+      stepErrors.value[5] = true;
+      notifyInvalidExperiences(invalidExperiences);
+      return;
+    }
+    stepErrors.value[5] = false;
+  }
+
   if (canProceed.value) {
     currentStep.value++;
   }
@@ -729,6 +769,17 @@ const previousStep = () => {
 };
 
 const submitForm = () => {
+  // The candidate may have gone back and forth without revisiting step 5, or
+  // have an experience pre-filled by the CV analysis that was never manually
+  // reviewed: revalidate here too, not just when leaving step 5.
+  const invalidExperiences = getInvalidExperiences();
+  if (invalidExperiences.length > 0) {
+    stepErrors.value[5] = true;
+    notifyInvalidExperiences(invalidExperiences);
+    return;
+  }
+  stepErrors.value[5] = false;
+
   if (canSubmit.value) {
     // Set consent timestamp
     formData.consentGivenAt = new Date().toISOString();
