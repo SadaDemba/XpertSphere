@@ -349,6 +349,9 @@ public class AuthenticationService : IAuthenticationService
                 .Include(u => u.Organization)
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
+                .Include(u => u.Address)
+                .Include(u => u.Experiences)
+                .Include(u => u.Trainings)
                 .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
             if (user == null)
@@ -452,6 +455,9 @@ public class AuthenticationService : IAuthenticationService
             var user = await _userManager.Users
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
+                .Include(u => u.Address)
+                .Include(u => u.Experiences)
+                .Include(u => u.Trainings)
                 .FirstOrDefaultAsync(u => u.Email == refreshTokenDto.Email);
 
             if (user == null || !user.IsTokenValid || user.RefreshToken != refreshTokenDto.RefreshToken)
