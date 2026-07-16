@@ -34,3 +34,16 @@ export interface Filter {
   sortBy?: string;
   sortDirection?: 'Ascending' | 'Descending';
 }
+
+/**
+ * Shape of an ASP.NET Core `ValidationProblemDetails` response (RFC 9110),
+ * returned automatically when `[ApiController]` model binding/validation fails
+ * (e.g. `[Required]` DataAnnotations on a DTO such as `CreateTrainingDto`).
+ */
+export interface ValidationProblemDetails {
+  type?: string;
+  title: string;
+  status: number;
+  errors: Record<string, string[]>;
+  traceId?: string;
+}
