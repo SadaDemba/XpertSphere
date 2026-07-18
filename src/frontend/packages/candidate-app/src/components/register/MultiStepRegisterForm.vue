@@ -154,7 +154,7 @@
               <q-input
                 v-model.number="formData.desiredSalary"
                 type="number"
-                label="Salaire souhaité (€/an)"
+                label="Salaire souhaité (FCFA/an)"
                 filled
                 min="0"
               />

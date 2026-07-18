@@ -214,7 +214,7 @@
                       <div>
                         <div class="text-caption text-grey-7">Salaire souhaité</div>
                         <div class="text-body1 text-weight-medium">
-                          {{ candidate.desiredSalary.toLocaleString() }} €
+                          {{ Math.round(candidate.desiredSalary).toLocaleString() }} FCFA
                         </div>
                       </div>
                     </div>
