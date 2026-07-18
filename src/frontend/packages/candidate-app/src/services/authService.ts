@@ -56,8 +56,9 @@ export class AuthService extends BaseClient {
               if (experience.title)
                 formData.append(`experiences[${index}].title`, experience.title);
               if (experience.date) formData.append(`experiences[${index}].date`, experience.date);
-              if (experience.description)
-                formData.append(`experiences[${index}].description`, experience.description);
+              // Always send description (even empty) so a bypass of the frontend
+              // gate is still visible to, and rejected by, the backend.
+              formData.append(`experiences[${index}].description`, experience.description ?? '');
             });
           } else {
             formData.append(key, String(value));

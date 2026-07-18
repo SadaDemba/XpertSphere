@@ -86,7 +86,8 @@ export const useAuthStore = defineStore('auth', () => {
         setAuth(response);
         return true;
       } else {
-        setError(response?.message || 'Erreur lors de la connexion');
+        const messages = extractApiErrorMessages(response);
+        setError(messages.length > 0 ? messages.join(' ') : 'Erreur lors de la connexion');
         return false;
       }
     } catch (error) {
