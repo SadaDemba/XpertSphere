@@ -11,7 +11,7 @@ Stack technique en bref : .NET 9, ASP.NET Core Web API (`Microsoft.NET.Sdk.Web`)
 ## Documentation
 
 - Architecture, structure détaillée, conventions de code et points d'attention *à charger que si nécessaire (lazy-loading)* : voir [`.claude/docs/architecture.md`](.claude/docs/architecture.md). 
-- Spécifications fonctionnelles *à charger que si nécessaire (lazy-loading)* (une par fonctionnalité) : voir [`.claude/specifications/`](.claude/specifications/) (vide pour l'instant).
+- Spécifications fonctionnelles *à charger que si nécessaire (lazy-loading)* (une par fonctionnalité) : voir [`.claude/specifications/`](.claude/specifications/). Actuellement : `email-sending-foundation.md` (ticket A du système d'envoi de mail générique — envoi d'email templatisé synchrone, service rendu réellement exécutable, catcher SMTP local en Development, Brevo en Staging).
 
 ## Commandes de build / run / test
 
