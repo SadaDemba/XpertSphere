@@ -70,7 +70,7 @@
             />
             <q-input
               v-model.number="formData.desiredSalary"
-              label="Salaire souhaité (€)"
+              label="Salaire souhaité (FCFA)"
               type="number"
               filled
               class="col"

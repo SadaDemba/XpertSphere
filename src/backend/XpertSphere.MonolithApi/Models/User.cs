@@ -34,6 +34,8 @@ public class User : IdentityUser<Guid>, IAuditableEntity
 
     public int? YearsOfExperience { get; set; }
 
+    // Convention d'unité : Franc CFA (XOF, affiché "FCFA" côté UI), pas EUR. Aucune colonne de
+    // devise n'est stockée ici : ne pas réintroduire une hypothèse EUR ailleurs (export, reporting).
     [Column(TypeName = "decimal(18,2)")] public decimal? DesiredSalary { get; set; }
 
     public DateTime? Availability { get; set; }
