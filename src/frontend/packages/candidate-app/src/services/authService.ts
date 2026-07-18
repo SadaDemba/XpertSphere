@@ -11,6 +11,7 @@ import type {
 } from '../models/auth';
 import axios from 'axios';
 import { ResponseResult } from 'src/models';
+import type { ValidationProblemDetails } from '../models/base';
 
 export interface UserInfo extends User {
   name?: string;
@@ -28,7 +29,7 @@ export class AuthService extends BaseClient {
   async registerCandidate(
     registerDto: RegisterCandidateDto,
     resume?: File,
-  ): Promise<AuthResult | null> {
+  ): Promise<AuthResult | ValidationProblemDetails | null> {
     try {
       const formData = new FormData();
 
@@ -36,12 +37,14 @@ export class AuthService extends BaseClient {
       Object.entries(registerDto).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           if (key === 'trainings' && Array.isArray(value)) {
-            // Add trainings with indexed notation
+            // Add trainings with indexed notation. Fields are appended even when
+            // empty so the backend sees the real submitted value if the frontend
+            // gating (MultiStepRegisterForm.vue, step "Formations") is ever bypassed.
             value.forEach((training: Training, index: number) => {
-              if (training.school) formData.append(`trainings[${index}].school`, training.school);
-              if (training.level) formData.append(`trainings[${index}].level`, training.level);
-              if (training.period) formData.append(`trainings[${index}].period`, training.period);
-              if (training.field) formData.append(`trainings[${index}].field`, training.field);
+              formData.append(`trainings[${index}].school`, training.school ?? '');
+              formData.append(`trainings[${index}].level`, training.level ?? '');
+              formData.append(`trainings[${index}].period`, training.period ?? '');
+              formData.append(`trainings[${index}].field`, training.field ?? '');
             });
           } else if (key === 'experiences' && Array.isArray(value)) {
             // Add experiences with indexed notation
@@ -67,7 +70,7 @@ export class AuthService extends BaseClient {
         formData.append('resume', resume);
       }
 
-      const result = await this.postFormData<AuthResult>(
+      const result = await this.postFormData<AuthResult | ValidationProblemDetails>(
         '/register/candidate',
         formData,
         "Erreur lors de l'inscription",

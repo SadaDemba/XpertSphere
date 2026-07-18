@@ -496,7 +496,7 @@ import { ref, reactive, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '../../stores/authStore';
 import { useNotification } from '../../composables/notification';
-import type { RegisterCandidateDto, ResumeAnalysisResponse } from '../../models/auth';
+import type { RegisterCandidateDto, ResumeAnalysisResponse, Training } from '../../models/auth';
 
 // Emits
 const emit = defineEmits<{
@@ -610,7 +610,12 @@ const canProceed = computed(() => {
     case 3:
       return true; // Professional info is optional
     case 4:
-      return true; // Training is optional
+      // Training remains optional as a whole (an empty list is fine), but once at
+      // least one training entry exists, its four fields must be complete. The
+      // actual blocking + explicit notification is handled in nextStep()/submitForm()
+      // (kept out of the button's :disable binding on purpose, so the button stays
+      // clickable and the guard can surface an explicit, per-training message).
+      return true;
     case 5:
       return true; // Experience is optional
     case 6:
@@ -630,6 +635,59 @@ const canProceed = computed(() => {
 const canSubmit = computed(() => {
   return canProceed.value && currentStep.value === 6;
 });
+
+// Training step ("Formations") completeness gating
+const trainingFieldLabels: Record<keyof Training, string> = {
+  school: 'École/Université',
+  level: 'Niveau',
+  field: 'Domaine',
+  period: 'Période',
+};
+
+interface InvalidTraining {
+  index: number; // 1-based, matches "Formation {{ index + 1 }}" in the template
+  school: string | undefined;
+  missingFields: string[];
+}
+
+/**
+ * Returns every training entry (recomputed from the current, possibly
+ * post-deletion, index positions) that is missing at least one of its four
+ * required fields (school/level/field/period, trim-aware). Returns an empty
+ * array when `formData.trainings` is empty/absent (the step stays optional as
+ * a whole) or when every entry is complete.
+ */
+const getInvalidTrainings = (): InvalidTraining[] => {
+  if (!formData.trainings || formData.trainings.length === 0) return [];
+
+  const invalidTrainings: InvalidTraining[] = [];
+
+  formData.trainings.forEach((training, idx) => {
+    const missingFields = (Object.keys(trainingFieldLabels) as Array<keyof Training>)
+      .filter((field) => !training[field]?.trim())
+      .map((field) => trainingFieldLabels[field]);
+
+    if (missingFields.length > 0) {
+      invalidTrainings.push({
+        index: idx + 1,
+        school: training.school?.trim() || undefined,
+        missingFields,
+      });
+    }
+  });
+
+  return invalidTrainings;
+};
+
+const notifyInvalidTrainings = (invalidTrainings: InvalidTraining[]) => {
+  invalidTrainings.forEach((invalid) => {
+    const schoolPart = invalid.school ? ` ("${invalid.school}")` : '';
+    const verb = invalid.missingFields.length > 1 ? 'sont obligatoires' : 'est obligatoire';
+    notification.showErrorNotification(
+      `La formation ${invalid.index}${schoolPart} est incomplète : ${invalid.missingFields.join(', ')} ${verb}.`,
+    );
+  });
+};
 
 // Methods
 const addTraining = () => {
@@ -717,6 +775,17 @@ const nextStep = async () => {
     }
   }
 
+  if (currentStep.value === 4) {
+    // Also covers trainings populated directly by fillFromCVAnalysis() (bypasses
+    // addTraining()) and any manual edit performed after adding a training.
+    const invalidTrainings = getInvalidTrainings();
+    stepErrors.value[4] = invalidTrainings.length > 0;
+    if (invalidTrainings.length > 0) {
+      notifyInvalidTrainings(invalidTrainings);
+      return;
+    }
+  }
+
   if (canProceed.value) {
     currentStep.value++;
   }
@@ -729,6 +798,16 @@ const previousStep = () => {
 };
 
 const submitForm = () => {
+  // Revalidate trainings on final submission too: a training entry may have
+  // been emptied after step 4 was already passed (e.g. going back and forth),
+  // so this must not rely solely on the check performed in nextStep().
+  const invalidTrainings = getInvalidTrainings();
+  stepErrors.value[4] = invalidTrainings.length > 0;
+  if (invalidTrainings.length > 0) {
+    notifyInvalidTrainings(invalidTrainings);
+    return;
+  }
+
   if (canSubmit.value) {
     // Set consent timestamp
     formData.consentGivenAt = new Date().toISOString();

@@ -8,7 +8,18 @@ import type {
   ResumeAnalysisResponse,
   AuthResult,
 } from '../models/auth';
+import type { ValidationProblemDetails } from '../models/base';
+import { extractApiErrorMessages } from 'src/utils/apiErrors';
 import { settings } from 'src/settings';
+
+/**
+ * Type guard narrowing an `AuthResult | ValidationProblemDetails | null` response
+ * down to `AuthResult`. Only an `AuthResult` carries `isSuccess`, so this is a
+ * safe discriminant between the two possible response shapes.
+ */
+function isAuthResult(response: unknown): response is AuthResult {
+  return !!response && typeof response === 'object' && 'isSuccess' in response;
+}
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -93,13 +104,15 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       setLoading(true);
       clearError();
-      const response = await authService.registerCandidate(registerDto, resume);
+      const response: AuthResult | ValidationProblemDetails | null =
+        await authService.registerCandidate(registerDto, resume);
 
-      if (response?.isSuccess) {
+      if (isAuthResult(response) && response.isSuccess) {
         setAuth(response);
         return true;
       } else {
-        setError(response?.message || "Erreur lors de l'inscription");
+        const messages = extractApiErrorMessages(response);
+        setError(messages.length > 0 ? messages.join(' ') : "Erreur lors de l'inscription");
         return false;
       }
     } catch (error) {
