@@ -8,7 +8,7 @@ using XpertSphere.MonolithApi.Utils;
 
 namespace XpertSphere.MonolithApi.Extensions;
 
-public static class DatabaseExtensions
+public static partial class DatabaseExtensions
 {
     public static IServiceCollection AddDatabase(this IServiceCollection services,
         IConfiguration configuration, IWebHostEnvironment environment)
@@ -60,7 +60,7 @@ public static class DatabaseExtensions
             await context.Database.MigrateAsync();
 
             // Seed initial data if needed
-            await SeedDatabaseAsync(context, userManager, configuration);
+            await SeedDatabaseAsync(context, userManager, configuration, app.Environment);
         }
         catch (Exception ex)
         {
@@ -119,12 +119,23 @@ public static class DatabaseExtensions
         return connectionString;
     }
 
-    private static async Task SeedDatabaseAsync(XpertSphereDbContext context, UserManager<User> userManager,
-        IConfiguration configuration)
+    // internal (rather than private): exercised directly by XpertSphere.MonolithApi.Tests
+    // (InternalsVisibleTo) to verify the Development-only gate on the demo dataset.
+    internal static async Task SeedDatabaseAsync(XpertSphereDbContext context, UserManager<User> userManager,
+        IConfiguration configuration, IWebHostEnvironment environment)
     {
         await SeedXpertSphereOrganizationAsync(context, configuration);
         await SeedDefaultRolesAsync(context);
         await SeedPlatformSuperAdminAsync(context, userManager, configuration);
+
+        // Demo dataset (demo organizations/users/job offers/candidates/applications) is only
+        // ever seeded in Development: the shared password used for all demo accounts would be a
+        // real security issue in Staging/Production. See specification
+        // seed-demo-organizations-users-joboffers.md, §Garde-fou d'environnement.
+        if (environment.IsDevelopment())
+        {
+            await SeedDemoDataAsync(context, userManager);
+        }
 
         await context.SaveChangesAsync();
     }
