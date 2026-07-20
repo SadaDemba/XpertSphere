@@ -72,6 +72,10 @@ bld/
 *.cer
 appsettings.Production.json
 appsettings.Staging.json
+# CommunicationService.appsettings.Staging.json ne contient aucun secret (host/port/EnableSsl
+# uniquement ; les credentials Brevo restent injectés via variables d'environnement) :
+# exception explicite à la règle générale ci-dessus, voir email-sending-foundation.md.
+!src/backend/XpertSphere.CommunicationService/appsettings.Staging.json
 
 # Docker volumes and data
 .docker/
