@@ -358,22 +358,33 @@ public class RoleService : IRoleService
 
     private IQueryable<Role> BuildRoleQuery(RoleFilterDto filter)
     {
-        var query = _context.Roles
-            .Include(r => r.UserRoles)
-            .ThenInclude(ur => ur.User)
-            .AsQueryable();
+        var isAuthenticated = _currentUserService.User?.Identity?.IsAuthenticated == true;
+        var isPlatformUser = isAuthenticated &&
+            (_currentUserService.User!.IsInRole(Roles.PlatformSuperAdmin.Name) ||
+             _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name));
+        var isOrgAdmin = isAuthenticated && _currentUserService.User!.IsInRole(Roles.OrganizationAdmin.Name);
+        var isManager = isAuthenticated && _currentUserService.User!.IsInRole(Roles.Manager.Name);
+
+        var shouldScopeUserRolesToOrganization =
+            (isOrgAdmin || isManager) && !isPlatformUser && _currentUserService.OrganizationId.HasValue;
+
+        var query = shouldScopeUserRolesToOrganization
+            ? _context.Roles
+                .AsNoTracking()
+                .Include(r => r.UserRoles.Where(ur => ur.User.OrganizationId == _currentUserService.OrganizationId!.Value))
+                .ThenInclude(ur => ur.User)
+                .AsQueryable()
+            : _context.Roles
+                .AsNoTracking()
+                .Include(r => r.UserRoles)
+                .ThenInclude(ur => ur.User)
+                .AsQueryable();
 
         // Check if current user is an organization user (not platform admin)
-        if (_currentUserService.User?.Identity?.IsAuthenticated == true)
+        if (isAuthenticated && !isPlatformUser)
         {
-            var isPlatformUser = _currentUserService.User.IsInRole(Roles.PlatformSuperAdmin.Name) ||
-                                 _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name);
-
-            if (!isPlatformUser)
-            {
-                // Filter out platform roles for organization users
-                query = query.Where(r => !Roles.PlatformRoles.Contains(r.Name));
-            }
+            // Filter out platform roles for organization users
+            query = query.Where(r => !Roles.PlatformRoles.Contains(r.Name));
         }
 
         // Apply filters

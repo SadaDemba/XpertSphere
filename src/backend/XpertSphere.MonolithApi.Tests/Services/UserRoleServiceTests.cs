@@ -1,11 +1,14 @@
+using System.Security.Claims;
 using FluentAssertions;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Moq;
 using XpertSphere.MonolithApi.DTOs.UserRole;
+using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Services;
 using XpertSphere.MonolithApi.Tests.Helpers;
+using XpertSphere.MonolithApi.Utils;
 
 namespace XpertSphere.MonolithApi.Tests.Services;
 
@@ -14,12 +17,17 @@ public class UserRoleServiceTests : IDisposable
     private readonly Mock<IValidator<AssignRoleDto>> _mockAssignRoleValidator;
     private readonly Mock<ILogger<UserRoleService>> _mockLogger;
     private readonly XpertSphere.MonolithApi.Data.XpertSphereDbContext _context;
+    private readonly Mock<ICurrentUserService> _mockCurrentUserService;
 
     public UserRoleServiceTests()
     {
-        _context = TestDbContextFactory.CreateInMemoryContext();
+        // Base de données InMemory dédiée à l'instance de test (même raison que RoleServiceTests) :
+        // les nouveaux tests de scoping par organisation ci-dessous ont besoin d'un jeu de données
+        // déterministe, non partagé avec d'autres classes de tests utilisant le nom par défaut.
+        _context = TestDbContextFactory.CreateInMemoryContext(Guid.NewGuid().ToString());
         _mockAssignRoleValidator = new Mock<IValidator<AssignRoleDto>>();
         _mockLogger = MockHelper.CreateMockLogger<UserRoleService>();
+        _mockCurrentUserService = new Mock<ICurrentUserService>();
     }
 
     [Fact]
@@ -281,13 +289,139 @@ public class UserRoleServiceTests : IDisposable
         result.Data.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task GetRoleUsersAsync_AsOrganizationAdmin_ShouldScopeToOwnOrganization()
+    {
+        // Arrange
+        var roleId = Guid.NewGuid();
+        var organizationAId = Guid.NewGuid();
+        var organizationBId = Guid.NewGuid();
+
+        var role = new Role
+        {
+            Id = roleId,
+            Name = "Organization.Recruiter",
+            DisplayName = "Recruiter",
+            IsActive = true
+        };
+
+        var userInOrgA = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-a@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgA",
+            IsActive = true,
+            OrganizationId = organizationAId
+        };
+
+        var userInOrgB = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-b@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgB",
+            IsActive = true,
+            OrganizationId = organizationBId
+        };
+
+        _context.Roles.Add(role);
+        _context.Users.AddRange(userInOrgA, userInOrgB);
+        _context.UserRoles.AddRange(
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgA.Id, RoleId = roleId, IsActive = true },
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgB.Id, RoleId = roleId, IsActive = true }
+        );
+        await _context.SaveChangesAsync();
+
+        _mockCurrentUserService.Setup(x => x.User)
+            .Returns(CreateClaimsPrincipal(Roles.OrganizationAdmin.Name));
+        _mockCurrentUserService.Setup(x => x.OrganizationId).Returns(organizationAId);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var userRoleService = CreateUserRoleService(mapper);
+
+        // Act
+        var result = await userRoleService.GetRoleUsersAsync(roleId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().ContainSingle().Which.UserId.Should().Be(userInOrgA.Id);
+    }
+
+    [Fact]
+    public async Task GetRoleUsersAsync_AsPlatformAdmin_ShouldReturnAllOrganizations()
+    {
+        // Arrange
+        var roleId = Guid.NewGuid();
+        var organizationAId = Guid.NewGuid();
+        var organizationBId = Guid.NewGuid();
+
+        var role = new Role
+        {
+            Id = roleId,
+            Name = "Organization.Recruiter",
+            DisplayName = "Recruiter",
+            IsActive = true
+        };
+
+        var userInOrgA = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-a2@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgA",
+            IsActive = true,
+            OrganizationId = organizationAId
+        };
+
+        var userInOrgB = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-b2@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgB",
+            IsActive = true,
+            OrganizationId = organizationBId
+        };
+
+        _context.Roles.Add(role);
+        _context.Users.AddRange(userInOrgA, userInOrgB);
+        _context.UserRoles.AddRange(
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgA.Id, RoleId = roleId, IsActive = true },
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgB.Id, RoleId = roleId, IsActive = true }
+        );
+        await _context.SaveChangesAsync();
+
+        _mockCurrentUserService.Setup(x => x.User)
+            .Returns(CreateClaimsPrincipal(Roles.PlatformAdmin.Name));
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var userRoleService = CreateUserRoleService(mapper);
+
+        // Act
+        var result = await userRoleService.GetRoleUsersAsync(roleId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data.Should().HaveCount(2);
+    }
+
+    private static ClaimsPrincipal CreateClaimsPrincipal(string roleName)
+    {
+        var identity = new ClaimsIdentity(
+            [new Claim(ClaimTypes.Role, roleName)],
+            authenticationType: "TestAuth");
+        return new ClaimsPrincipal(identity);
+    }
+
     private UserRoleService CreateUserRoleService(AutoMapper.IMapper mapper)
     {
         return new UserRoleService(
             _context,
             mapper,
             _mockAssignRoleValidator.Object,
-            _mockLogger.Object
+            _mockLogger.Object,
+            _mockCurrentUserService.Object
         );
     }
 

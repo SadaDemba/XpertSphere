@@ -5,6 +5,7 @@ using XpertSphere.MonolithApi.Data;
 using XpertSphere.MonolithApi.DTOs.UserRole;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Utils;
 using XpertSphere.MonolithApi.Utils.Results;
 
 namespace XpertSphere.MonolithApi.Services;
@@ -15,17 +16,20 @@ public class UserRoleService : IUserRoleService
     private readonly IMapper _mapper;
     private readonly IValidator<AssignRoleDto> _assignRoleValidator;
     private readonly ILogger<UserRoleService> _logger;
+    private readonly ICurrentUserService _currentUserService;
 
     public UserRoleService(
         XpertSphereDbContext context,
         IMapper mapper,
         IValidator<AssignRoleDto> assignRoleValidator,
-        ILogger<UserRoleService> logger)
+        ILogger<UserRoleService> logger,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _mapper = mapper;
         _assignRoleValidator = assignRoleValidator;
         _logger = logger;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ServiceResult<IEnumerable<UserRoleDto>>> GetUserRolesAsync(Guid userId)
@@ -55,14 +59,28 @@ public class UserRoleService : IUserRoleService
     {
         try
         {
-            var roleUsers = await _context.UserRoles
+            var isAuthenticated = _currentUserService.User?.Identity?.IsAuthenticated == true;
+            var isPlatformUser = isAuthenticated &&
+                (_currentUserService.User!.IsInRole(Roles.PlatformSuperAdmin.Name) ||
+                 _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name));
+            var isOrgAdmin = isAuthenticated && _currentUserService.User!.IsInRole(Roles.OrganizationAdmin.Name);
+            var isManager = isAuthenticated && _currentUserService.User!.IsInRole(Roles.Manager.Name);
+
+            var query = _context.UserRoles
                 .Include(ur => ur.User)
                 .Include(ur => ur.Role)
                 .Include(ur => ur.AssignedByUser)
                 .Where(ur => ur.RoleId == roleId &&
                              ur.IsActive &&
                              ur.User.IsActive &&
-                             (ur.ExpiresAt == null || ur.ExpiresAt > DateTime.UtcNow))
+                             (ur.ExpiresAt == null || ur.ExpiresAt > DateTime.UtcNow));
+
+            if ((isOrgAdmin || isManager) && !isPlatformUser && _currentUserService.OrganizationId.HasValue)
+            {
+                query = query.Where(ur => ur.User.OrganizationId == _currentUserService.OrganizationId.Value);
+            }
+
+            var roleUsers = await query
                 .OrderBy(ur => ur.User.FirstName)
                 .ToListAsync();
 

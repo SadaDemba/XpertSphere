@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FluentAssertions;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Services;
 using XpertSphere.MonolithApi.Tests.Helpers;
+using XpertSphere.MonolithApi.Utils;
 
 namespace XpertSphere.MonolithApi.Tests.Services;
 
@@ -21,7 +23,12 @@ public class RoleServiceTests : IDisposable
 
     public RoleServiceTests()
     {
-        _context = TestDbContextFactory.CreateInMemoryContext();
+        // Base de données InMemory dédiée à l'instance de test (au lieu du nom par défaut partagé
+        // entre plusieurs classes de tests) : nécessaire pour les nouveaux tests de scoping par
+        // organisation ci-dessous, qui listent des rôles paginés et doivent pouvoir compter sur un
+        // jeu de données déterministe, non pollué par d'autres classes de tests utilisant la même
+        // XpertSphereDbContext par défaut.
+        _context = TestDbContextFactory.CreateInMemoryContext(Guid.NewGuid().ToString());
         _mockCreateRoleValidator = new Mock<IValidator<CreateRoleDto>>();
         _mockUpdateRoleValidator = new Mock<IValidator<UpdateRoleDto>>();
         _mockFilterValidator = new Mock<IValidator<RoleFilterDto>>();
@@ -305,6 +312,190 @@ public class RoleServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetAllPaginatedRolesAsync_AsOrganizationAdmin_ShouldScopeUsersCountToOrganization()
+    {
+        // Arrange
+        var organizationAId = Guid.NewGuid();
+        var organizationBId = Guid.NewGuid();
+
+        var role = new Role
+        {
+            Id = Guid.NewGuid(),
+            Name = "Organization.Recruiter",
+            DisplayName = "Recruiter",
+            IsActive = true
+        };
+
+        var userInOrgA = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-a@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgA",
+            IsActive = true,
+            OrganizationId = organizationAId
+        };
+
+        var userInOrgB = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-b@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgB",
+            IsActive = true,
+            OrganizationId = organizationBId
+        };
+
+        _context.Roles.Add(role);
+        _context.Users.AddRange(userInOrgA, userInOrgB);
+        _context.UserRoles.AddRange(
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgA.Id, RoleId = role.Id, IsActive = true },
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgB.Id, RoleId = role.Id, IsActive = true }
+        );
+        await _context.SaveChangesAsync();
+
+        _mockFilterValidator.Setup(x => x.ValidateAsync(It.IsAny<RoleFilterDto>(), default))
+            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+        _mockCurrentUserService.Setup(x => x.User)
+            .Returns(CreateClaimsPrincipal(Roles.OrganizationAdmin.Name));
+        _mockCurrentUserService.Setup(x => x.OrganizationId).Returns(organizationAId);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var roleService = CreateRoleService(mapper);
+
+        // Act
+        var result = await roleService.GetAllPaginatedRolesAsync(new RoleFilterDto());
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        var roleDto = result.Data.Should().ContainSingle(r => r.Id == role.Id).Subject;
+        roleDto.UsersCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetAllPaginatedRolesAsync_AsPlatformAdmin_ShouldCountAllOrganizations()
+    {
+        // Arrange
+        var organizationAId = Guid.NewGuid();
+        var organizationBId = Guid.NewGuid();
+
+        var role = new Role
+        {
+            Id = Guid.NewGuid(),
+            Name = "Organization.Recruiter",
+            DisplayName = "Recruiter",
+            IsActive = true
+        };
+
+        var userInOrgA = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-a2@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgA",
+            IsActive = true,
+            OrganizationId = organizationAId
+        };
+
+        var userInOrgB = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-b2@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgB",
+            IsActive = true,
+            OrganizationId = organizationBId
+        };
+
+        _context.Roles.Add(role);
+        _context.Users.AddRange(userInOrgA, userInOrgB);
+        _context.UserRoles.AddRange(
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgA.Id, RoleId = role.Id, IsActive = true },
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgB.Id, RoleId = role.Id, IsActive = true }
+        );
+        await _context.SaveChangesAsync();
+
+        _mockFilterValidator.Setup(x => x.ValidateAsync(It.IsAny<RoleFilterDto>(), default))
+            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+        // PlatformAdmin : comportement inchangé, total toutes organisations confondues,
+        // indépendamment de la valeur d'OrganizationId (ici non configurée, comme en production
+        // pour un compte plateforme qui ne porte pas nécessairement ce claim).
+        _mockCurrentUserService.Setup(x => x.User)
+            .Returns(CreateClaimsPrincipal(Roles.PlatformAdmin.Name));
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var roleService = CreateRoleService(mapper);
+
+        // Act
+        var result = await roleService.GetAllPaginatedRolesAsync(new RoleFilterDto());
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        var roleDto = result.Data.Should().ContainSingle(r => r.Id == role.Id).Subject;
+        roleDto.UsersCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task GetAllPaginatedRolesAsync_AsOrganizationAdmin_WithNoUsersInOwnOrganization_ShouldReturnZero()
+    {
+        // Arrange
+        var organizationAId = Guid.NewGuid();
+        var organizationBId = Guid.NewGuid();
+
+        var role = new Role
+        {
+            Id = Guid.NewGuid(),
+            Name = "Organization.Recruiter",
+            DisplayName = "Recruiter",
+            IsActive = true
+        };
+
+        var userInOrgB = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-b3@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgB",
+            IsActive = true,
+            OrganizationId = organizationBId
+        };
+
+        _context.Roles.Add(role);
+        _context.Users.Add(userInOrgB);
+        _context.UserRoles.Add(
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgB.Id, RoleId = role.Id, IsActive = true });
+        await _context.SaveChangesAsync();
+
+        _mockFilterValidator.Setup(x => x.ValidateAsync(It.IsAny<RoleFilterDto>(), default))
+            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+        _mockCurrentUserService.Setup(x => x.User)
+            .Returns(CreateClaimsPrincipal(Roles.OrganizationAdmin.Name));
+        _mockCurrentUserService.Setup(x => x.OrganizationId).Returns(organizationAId);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var roleService = CreateRoleService(mapper);
+
+        // Act
+        var result = await roleService.GetAllPaginatedRolesAsync(new RoleFilterDto());
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        var roleDto = result.Data.Should().ContainSingle(r => r.Id == role.Id).Subject;
+        roleDto.UsersCount.Should().Be(0);
+    }
+
+    private static ClaimsPrincipal CreateClaimsPrincipal(string roleName)
+    {
+        var identity = new ClaimsIdentity(
+            [new Claim(ClaimTypes.Role, roleName)],
+            authenticationType: "TestAuth");
+        return new ClaimsPrincipal(identity);
     }
 
     private RoleService CreateRoleService(AutoMapper.IMapper mapper)
