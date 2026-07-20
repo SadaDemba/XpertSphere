@@ -27,7 +27,9 @@ hybride JWT / Microsoft Entra ID (MSAL).
 - Structure détaillée du projet, conventions de code et intégration avec le
   backend : voir `.claude/docs/architecture.md`.
 - Spécifications fonctionnelles (une par fonctionnalité) : voir
-  `.claude/specifications/` (vide pour l'instant).
+  `.claude/specifications/`. Actuellement : `remove-fixed-footer-backoffice.md`
+  (suppression complète du footer fixe du back-office, déplacement du numéro
+  de version dans le menu compte utilisateur).
 - La consultation/téléchargement sécurisée du CV (fiche candidat, candidatures)
   est pilotée par une spécification backend qui impacte directement ce
   package : voir
