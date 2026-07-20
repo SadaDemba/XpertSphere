@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="lHh Lpr lff">
     <app-header :drawer-open="leftDrawerOpen" @toggle-drawer="toggleLeftDrawer" />
 
     <app-navigation v-model="leftDrawerOpen" />
@@ -9,8 +9,6 @@
         <router-view />
       </main>
     </q-page-container>
-
-    <app-footer />
   </q-layout>
 </template>
 
@@ -18,7 +16,6 @@
 import { ref } from 'vue';
 import AppHeader from 'components/AppHeader.vue';
 import AppNavigation from 'components/AppNavigation.vue';
-import AppFooter from 'components/AppFooter.vue';
 
 const leftDrawerOpen = ref(false);
 
@@ -29,7 +26,7 @@ function toggleLeftDrawer() {
 
 <style scoped>
 #main-content {
-  min-height: calc(100vh - 64px - 160px);
+  min-height: calc(100vh - 64px);
 }
 
 #main-content:focus {
@@ -39,7 +36,7 @@ function toggleLeftDrawer() {
 /* Responsive adjustments */
 @media (max-width: 599px) {
   #main-content {
-    min-height: calc(100vh - 56px - 140px);
+    min-height: calc(100vh - 56px);
   }
 }
 </style>
