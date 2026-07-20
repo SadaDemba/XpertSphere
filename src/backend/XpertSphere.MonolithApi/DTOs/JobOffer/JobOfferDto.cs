@@ -14,7 +14,7 @@ public class JobOfferDto
     public ContractType ContractType { get; set; }
     public decimal? SalaryMin { get; set; }
     public decimal? SalaryMax { get; set; }
-    public string? SalaryCurrency { get; set; }
+    public Currency SalaryCurrency { get; set; }
     public JobOfferStatus Status { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }

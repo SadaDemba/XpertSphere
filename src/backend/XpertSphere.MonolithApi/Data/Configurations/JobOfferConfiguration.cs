@@ -41,6 +41,13 @@ public class JobOfferConfiguration : AuditableEntityConfiguration<JobOffer>
                 v => v.ToJobOfferStatus())
             .HasMaxLength(50);
 
+        builder.Property(jo => jo.SalaryCurrency)
+            .HasConversion(
+                v => v.ToStringValue(),
+                v => v.ToCurrency())
+            .HasMaxLength(10)
+            .IsRequired();
+
         // Configure computed properties to be ignored
         builder.Ignore(jo => jo.IsActive);
         builder.Ignore(jo => jo.IsExpired);

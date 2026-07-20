@@ -23,7 +23,5 @@ public class CreateJobOfferDto
 
     public decimal? SalaryMax { get; set; }
 
-    [MaxLength(10)] public string? SalaryCurrency { get; set; } = "EUR";
-
     public DateTime? ExpiresAt { get; set; }
 }

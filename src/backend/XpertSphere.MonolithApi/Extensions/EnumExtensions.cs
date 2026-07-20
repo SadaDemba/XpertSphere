@@ -187,4 +187,24 @@ public static class EnumExtensions
             _ => throw new ArgumentException($"Invalid ApplicationStatus value: {value}", nameof(value))
         };
     }
+
+    public static string ToStringValue(this Currency currency)
+    {
+        return currency switch
+        {
+            Currency.EUR => "EUR",
+            Currency.XOF => "XOF",
+            _ => throw new ArgumentOutOfRangeException(nameof(currency), currency, null)
+        };
+    }
+
+    public static Currency ToCurrency(this string value)
+    {
+        return value?.ToUpper() switch
+        {
+            "EUR" => Currency.EUR,
+            "XOF" => Currency.XOF,
+            _ => throw new ArgumentException($"Invalid Currency value: {value}", nameof(value))
+        };
+    }
 }

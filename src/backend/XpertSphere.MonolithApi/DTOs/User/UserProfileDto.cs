@@ -30,6 +30,7 @@ public record UserProfileDto
 
     public int? Experience { get; set; }
     public decimal? DesiredSalary { get; set; }
+    public Currency? DesiredSalaryCurrency { get; set; }
     public DateTime? Availability { get; set; }
     public string? CvPath { get; set; }
 

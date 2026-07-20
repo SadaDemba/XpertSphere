@@ -36,10 +36,6 @@ public class CreateJobOfferDtoValidator : AbstractValidator<CreateJobOfferDto>
         RuleFor(x => x.ContractType)
             .IsInEnum().WithMessage("Invalid contract type");
 
-        RuleFor(x => x.SalaryCurrency)
-            .MaximumLength(10).WithMessage("Salary currency cannot exceed 10 characters")
-            .When(x => !string.IsNullOrEmpty(x.SalaryCurrency));
-
         RuleFor(x => x.ExpiresAt)
             .GreaterThan(DateTime.UtcNow).WithMessage("Expiration date must be in the future")
             .When(x => x.ExpiresAt.HasValue);

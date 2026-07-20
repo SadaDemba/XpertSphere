@@ -31,6 +31,7 @@ public record UserDto
     public List<Training>? Trainings { get; set; } = [];
     public List<Experience>? Experiences { get; set; } = [];
     public decimal? DesiredSalary { get; set; }
+    public Currency? DesiredSalaryCurrency { get; set; }
     public DateTime? Availability { get; set; }
     public string FullName { get; init; } = string.Empty;
     public bool EmailConfirmed { get; init; }

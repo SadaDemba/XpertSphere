@@ -142,11 +142,17 @@ public class JobOfferService : IJobOfferService
                 return ServiceResult<JobOfferDto>.Forbidden("User does not belong to the specified organization");
             }
 
+            var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == organizationId);
+
             var jobOffer = _mapper.Map<JobOffer>(createJobOfferDto);
             jobOffer.Id = Guid.NewGuid();
             jobOffer.OrganizationId = organizationId;
             jobOffer.CreatedByUserId = userId;
             jobOffer.Status = JobOfferStatus.Draft;
+            // Snapshot figé à la création : la devise de l'organisation à cet instant précis,
+            // jamais recalculée par la suite (voir configurable-salary-currency.md, décision 3).
+            // Repli silencieux vers XOF si l'organisation n'a pas encore configuré sa devise.
+            jobOffer.SalaryCurrency = organization?.Currency ?? Currency.XOF;
 
             try
             {

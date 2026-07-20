@@ -22,6 +22,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                 "[DesiredSalary] IS NULL OR [DesiredSalary] > 0");
         });
 
+        builder.Property(u => u.DesiredSalaryCurrency)
+            .HasConversion(
+                v => v.HasValue ? v.Value.ToStringValue() : null,
+                v => !string.IsNullOrEmpty(v) ? v.ToCurrency() : (Currency?)null)
+            .HasMaxLength(10);
+
         // Configure Address as owned entity (ComplexType)
         builder.OwnsOne(
             u => u.Address,

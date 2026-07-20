@@ -20,6 +20,12 @@ public class OrganizationConfiguration : AuditableEntityConfiguration<Organizati
                 v => !string.IsNullOrEmpty(v) ? v.ToOrganizationSize() : (OrganizationSize?)null)
             .HasMaxLength(50);
 
+        builder.Property(o => o.Currency)
+            .HasConversion(
+                v => v.HasValue ? v.Value.ToStringValue() : null,
+                v => !string.IsNullOrEmpty(v) ? v.ToCurrency() : (Currency?)null)
+            .HasMaxLength(10);
+
         // Configure Address as owned entity (ComplexType)
         builder.OwnsOne(
             o => o.Address,
