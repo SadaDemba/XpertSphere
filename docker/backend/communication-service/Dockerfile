@@ -7,7 +7,6 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["XpertSphere.sln", "./"]
 COPY ["src/backend/XpertSphere.CommunicationService/XpertSphere.CommunicationService.csproj", "src/backend/XpertSphere.CommunicationService/"]
 
 RUN dotnet restore "src/backend/XpertSphere.CommunicationService/XpertSphere.CommunicationService.csproj"
