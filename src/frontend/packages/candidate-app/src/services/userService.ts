@@ -1,6 +1,7 @@
 import { BaseClient } from './BaseClient';
 import { ResponseResult } from 'src/models';
 import type { User } from '../models/auth';
+import type { Currency } from '../enums';
 
 export interface UpdateUserSkillsDto {
   skills?: string;
@@ -23,6 +24,7 @@ export interface UpdateUserProfileDto {
   // Professional Information
   yearsOfExperience?: number | undefined;
   desiredSalary?: number | undefined;
+  desiredSalaryCurrency?: Currency | undefined;
   availability?: string;
   linkedInProfile?: string;
 }
