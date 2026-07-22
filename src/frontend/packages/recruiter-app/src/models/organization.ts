@@ -1,5 +1,5 @@
 import type { Address } from './address';
-import type { OrganizationSize } from '../enums';
+import type { OrganizationSize, Currency } from '../enums';
 import type { Filter } from './base';
 
 export interface Organization {
@@ -64,6 +64,18 @@ export interface UpdateOrganizationDto {
 export interface OrganizationFilterDto extends Filter {
   isActive?: boolean;
   organizationSize?: OrganizationSize;
+}
+
+// Self-service currency settings (GET/PUT /api/organizations/me/currency), reserved to
+// Organization.Admin - deliberately not part of Organization/OrganizationDto/CreateOrganizationDto/
+// UpdateOrganizationDto above, which the backend does not expose this field through either (see
+// configurable-salary-currency.md, §Hors périmètre).
+export interface OrganizationCurrencyDto {
+  currency: Currency | null;
+}
+
+export interface UpdateOrganizationCurrencyDto {
+  currency: Currency;
 }
 
 export type { OrganizationSize };

@@ -37,6 +37,13 @@ hybride JWT / Microsoft Entra ID (MSAL).
   `CandidateDetailPage.vue`) est piloté par une spécification côté
   `candidate-app` (le champ y est saisi) : voir
   `src/frontend/packages/candidate-app/.claude/specifications/fix-devise-salaire-souhaite-eur-vers-xof.md`.
+- La nouvelle page « Paramètres de l'organisation » (devise appliquée aux
+  offres d'emploi), le retrait du sélecteur de devise libre dans les
+  formulaires de création/édition d'offre, et l'affichage de la devise réelle
+  du candidat sont pilotés par une spécification backend qui impacte
+  directement ce package : voir
+  `src/backend/XpertSphere.MonolithApi/.claude/specifications/configurable-salary-currency.md`,
+  section « Coordination frontend — recruiter-app ».
 
 ## Commandes
 

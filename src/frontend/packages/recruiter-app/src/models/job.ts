@@ -54,6 +54,10 @@ export interface JobOfferDto {
   applicationsCount: number;
 }
 
+// SalaryCurrency is deliberately absent: it is no longer a client choice, the backend stamps it
+// from the organization's configured currency at creation time and never lets it be changed
+// afterwards (see configurable-salary-currency.md). Any value sent under this name would be
+// silently ignored by the backend's model binding since the DTO no longer carries the property.
 export interface CreateJobOfferDto {
   title: string;
   description: string;
@@ -64,7 +68,6 @@ export interface CreateJobOfferDto {
   contractType: ContractType;
   salaryMin?: number | undefined;
   salaryMax?: number | undefined;
-  salaryCurrency?: string | undefined;
   expiresAt?: string | undefined;
 }
 
@@ -78,7 +81,6 @@ export interface UpdateJobOfferDto {
   contractType?: ContractType | undefined;
   salaryMin?: number | undefined;
   salaryMax?: number | undefined;
-  salaryCurrency?: string | undefined;
   expiresAt?: string | undefined;
 }
 
