@@ -421,6 +421,7 @@ namespace XpertSphere.MonolithApi.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SalaryCurrency")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
@@ -524,6 +525,10 @@ namespace XpertSphere.MonolithApi.Migrations
 
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Currency")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("Industry")
                         .HasMaxLength(100)
@@ -840,6 +845,10 @@ namespace XpertSphere.MonolithApi.Migrations
 
                     b.Property<decimal?>("DesiredSalary")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("DesiredSalaryCurrency")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)

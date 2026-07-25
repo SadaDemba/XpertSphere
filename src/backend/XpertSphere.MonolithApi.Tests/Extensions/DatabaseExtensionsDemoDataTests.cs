@@ -116,11 +116,11 @@ public class DatabaseExtensionsDemoDataTests
     [Fact]
     public void DemoJobOffers_SalaryCurrencyMatchesOrganizationConvention()
     {
-        var expectedCurrencyByOrg = new Dictionary<string, string>
+        var expectedCurrencyByOrg = new Dictionary<string, Currency>
         {
-            ["MEILLEURTAUX"] = "EUR",
-            ["EXPERTIME"] = "EUR",
-            ["DYNAMINQS"] = "XOF"
+            ["MEILLEURTAUX"] = Currency.EUR,
+            ["EXPERTIME"] = Currency.EUR,
+            ["DYNAMINQS"] = Currency.XOF
         };
 
         foreach (var offer in DatabaseExtensions.DemoJobOffers)

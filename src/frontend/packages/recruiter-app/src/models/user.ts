@@ -1,5 +1,6 @@
 import type { AddressDto } from './address';
 import type { Filter } from './base';
+import type { Currency } from '../enums';
 
 export interface Training {
   id?: string;
@@ -34,6 +35,7 @@ export interface UserSearchResultDto {
   skills?: string;
   experience?: number;
   desiredSalary?: number;
+  desiredSalaryCurrency?: Currency;
   availability?: string;
   profileCompletionPercentage: number;
   city?: string;
@@ -69,6 +71,7 @@ export interface UserDto {
   trainings?: Training[];
   experiences?: Experience[];
   desiredSalary?: number;
+  desiredSalaryCurrency?: Currency;
   availability?: string;
   cvPath?: string;
 
@@ -140,6 +143,7 @@ export interface UpdateUserDto {
   trainings?: Training[] | undefined;
   experiences?: Experience[] | undefined;
   desiredSalary?: number | undefined;
+  desiredSalaryCurrency?: Currency | undefined;
   availability?: string | undefined;
   isActive?: boolean | undefined;
   address?: AddressDto | undefined;

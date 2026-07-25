@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using XpertSphere.MonolithApi.Controllers;
@@ -263,5 +265,106 @@ public class OrganizationControllerTests
         var badRequestResult = result as BadRequestObjectResult;
         // The extension returns a complex error object, not just the message
         badRequestResult!.Value.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetMyOrganizationCurrency_WithOrganizationClaim_ShouldReturnCurrency()
+    {
+        // Arrange
+        var organizationId = Guid.NewGuid();
+        SetCurrentUser(organizationId);
+
+        var serviceResult = ServiceResult<OrganizationCurrencyDto>.Success(
+            new OrganizationCurrencyDto { Currency = Currency.EUR });
+        _mockOrganizationService.Setup(x => x.GetCurrencyAsync(organizationId))
+            .ReturnsAsync(serviceResult);
+
+        // Act
+        var result = await _controller.GetMyOrganizationCurrency();
+
+        // Assert
+        var actionResult = result.Result;
+        actionResult.Should().BeOfType<OkObjectResult>();
+
+        var okResult = actionResult as OkObjectResult;
+        var response = okResult!.Value as ServiceResult<OrganizationCurrencyDto>;
+        response!.Data!.Currency.Should().Be(Currency.EUR);
+
+        _mockOrganizationService.Verify(x => x.GetCurrencyAsync(organizationId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetMyOrganizationCurrency_WithoutOrganizationClaim_ShouldReturnForbid()
+    {
+        // Arrange - no OrganizationId claim on the current user
+        SetCurrentUser(organizationId: null);
+
+        // Act
+        var result = await _controller.GetMyOrganizationCurrency();
+
+        // Assert
+        result.Result.Should().BeOfType<ForbidResult>();
+        _mockOrganizationService.Verify(x => x.GetCurrencyAsync(It.IsAny<Guid>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateMyOrganizationCurrency_WithOrganizationClaim_ShouldUpdateOwnOrganizationOnly()
+    {
+        // Arrange
+        var organizationId = Guid.NewGuid();
+        SetCurrentUser(organizationId);
+
+        var dto = new UpdateOrganizationCurrencyDto { Currency = Currency.XOF };
+        var serviceResult = ServiceResult<OrganizationCurrencyDto>.Success(
+            new OrganizationCurrencyDto { Currency = Currency.XOF }, "Organization currency updated successfully");
+        _mockOrganizationService.Setup(x => x.UpdateCurrencyAsync(organizationId, dto))
+            .ReturnsAsync(serviceResult);
+
+        // Act
+        var result = await _controller.UpdateMyOrganizationCurrency(dto);
+
+        // Assert
+        var actionResult = result.Result;
+        actionResult.Should().BeOfType<OkObjectResult>();
+
+        var okResult = actionResult as OkObjectResult;
+        var response = okResult!.Value as ServiceResult<OrganizationCurrencyDto>;
+        response!.Data!.Currency.Should().Be(Currency.XOF);
+
+        // Never accepts an organization id from the request body/route: always the caller's own.
+        _mockOrganizationService.Verify(x => x.UpdateCurrencyAsync(organizationId, dto), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateMyOrganizationCurrency_WithoutOrganizationClaim_ShouldReturnForbid()
+    {
+        // Arrange
+        SetCurrentUser(organizationId: null);
+        var dto = new UpdateOrganizationCurrencyDto { Currency = Currency.EUR };
+
+        // Act
+        var result = await _controller.UpdateMyOrganizationCurrency(dto);
+
+        // Assert
+        result.Result.Should().BeOfType<ForbidResult>();
+        _mockOrganizationService.Verify(x => x.UpdateCurrencyAsync(It.IsAny<Guid>(), It.IsAny<UpdateOrganizationCurrencyDto>()),
+            Times.Never);
+    }
+
+    private void SetCurrentUser(Guid? organizationId)
+    {
+        var claims = new List<Claim>();
+        if (organizationId.HasValue)
+        {
+            claims.Add(new Claim("OrganizationId", organizationId.Value.ToString()));
+        }
+
+        var identity = new ClaimsIdentity(claims, "TestAuthType");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+        };
     }
 }

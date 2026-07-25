@@ -212,7 +212,6 @@ interface JobFormData {
   contractType: ContractType;
   salaryMin: number | undefined;
   salaryMax: number | undefined;
-  salaryCurrency: string;
   expiresAt: string;
 }
 
@@ -248,7 +247,6 @@ const formData = ref<JobFormData>({
   contractType: ContractType.FullTime,
   salaryMin: undefined,
   salaryMax: undefined,
-  salaryCurrency: 'EUR',
   expiresAt: '',
 });
 
@@ -276,7 +274,6 @@ watch(
         contractType: newJob.contractType || ContractType.FullTime,
         salaryMin: newJob.salaryMin,
         salaryMax: newJob.salaryMax,
-        salaryCurrency: newJob.salaryCurrency || 'EUR',
         expiresAt: newJob.expiresAt || '',
       };
     } else {
@@ -297,7 +294,6 @@ function resetForm() {
     contractType: ContractType.FullTime,
     salaryMin: undefined,
     salaryMax: undefined,
-    salaryCurrency: 'EUR',
     expiresAt: '',
   };
 }
@@ -342,7 +338,6 @@ async function saveJob() {
         contractType: formData.value.contractType,
         salaryMin: formData.value.salaryMin,
         salaryMax: formData.value.salaryMax,
-        salaryCurrency: formData.value.salaryCurrency,
         expiresAt: formData.value.expiresAt || undefined,
       };
 
@@ -363,7 +358,6 @@ async function saveJob() {
         contractType: formData.value.contractType,
         salaryMin: formData.value.salaryMin,
         salaryMax: formData.value.salaryMax,
-        salaryCurrency: formData.value.salaryCurrency,
         expiresAt: formData.value.expiresAt || undefined,
       };
 

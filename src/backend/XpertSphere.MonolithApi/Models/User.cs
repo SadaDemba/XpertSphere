@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
+using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Models.Base;
 using XpertSphere.MonolithApi.Utils;
 
@@ -34,9 +35,14 @@ public class User : IdentityUser<Guid>, IAuditableEntity
 
     public int? YearsOfExperience { get; set; }
 
-    // Convention d'unité : Franc CFA (XOF, affiché "FCFA" côté UI), pas EUR. Aucune colonne de
-    // devise n'est stockée ici : ne pas réintroduire une hypothèse EUR ailleurs (export, reporting).
     [Column(TypeName = "decimal(18,2)")] public decimal? DesiredSalary { get; set; }
+
+    // Devise du salaire souhaité, auto-déclarée par le candidat (choisie à l'inscription,
+    // modifiable depuis le profil). Pertinent uniquement pour les candidats (IsCandidate,
+    // OrganizationId == null) ; toujours null pour un utilisateur d'organisation. Les comptes
+    // candidats existants avant l'introduction de cette colonne ont été backfillés à Currency.XOF
+    // (convention déjà assumée partout ailleurs dans le produit).
+    public Currency? DesiredSalaryCurrency { get; set; }
 
     public DateTime? Availability { get; set; }
 

@@ -154,9 +154,21 @@
               <q-input
                 v-model.number="formData.desiredSalary"
                 type="number"
-                label="Salaire souhaité (FCFA/an)"
+                label="Salaire souhaité annuel"
                 filled
                 min="0"
+              />
+            </div>
+            <div class="col-12 col-sm-6">
+              <q-select
+                v-model="formData.desiredSalaryCurrency"
+                :options="currencyOptions"
+                option-label="label"
+                option-value="value"
+                emit-value
+                map-options
+                label="Devise"
+                filled
               />
             </div>
           </div>
@@ -497,6 +509,7 @@ import { storeToRefs } from 'pinia';
 import { useAuthStore } from '../../stores/authStore';
 import { useNotification } from '../../composables/notification';
 import type { RegisterCandidateDto, ResumeAnalysisResponse, Training } from '../../models/auth';
+import { Currency, currencyOptions } from '../../enums';
 
 // Emits
 const emit = defineEmits<{
@@ -543,6 +556,7 @@ const formData = reactive<RegisterCandidateDto>({
   skills: '',
   yearsOfExperience: 0,
   desiredSalary: 0,
+  desiredSalaryCurrency: Currency.XOF,
   availability: '',
   linkedInProfile: '',
 

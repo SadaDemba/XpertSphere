@@ -70,11 +70,22 @@
             />
             <q-input
               v-model.number="formData.desiredSalary"
-              label="Salaire souhaité (FCFA)"
+              label="Salaire souhaité annuel"
               type="number"
               filled
               class="col"
               min="0"
+            />
+            <q-select
+              v-model="formData.desiredSalaryCurrency"
+              :options="currencyOptions"
+              option-label="label"
+              option-value="value"
+              emit-value
+              map-options
+              label="Devise"
+              filled
+              class="col"
             />
           </div>
 
@@ -104,6 +115,7 @@ import { useAuthStore } from '../stores/authStore';
 import { useNotification } from 'src/composables/notification';
 import type { User } from '../models/auth';
 import type { UpdateUserProfileDto } from '../services/userService';
+import { currencyOptions } from '../enums';
 
 // Props
 interface Props {
@@ -141,6 +153,7 @@ const formData = ref<UpdateUserProfileDto>({
   addressLine2: '',
   yearsOfExperience: undefined,
   desiredSalary: undefined,
+  desiredSalaryCurrency: undefined,
   availability: '',
   linkedInProfile: '',
 });
@@ -177,6 +190,7 @@ const loadUserData = () => {
     addressLine2: props.user.address?.addressLine2 || '',
     yearsOfExperience: props.user.yearsOfExperience || undefined,
     desiredSalary: props.user.desiredSalary || undefined,
+    desiredSalaryCurrency: props.user.desiredSalaryCurrency || undefined,
     availability: props.user.availability || '',
     linkedInProfile: props.user.linkedInProfile || '',
   };

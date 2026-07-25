@@ -159,7 +159,7 @@
                     <template v-else-if="currentJobOffer.salaryMax">
                       Jusqu'à {{ formatSalary(currentJobOffer.salaryMax) }}
                     </template>
-                    {{ currentJobOffer.salaryCurrency || '€' }} brut/an
+                    {{ currentJobOffer.salaryCurrency }} brut/an
                   </div>
                 </div>
 

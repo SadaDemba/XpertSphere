@@ -18,6 +18,7 @@ public class OrganizationServiceTests : IDisposable
     private readonly Mock<IValidator<CreateOrganizationDto>> _mockCreateValidator;
     private readonly Mock<IValidator<UpdateOrganizationDto>> _mockUpdateValidator;
     private readonly Mock<IValidator<OrganizationFilterDto>> _mockFilterValidator;
+    private readonly Mock<IValidator<UpdateOrganizationCurrencyDto>> _mockUpdateCurrencyValidator;
     private readonly Mock<ILogger<OrganizationService>> _mockLogger;
     private readonly Mock<ICurrentUserService> _mockCurrentUserService;
     private readonly Data.XpertSphereDbContext _context;
@@ -28,6 +29,7 @@ public class OrganizationServiceTests : IDisposable
         _mockCreateValidator = new Mock<IValidator<CreateOrganizationDto>>();
         _mockUpdateValidator = new Mock<IValidator<UpdateOrganizationDto>>();
         _mockFilterValidator = new Mock<IValidator<OrganizationFilterDto>>();
+        _mockUpdateCurrencyValidator = new Mock<IValidator<UpdateOrganizationCurrencyDto>>();
         _mockLogger = MockHelper.CreateMockLogger<OrganizationService>();
         _mockCurrentUserService = new Mock<ICurrentUserService>();
     }
@@ -310,6 +312,135 @@ public class OrganizationServiceTests : IDisposable
         result.Message.Should().Contain("Organization deleted successfully");
     }
 
+    [Fact]
+    public async Task GetCurrencyAsync_WithConfiguredCurrency_ShouldReturnIt()
+    {
+        // Arrange
+        var organizationId = Guid.NewGuid();
+        var organization = new Organization
+        {
+            Id = organizationId,
+            Name = "Test Organization",
+            Code = "TESTORG",
+            Size = OrganizationSize.Medium,
+            Address = new Address(),
+            Currency = Currency.EUR
+        };
+
+        _context.Organizations.Add(organization);
+        await _context.SaveChangesAsync();
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var organizationService = CreateOrganizationService(mapper);
+
+        // Act
+        var result = await organizationService.GetCurrencyAsync(organizationId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.Currency.Should().Be(Currency.EUR);
+    }
+
+    [Fact]
+    public async Task GetCurrencyAsync_WithoutConfiguredCurrency_ShouldReturnNull()
+    {
+        // Arrange
+        var organizationId = Guid.NewGuid();
+        var organization = new Organization
+        {
+            Id = organizationId,
+            Name = "Test Organization",
+            Code = "TESTORG",
+            Size = OrganizationSize.Medium,
+            Address = new Address()
+            // Currency intentionally left unset (null) - organization has not configured it yet.
+        };
+
+        _context.Organizations.Add(organization);
+        await _context.SaveChangesAsync();
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var organizationService = CreateOrganizationService(mapper);
+
+        // Act
+        var result = await organizationService.GetCurrencyAsync(organizationId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.Currency.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCurrencyAsync_WithUnknownOrganization_ShouldReturnNotFound()
+    {
+        // Arrange
+        var mapper = AutoMapperHelper.CreateMapper();
+        var organizationService = CreateOrganizationService(mapper);
+
+        // Act
+        var result = await organizationService.GetCurrencyAsync(Guid.NewGuid());
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.StatusCode.Should().Be(404);
+    }
+
+    [Fact]
+    public async Task UpdateCurrencyAsync_WithValidData_ShouldUpdateOnlyCurrency()
+    {
+        // Arrange
+        var organizationId = Guid.NewGuid();
+        var organization = new Organization
+        {
+            Id = organizationId,
+            Name = "Test Organization",
+            Code = "TESTORG",
+            Size = OrganizationSize.Medium,
+            Address = new Address(),
+            Currency = Currency.EUR
+        };
+
+        _context.Organizations.Add(organization);
+        await _context.SaveChangesAsync();
+
+        _mockUpdateCurrencyValidator.Setup(x => x.ValidateAsync(It.IsAny<UpdateOrganizationCurrencyDto>(), default))
+            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var organizationService = CreateOrganizationService(mapper);
+
+        // Act
+        var result = await organizationService.UpdateCurrencyAsync(organizationId,
+            new UpdateOrganizationCurrencyDto { Currency = Currency.XOF });
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.Currency.Should().Be(Currency.XOF);
+
+        var reloaded = await _context.Organizations.FindAsync(organizationId);
+        reloaded!.Currency.Should().Be(Currency.XOF);
+        reloaded.Name.Should().Be("Test Organization"); // unaffected
+    }
+
+    [Fact]
+    public async Task UpdateCurrencyAsync_WithUnknownOrganization_ShouldReturnNotFound()
+    {
+        // Arrange
+        _mockUpdateCurrencyValidator.Setup(x => x.ValidateAsync(It.IsAny<UpdateOrganizationCurrencyDto>(), default))
+            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var organizationService = CreateOrganizationService(mapper);
+
+        // Act
+        var result = await organizationService.UpdateCurrencyAsync(Guid.NewGuid(),
+            new UpdateOrganizationCurrencyDto { Currency = Currency.EUR });
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.StatusCode.Should().Be(404);
+    }
+
     private OrganizationService CreateOrganizationService(AutoMapper.IMapper mapper)
     {
         return new OrganizationService(
@@ -318,6 +449,7 @@ public class OrganizationServiceTests : IDisposable
             _mockCreateValidator.Object,
             _mockUpdateValidator.Object,
             _mockFilterValidator.Object,
+            _mockUpdateCurrencyValidator.Object,
             _mockLogger.Object,
             _mockCurrentUserService.Object
         );

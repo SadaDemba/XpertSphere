@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using XpertSphere.MonolithApi.DTOs.ExperienceDtos;
 using XpertSphere.MonolithApi.DTOs.TrainingDtos;
+using XpertSphere.MonolithApi.Enums;
 
 namespace XpertSphere.MonolithApi.DTOs.Auth;
 
@@ -33,6 +34,7 @@ public record RegisterCandidateDto
     public string? Skills { get; init; }
     public int? YearsOfExperience { get; init; }
     public decimal? DesiredSalary { get; init; }
+    public Currency? DesiredSalaryCurrency { get; init; }
     public DateTime? Availability { get; init; }
     public string? LinkedInProfile { get; init; }
 

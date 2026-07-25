@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ResponseResult } from './base';
+import { Currency } from '../enums';
 export interface LoginDto {
   email: string;
   password: string;
@@ -69,6 +70,7 @@ export interface User {
   trainings?: Training[];
   experiences?: Experience[];
   desiredSalary?: number;
+  desiredSalaryCurrency?: Currency;
   availability?: string;
   fullName?: string;
   profileCompletionPercentage?: number;
@@ -119,6 +121,7 @@ export interface RegisterCandidateDto {
   skills?: string;
   yearsOfExperience?: number;
   desiredSalary?: number;
+  desiredSalaryCurrency?: Currency;
   availability?: string;
   linkedInProfile?: string;
 

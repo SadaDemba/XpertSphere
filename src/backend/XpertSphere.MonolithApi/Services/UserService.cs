@@ -921,6 +921,9 @@ public class UserService : IUserService
             if (dto.DesiredSalary.HasValue)
                 user.DesiredSalary = dto.DesiredSalary;
 
+            if (dto.DesiredSalaryCurrency.HasValue)
+                user.DesiredSalaryCurrency = dto.DesiredSalaryCurrency;
+
             if (dto.Availability.HasValue)
                 user.Availability = dto.Availability;
 

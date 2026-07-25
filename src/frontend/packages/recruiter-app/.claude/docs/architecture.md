@@ -53,8 +53,8 @@ src/
 └── stores/           # Stores Pinia par domaine
 ```
 
-Composants racine notables : `AppHeader.vue`, `AppFooter.vue`,
-`AppNavigation.vue`, `AppLogo.vue`, `NavItem.vue`.
+Composants racine notables : `AppHeader.vue`, `AppNavigation.vue`,
+`AppLogo.vue`, `NavItem.vue`.
 
 ## Conventions de code observées
 

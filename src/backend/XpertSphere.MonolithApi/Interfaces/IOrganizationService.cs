@@ -42,10 +42,28 @@ namespace XpertSphere.MonolithApi.Interfaces
         Task<ServiceResult<OrganizationDto>> UpdateAsync(Guid id, UpdateOrganizationDto updateOrganizationDto);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
         Task<ServiceResult> DeleteAsync(Guid id);
+
+        /// <summary>
+        /// Get the currency configured for the given organization (self-service, see
+        /// GET /api/organizations/me/currency).
+        /// </summary>
+        /// <param name="organizationId"></param>
+        /// <returns></returns>
+        Task<ServiceResult<OrganizationCurrencyDto>> GetCurrencyAsync(Guid organizationId);
+
+        /// <summary>
+        /// Update the currency configured for the given organization (self-service, see
+        /// PUT /api/organizations/me/currency). Has no effect on job offers already created.
+        /// </summary>
+        /// <param name="organizationId"></param>
+        /// <param name="dto"></param>
+        /// <returns></returns>
+        Task<ServiceResult<OrganizationCurrencyDto>> UpdateCurrencyAsync(Guid organizationId,
+            UpdateOrganizationCurrencyDto dto);
     }
 }
