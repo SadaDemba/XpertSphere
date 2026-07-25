@@ -26,7 +26,7 @@ public class CreateExperienceDtoValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Description is required");
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "La description est obligatoire");
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class CreateExperienceDtoValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Description is required");
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "La description est obligatoire");
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class CreateExperienceDtoValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "Description is required");
+        result.Errors.Should().ContainSingle(e => e.ErrorMessage == "La description est obligatoire");
     }
 
     [Fact]

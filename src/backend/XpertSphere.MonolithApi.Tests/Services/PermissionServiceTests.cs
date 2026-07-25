@@ -94,7 +94,7 @@ public class PermissionServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"Permission with ID {nonExistingId} not found");
+        result.Errors.Should().Contain($"Permission avec l'ID {nonExistingId} introuvable");
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public class PermissionServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("A permission with name 'ExistingPermission' already exists");
+        result.Errors.Should().Contain("Une permission avec le nom 'ExistingPermission' existe déjà");
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public class PermissionServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"Permission with ID {nonExistingId} not found");
+        result.Errors.Should().Contain($"Permission avec l'ID {nonExistingId} introuvable");
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public class PermissionServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("Cannot delete permission that is assigned to roles");
+        result.Errors.Should().Contain("Impossible de supprimer une permission assignée à des rôles");
     }
 
     [Fact]

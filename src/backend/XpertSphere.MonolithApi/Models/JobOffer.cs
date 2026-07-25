@@ -63,10 +63,10 @@ public class JobOffer : AuditableEntity
     public void Publish()
     {
         if (Status != JobOfferStatus.Draft)
-            throw new InvalidOperationException("Only draft job offers can be published");
+            throw new InvalidOperationException("Seules les offres d'emploi en brouillon peuvent être publiées");
 
         if (RequiresLocation && string.IsNullOrWhiteSpace(Location))
-            throw new InvalidOperationException("Location is required for non-remote positions");
+            throw new InvalidOperationException("La localisation est obligatoire pour les postes non intégralement en télétravail");
 
         Status = JobOfferStatus.Published;
         PublishedAt = DateTime.UtcNow;
@@ -75,7 +75,7 @@ public class JobOffer : AuditableEntity
     public void Close()
     {
         if (Status != JobOfferStatus.Published)
-            throw new InvalidOperationException("Only published job offers can be closed");
+            throw new InvalidOperationException("Seules les offres d'emploi publiées peuvent être clôturées");
 
         Status = JobOfferStatus.Closed;
     }
@@ -83,12 +83,12 @@ public class JobOffer : AuditableEntity
     public void Validate()
     {
         if (RequiresLocation && string.IsNullOrWhiteSpace(Location))
-            throw new ValidationException("Location is required when WorkMode is not FullRemote");
+            throw new ValidationException("La localisation est obligatoire lorsque le mode de travail n'est pas intégralement en télétravail");
 
         if (SalaryMin.HasValue && SalaryMax.HasValue && SalaryMin > SalaryMax)
-            throw new ValidationException("SalaryMin cannot be greater than SalaryMax");
+            throw new ValidationException("Le salaire minimum ne peut pas être supérieur au salaire maximum");
 
         if (ExpiresAt.HasValue && ExpiresAt <= DateTime.UtcNow)
-            throw new ValidationException("ExpiresAt must be in the future");
+            throw new ValidationException("La date d'expiration doit être dans le futur");
     }
 }

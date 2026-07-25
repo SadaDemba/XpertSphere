@@ -18,7 +18,7 @@ public class AuthResult : ServiceResult<AuthResponseDto>
     /// </summary>
     public Dictionary<string, object> Metadata { get; private set; } = new();
 
-    public static AuthResult Success(string message = "Operation successful", string? returnUrl = null)
+    public static AuthResult Success(string message = "Opération réalisée avec succès", string? returnUrl = null)
     {
         var response = new AuthResponseDto
         {
@@ -34,7 +34,7 @@ public class AuthResult : ServiceResult<AuthResponseDto>
         };
     }
 
-    public static AuthResult SuccessWithUser(AuthResponseDto user, string message = "Operation successful")
+    public static AuthResult SuccessWithUser(AuthResponseDto user, string message = "Opération réalisée avec succès")
     {
         return new AuthResult
         {
@@ -56,7 +56,7 @@ public class AuthResult : ServiceResult<AuthResponseDto>
         };
     }
 
-    public new static AuthResult Unauthorized(string message = "Unauthorized")
+    public new static AuthResult Unauthorized(string message = "Accès non autorisé")
     {
         return new AuthResult
         {
@@ -83,13 +83,13 @@ public class AuthResult : ServiceResult<AuthResponseDto>
         return new AuthResult
         {
             IsSuccess = false,
-            Message = "Validation failed",
+            Message = "Échec de la validation",
             Errors = validationErrors,
             StatusCode = 422
         };
     }
 
-    public static AuthResult SuccessWithData(object data, string message = "Operation successful")
+    public static AuthResult SuccessWithData(object data, string message = "Opération réalisée avec succès")
     {
         return new AuthResult
         {

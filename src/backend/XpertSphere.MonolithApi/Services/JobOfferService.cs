@@ -64,7 +64,7 @@ public class JobOfferService : IJobOfferService
         {
             _logger.LogError(ex, "Error retrieving all job offers");
             return ServiceResult<IEnumerable<JobOfferDto>>.InternalError(
-                "An error occurred while retrieving job offers");
+                "Une erreur est survenue lors de la récupération des offres d'emploi");
         }
     }
 
@@ -76,7 +76,7 @@ public class JobOfferService : IJobOfferService
             if (!validationResult.IsValid)
             {
                 var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-                return PaginatedResult<JobOfferDto>.Failure(errors, "Invalid filter parameters");
+                return PaginatedResult<JobOfferDto>.Failure(errors, "Paramètres de filtre invalides");
             }
 
             var query = BuildJobOfferQuery(filter);
@@ -94,7 +94,7 @@ public class JobOfferService : IJobOfferService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving paginated job offers with filter {Filter}", filter);
-            return PaginatedResult<JobOfferDto>.Failure("An error occurred while searching job offers");
+            return PaginatedResult<JobOfferDto>.Failure("Une erreur est survenue lors de la recherche des offres d'emploi");
         }
     }
 
@@ -110,7 +110,7 @@ public class JobOfferService : IJobOfferService
 
             if (jobOffer == null)
             {
-                return ServiceResult<JobOfferDto>.NotFound($"Job offer with ID {id} not found");
+                return ServiceResult<JobOfferDto>.NotFound($"Offre d'emploi avec l'ID {id} introuvable");
             }
 
             var jobOfferDto = _mapper.Map<JobOfferDto>(jobOffer);
@@ -119,7 +119,7 @@ public class JobOfferService : IJobOfferService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving job offer with ID {JobOfferId}", id);
-            return ServiceResult<JobOfferDto>.InternalError("An error occurred while retrieving the job offer");
+            return ServiceResult<JobOfferDto>.InternalError("Une erreur est survenue lors de la récupération de l'offre d'emploi");
         }
     }
 
@@ -139,7 +139,7 @@ public class JobOfferService : IJobOfferService
                 u.Id == userId && u.OrganizationId == organizationId);
             if (user == null)
             {
-                return ServiceResult<JobOfferDto>.Forbidden("User does not belong to the specified organization");
+                return ServiceResult<JobOfferDto>.Forbidden("L'utilisateur n'appartient pas à l'organisation spécifiée");
             }
 
             var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == organizationId);
@@ -170,12 +170,12 @@ public class JobOfferService : IJobOfferService
                 jobOffer.Id, organizationId);
 
             var jobOfferDto = _mapper.Map<JobOfferDto>(jobOffer);
-            return ServiceResult<JobOfferDto>.Success(jobOfferDto, "Job offer created successfully");
+            return ServiceResult<JobOfferDto>.Success(jobOfferDto, "Offre d'emploi créée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating job offer for organization {OrganizationId}", organizationId);
-            return ServiceResult<JobOfferDto>.InternalError("An error occurred while creating the job offer");
+            return ServiceResult<JobOfferDto>.InternalError("Une erreur est survenue lors de la création de l'offre d'emploi");
         }
     }
 
@@ -199,13 +199,13 @@ public class JobOfferService : IJobOfferService
 
             if (jobOffer == null)
             {
-                return ServiceResult<JobOfferDto>.NotFound($"Job offer with ID {id} not found");
+                return ServiceResult<JobOfferDto>.NotFound($"Offre d'emploi avec l'ID {id} introuvable");
             }
 
             var canManage = await CanUserManageJobOfferInternalAsync(jobOffer, userId);
             if (!canManage)
             {
-                return ServiceResult<JobOfferDto>.Forbidden("User cannot manage this job offer");
+                return ServiceResult<JobOfferDto>.Forbidden("L'utilisateur ne peut pas gérer cette offre d'emploi");
             }
 
             _mapper.Map(updateJobOfferDto, jobOffer);
@@ -224,12 +224,12 @@ public class JobOfferService : IJobOfferService
             _logger.LogInformation("Updated job offer with ID {JobOfferId}", id);
 
             var jobOfferDto = _mapper.Map<JobOfferDto>(jobOffer);
-            return ServiceResult<JobOfferDto>.Success(jobOfferDto, "Job offer updated successfully");
+            return ServiceResult<JobOfferDto>.Success(jobOfferDto, "Offre d'emploi mise à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating job offer with ID {JobOfferId}", id);
-            return ServiceResult<JobOfferDto>.InternalError("An error occurred while updating the job offer");
+            return ServiceResult<JobOfferDto>.InternalError("Une erreur est survenue lors de la mise à jour de l'offre d'emploi");
         }
     }
 
@@ -240,30 +240,30 @@ public class JobOfferService : IJobOfferService
             var jobOffer = await _context.JobOffers.FirstOrDefaultAsync(jo => jo.Id == id);
             if (jobOffer == null)
             {
-                return ServiceResult.NotFound($"Job offer with ID {id} not found");
+                return ServiceResult.NotFound($"Offre d'emploi avec l'ID {id} introuvable");
             }
 
             var canManage = await CanUserManageJobOfferInternalAsync(jobOffer, userId);
             if (!canManage)
             {
-                return ServiceResult.Forbidden("User cannot manage this job offer");
+                return ServiceResult.Forbidden("L'utilisateur ne peut pas gérer cette offre d'emploi");
             }
 
             if (jobOffer.Status == JobOfferStatus.Published)
             {
-                return ServiceResult.Failure("Cannot delete published job offers. Close the job offer first.");
+                return ServiceResult.Failure("Impossible de supprimer une offre d'emploi publiée. Clôturez d'abord l'offre d'emploi.");
             }
 
             _context.JobOffers.Remove(jobOffer);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Deleted job offer with ID {JobOfferId}", id);
-            return ServiceResult.Success("Job offer deleted successfully");
+            return ServiceResult.Success("Offre d'emploi supprimée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting job offer with ID {JobOfferId}", id);
-            return ServiceResult.InternalError("An error occurred while deleting the job offer");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression de l'offre d'emploi");
         }
     }
 
@@ -274,13 +274,13 @@ public class JobOfferService : IJobOfferService
             var jobOffer = await _context.JobOffers.FirstOrDefaultAsync(jo => jo.Id == id);
             if (jobOffer == null)
             {
-                return ServiceResult.NotFound($"Job offer with ID {id} not found");
+                return ServiceResult.NotFound($"Offre d'emploi avec l'ID {id} introuvable");
             }
 
             var canManage = await CanUserManageJobOfferInternalAsync(jobOffer, userId);
             if (!canManage)
             {
-                return ServiceResult.Forbidden("User cannot manage this job offer");
+                return ServiceResult.Forbidden("L'utilisateur ne peut pas gérer cette offre d'emploi");
             }
 
             try
@@ -295,12 +295,12 @@ public class JobOfferService : IJobOfferService
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Published job offer with ID {JobOfferId}", id);
-            return ServiceResult.Success("Job offer published successfully");
+            return ServiceResult.Success("Offre d'emploi publiée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error publishing job offer with ID {JobOfferId}", id);
-            return ServiceResult.InternalError("An error occurred while publishing the job offer");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la publication de l'offre d'emploi");
         }
     }
 
@@ -311,13 +311,13 @@ public class JobOfferService : IJobOfferService
             var jobOffer = await _context.JobOffers.FirstOrDefaultAsync(jo => jo.Id == id);
             if (jobOffer == null)
             {
-                return ServiceResult.NotFound($"Job offer with ID {id} not found");
+                return ServiceResult.NotFound($"Offre d'emploi avec l'ID {id} introuvable");
             }
 
             var canManage = await CanUserManageJobOfferInternalAsync(jobOffer, userId);
             if (!canManage)
             {
-                return ServiceResult.Forbidden("User cannot manage this job offer");
+                return ServiceResult.Forbidden("L'utilisateur ne peut pas gérer cette offre d'emploi");
             }
 
             try
@@ -332,12 +332,12 @@ public class JobOfferService : IJobOfferService
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Closed job offer with ID {JobOfferId}", id);
-            return ServiceResult.Success("Job offer closed successfully");
+            return ServiceResult.Success("Offre d'emploi clôturée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error closing job offer with ID {JobOfferId}", id);
-            return ServiceResult.InternalError("An error occurred while closing the job offer");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la clôture de l'offre d'emploi");
         }
     }
 
@@ -360,7 +360,7 @@ public class JobOfferService : IJobOfferService
         {
             _logger.LogError(ex, "Error retrieving job offers for organization {OrganizationId}", organizationId);
             return ServiceResult<IEnumerable<JobOfferDto>>.InternalError(
-                "An error occurred while retrieving job offers");
+                "Une erreur est survenue lors de la récupération des offres d'emploi");
         }
     }
 
@@ -383,7 +383,7 @@ public class JobOfferService : IJobOfferService
         {
             _logger.LogError(ex, "Error retrieving job offers for user {UserId}", userId);
             return ServiceResult<IEnumerable<JobOfferDto>>.InternalError(
-                "An error occurred while retrieving job offers");
+                "Une erreur est survenue lors de la récupération des offres d'emploi");
         }
     }
 
@@ -394,7 +394,7 @@ public class JobOfferService : IJobOfferService
             var jobOffer = await _context.JobOffers.FirstOrDefaultAsync(jo => jo.Id == jobOfferId);
             if (jobOffer == null)
             {
-                return ServiceResult<bool>.NotFound($"Job offer with ID {jobOfferId} not found");
+                return ServiceResult<bool>.NotFound($"Offre d'emploi avec l'ID {jobOfferId} introuvable");
             }
 
             var canManage = await CanUserManageJobOfferInternalAsync(jobOffer, userId);
@@ -403,7 +403,7 @@ public class JobOfferService : IJobOfferService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if user can manage job offer {JobOfferId}", jobOfferId);
-            return ServiceResult<bool>.InternalError("An error occurred while checking permissions");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification des permissions");
         }
     }
 

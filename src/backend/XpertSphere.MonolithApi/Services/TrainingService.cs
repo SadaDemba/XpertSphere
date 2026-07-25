@@ -45,7 +45,7 @@ public class TrainingService : ITrainingService
         {
             _logger.LogError(ex, "Error retrieving trainings for user {UserId}", userId);
             return ServiceResult<IEnumerable<TrainingDto>>.InternalError(
-                "An error occurred while retrieving user trainings");
+                "Une erreur est survenue lors de la récupération des formations de l'utilisateur");
         }
     }
 
@@ -59,7 +59,7 @@ public class TrainingService : ITrainingService
 
             if (training == null)
             {
-                return ServiceResult<TrainingDto>.NotFound($"Training with ID {id} not found");
+                return ServiceResult<TrainingDto>.NotFound($"Formation avec l'ID {id} introuvable");
             }
 
             var trainingDto = _mapper.Map<TrainingDto>(training);
@@ -68,7 +68,7 @@ public class TrainingService : ITrainingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving training with ID {TrainingId}", id);
-            return ServiceResult<TrainingDto>.InternalError("An error occurred while retrieving the training");
+            return ServiceResult<TrainingDto>.InternalError("Une erreur est survenue lors de la récupération de la formation");
         }
     }
 
@@ -80,12 +80,12 @@ public class TrainingService : ITrainingService
             await _context.Trainings.AddAsync(training);
 
             var trainingDto = _mapper.Map<TrainingDto>(createDto);
-            return ServiceResult<TrainingDto>.Success(trainingDto, "Training created successfully");
+            return ServiceResult<TrainingDto>.Success(trainingDto, "Formation créée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating training for user {UserId}", createDto.UserId);
-            return ServiceResult<TrainingDto>.InternalError("An error occurred while creating the training");
+            return ServiceResult<TrainingDto>.InternalError("Une erreur est survenue lors de la création de la formation");
         }
     }
 
@@ -110,7 +110,7 @@ public class TrainingService : ITrainingService
 
             if (training == null)
             {
-                return ServiceResult<TrainingDto>.NotFound($"Training with ID {id} not found");
+                return ServiceResult<TrainingDto>.NotFound($"Formation avec l'ID {id} introuvable");
             }
 
             _mapper.Map(updateDto, training);
@@ -121,12 +121,12 @@ public class TrainingService : ITrainingService
             _logger.LogInformation("Updated training with ID {TrainingId}", id);
 
             var trainingDto = _mapper.Map<TrainingDto>(training);
-            return ServiceResult<TrainingDto>.Success(trainingDto, "Training updated successfully");
+            return ServiceResult<TrainingDto>.Success(trainingDto, "Formation mise à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating training with ID {TrainingId}", id);
-            return ServiceResult<TrainingDto>.InternalError("An error occurred while updating the training");
+            return ServiceResult<TrainingDto>.InternalError("Une erreur est survenue lors de la mise à jour de la formation");
         }
     }
 
@@ -137,19 +137,19 @@ public class TrainingService : ITrainingService
             var training = await _context.Trainings.FindAsync(id);
             if (training == null)
             {
-                return ServiceResult.NotFound($"Training with ID {id} not found");
+                return ServiceResult.NotFound($"Formation avec l'ID {id} introuvable");
             }
 
             _context.Trainings.Remove(training);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Deleted training with ID {TrainingId}", id);
-            return ServiceResult.Success("Training deleted successfully");
+            return ServiceResult.Success("Formation supprimée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting training with ID {TrainingId}", id);
-            return ServiceResult.InternalError("An error occurred while deleting the training");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression de la formation");
         }
     }
 
@@ -163,19 +163,19 @@ public class TrainingService : ITrainingService
 
             if (!trainings.Any())
             {
-                return ServiceResult.Success("No trainings to delete");
+                return ServiceResult.Success("Aucune formation à supprimer");
             }
 
             _context.Trainings.RemoveRange(trainings);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Deleted {Count} trainings for user {UserId}", trainings.Count, userId);
-            return ServiceResult.Success($"Deleted {trainings.Count} trainings successfully");
+            return ServiceResult.Success($"{trainings.Count} formation(s) supprimée(s) avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting trainings for user {UserId}", userId);
-            return ServiceResult.InternalError("An error occurred while deleting user trainings");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression des formations de l'utilisateur");
         }
     }
 
@@ -188,7 +188,7 @@ public class TrainingService : ITrainingService
             var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
             if (!userExists)
             {
-                return ServiceResult<IEnumerable<TrainingDto>>.NotFound($"User with ID {userId} not found");
+                return ServiceResult<IEnumerable<TrainingDto>>.NotFound($"Utilisateur avec l'ID {userId} introuvable");
             }
 
             // Delete all existing trainings for the user
@@ -230,13 +230,13 @@ public class TrainingService : ITrainingService
 
             var trainingDtos = _mapper.Map<IEnumerable<TrainingDto>>(savedTrainings);
             return ServiceResult<IEnumerable<TrainingDto>>.Success(trainingDtos,
-                $"Successfully replaced user trainings with {trainings.Count} new trainings");
+                $"Formations de l'utilisateur remplacées avec succès par {trainings.Count} nouvelle(s) formation(s)");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error replacing trainings for user {UserId}", userId);
             return ServiceResult<IEnumerable<TrainingDto>>.InternalError(
-                "An error occurred while replacing user trainings");
+                "Une erreur est survenue lors du remplacement des formations de l'utilisateur");
         }
     }
 
@@ -250,20 +250,20 @@ public class TrainingService : ITrainingService
 
             if (training == null)
             {
-                return ServiceResult<TrainingDto>.NotFound($"Training with ID {trainingId} not found");
+                return ServiceResult<TrainingDto>.NotFound($"Formation avec l'ID {trainingId} introuvable");
             }
 
             var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
             if (!userExists)
             {
-                return ServiceResult<TrainingDto>.NotFound($"User with ID {userId} not found");
+                return ServiceResult<TrainingDto>.NotFound($"Utilisateur avec l'ID {userId} introuvable");
             }
 
             if (training.UserId == userId)
             {
                 return ServiceResult<TrainingDto>.Success(
                     _mapper.Map<TrainingDto>(training),
-                    "Training is already assigned to this user");
+                    "La formation est déjà affectée à cet utilisateur");
             }
 
             training.UserId = userId;
@@ -274,12 +274,12 @@ public class TrainingService : ITrainingService
             _logger.LogInformation("Assigned training {TrainingId} to user {UserId}", trainingId, userId);
 
             var trainingDto = _mapper.Map<TrainingDto>(training);
-            return ServiceResult<TrainingDto>.Success(trainingDto, "Training assigned successfully");
+            return ServiceResult<TrainingDto>.Success(trainingDto, "Formation affectée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error assigning training {TrainingId} to user {UserId}", trainingId, userId);
-            return ServiceResult<TrainingDto>.InternalError("An error occurred while assigning the training");
+            return ServiceResult<TrainingDto>.InternalError("Une erreur est survenue lors de l'affectation de la formation");
         }
     }
 
@@ -290,7 +290,7 @@ public class TrainingService : ITrainingService
             var training = await _context.Trainings.FindAsync(trainingId);
             if (training == null)
             {
-                return ServiceResult.NotFound($"Training with ID {trainingId} not found");
+                return ServiceResult.NotFound($"Formation avec l'ID {trainingId} introuvable");
             }
 
             // Instead of unassigning, we delete the training
@@ -299,12 +299,12 @@ public class TrainingService : ITrainingService
 
             _logger.LogInformation("Deleted training {TrainingId} (was assigned to user {UserId})",
                 trainingId, training.UserId);
-            return ServiceResult.Success("Training removed successfully");
+            return ServiceResult.Success("Formation supprimée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unassigning training {TrainingId}", trainingId);
-            return ServiceResult.InternalError("An error occurred while unassigning the training");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la désaffectation de la formation");
         }
     }
 
@@ -320,7 +320,7 @@ public class TrainingService : ITrainingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if user {UserId} has training {TrainingId}", userId, trainingId);
-            return ServiceResult<bool>.InternalError("An error occurred while checking user training");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de la formation de l'utilisateur");
         }
     }
 
@@ -334,7 +334,7 @@ public class TrainingService : ITrainingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if training {TrainingId} can be deleted", id);
-            return ServiceResult<bool>.InternalError("An error occurred while checking if training can be deleted");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de la suppressibilité de la formation");
         }
     }
 }

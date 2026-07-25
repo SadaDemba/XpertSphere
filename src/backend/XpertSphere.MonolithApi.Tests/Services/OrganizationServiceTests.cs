@@ -64,7 +64,7 @@ public class OrganizationServiceTests : IDisposable
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
         result.Data!.Name.Should().Be("Test Organization");
-        result.Message.Should().Contain("Organization created successfully");
+        result.Message.Should().Contain("Organisation créée avec succès");
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class OrganizationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.Contains("already exists"));
+        result.Errors.Should().Contain(e => e.Contains("existe déjà"));
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class OrganizationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"Organization with ID {nonExistingId} not found");
+        result.Errors.Should().Contain($"Organisation avec l'ID {nonExistingId} introuvable");
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class OrganizationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"Organization with ID {nonExistingId} not found");
+        result.Errors.Should().Contain($"Organisation avec l'ID {nonExistingId} introuvable");
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public class OrganizationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("Cannot delete organization that has active users");
+        result.Errors.Should().Contain("Impossible de supprimer une organisation ayant des utilisateurs actifs");
     }
 
     [Fact]
@@ -309,7 +309,7 @@ public class OrganizationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Message.Should().Contain("Organization deleted successfully");
+        result.Message.Should().Contain("Organisation supprimée avec succès");
     }
 
     [Fact]

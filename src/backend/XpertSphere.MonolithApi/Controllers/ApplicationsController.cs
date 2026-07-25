@@ -55,7 +55,7 @@ public class ApplicationsController(IApplicationService applicationService) : Co
         var candidateId = this.GetCurrentUserId();
         if (!candidateId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await applicationService.CreateApplicationAsync(createApplicationDto, candidateId.Value);
@@ -72,7 +72,7 @@ public class ApplicationsController(IApplicationService applicationService) : Co
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await applicationService.UpdateApplicationAsync(id, updateApplicationDto, userId.Value);
@@ -88,7 +88,7 @@ public class ApplicationsController(IApplicationService applicationService) : Co
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await applicationService.DeleteApplicationAsync(id, userId.Value);
@@ -106,7 +106,7 @@ public class ApplicationsController(IApplicationService applicationService) : Co
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await applicationService.UpdateApplicationStatusAsync(id, updateStatusDto, userId.Value);
@@ -122,7 +122,7 @@ public class ApplicationsController(IApplicationService applicationService) : Co
         var candidateId = this.GetCurrentUserId();
         if (!candidateId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await applicationService.WithdrawApplicationAsync(id, request.Reason, candidateId.Value);
@@ -149,7 +149,7 @@ public class ApplicationsController(IApplicationService applicationService) : Co
         var candidateId = this.GetCurrentUserId();
         if (!candidateId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await applicationService.GetApplicationsByCandidateAsync(candidateId.Value);
@@ -177,7 +177,7 @@ public class ApplicationsController(IApplicationService applicationService) : Co
         var organizationId = this.GetCurrentUserOrganizationId();
         if (!organizationId.HasValue)
         {
-            return BadRequest("Organization ID not found in claims");
+            return BadRequest("Identifiant d'organisation introuvable dans les claims");
         }
 
         var result = await applicationService.GetApplicationsByOrganizationAsync(organizationId.Value);
@@ -214,7 +214,7 @@ public class ApplicationsController(IApplicationService applicationService) : Co
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await applicationService.CanUserManageApplicationAsync(id, userId.Value);
@@ -230,7 +230,7 @@ public class ApplicationsController(IApplicationService applicationService) : Co
         var candidateId = this.GetCurrentUserId();
         if (!candidateId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await applicationService.HasCandidateAppliedToJobAsync(jobOfferId, candidateId.Value);
@@ -258,7 +258,7 @@ public class ApplicationsController(IApplicationService applicationService) : Co
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         // Ensure the application ID matches the route parameter
@@ -278,7 +278,7 @@ public class ApplicationsController(IApplicationService applicationService) : Co
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         // Ensure the application ID matches the route parameter

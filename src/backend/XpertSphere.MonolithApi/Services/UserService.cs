@@ -64,7 +64,7 @@ public class UserService : IUserService
 
             if (user == null)
             {
-                return ServiceResult<UserDto>.NotFound($"User with ID {id} not found");
+                return ServiceResult<UserDto>.NotFound($"Utilisateur avec l'ID {id} introuvable");
             }
 
             var userDto = _mapper.Map<UserDto>(user);
@@ -73,7 +73,7 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving user with ID {UserId}", id);
-            return ServiceResult<UserDto>.InternalError("An error occurred while retrieving the user");
+            return ServiceResult<UserDto>.InternalError("Une erreur est survenue lors de la récupération de l'utilisateur");
         }
     }
 
@@ -89,7 +89,7 @@ public class UserService : IUserService
 
             if (user == null)
             {
-                return ServiceResult<UserProfileDto>.NotFound($"User with ID {id} not found");
+                return ServiceResult<UserProfileDto>.NotFound($"Utilisateur avec l'ID {id} introuvable");
             }
 
             var userProfileDto = _mapper.Map<UserProfileDto>(user);
@@ -98,7 +98,7 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving user profile with ID {UserId}", id);
-            return ServiceResult<UserProfileDto>.InternalError("An error occurred while retrieving the user profile");
+            return ServiceResult<UserProfileDto>.InternalError("Une erreur est survenue lors de la récupération du profil utilisateur");
         }
     }
 
@@ -119,7 +119,7 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving all users");
-            return ServiceResult<List<UserSearchResultDto>>.InternalError("An error occurred while retrieving users");
+            return ServiceResult<List<UserSearchResultDto>>.InternalError("Une erreur est survenue lors de la récupération des utilisateurs");
         }
     }
 
@@ -131,7 +131,7 @@ public class UserService : IUserService
             if (!validationResult.IsValid)
             {
                 var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-                return PaginatedResult<UserSearchResultDto>.Failure(errors, "Invalid filter parameters");
+                return PaginatedResult<UserSearchResultDto>.Failure(errors, "Paramètres de filtre invalides");
             }
 
             var query = BuildUserQuery(filter);
@@ -146,7 +146,7 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving users with filter {Filter}", filter);
-            return PaginatedResult<UserSearchResultDto>.Failure("An error occurred while searching users");
+            return PaginatedResult<UserSearchResultDto>.Failure("Une erreur est survenue lors de la recherche des utilisateurs");
         }
     }
 
@@ -165,7 +165,7 @@ public class UserService : IUserService
             var emailExists = await _context.Users.AnyAsync(u => u.Email == dto.Email);
             if (emailExists)
             {
-                return ServiceResult<UserDto>.Conflict($"User with email '{dto.Email}' already exists");
+                return ServiceResult<UserDto>.Conflict($"Un utilisateur avec l'email '{dto.Email}' existe déjà");
             }
 
             // Validate organization exists for internal users
@@ -174,7 +174,7 @@ public class UserService : IUserService
                 var orgExists = await _context.Organizations.AnyAsync(o => o.Id == dto.OrganizationId.Value);
                 if (!orgExists)
                 {
-                    return ServiceResult<UserDto>.Failure($"Organization with ID {dto.OrganizationId} not found");
+                    return ServiceResult<UserDto>.Failure($"Organisation avec l'ID {dto.OrganizationId} introuvable");
                 }
             }
 
@@ -185,7 +185,7 @@ public class UserService : IUserService
                 if (currentUserOrgId.HasValue && dto.OrganizationId != currentUserOrgId)
                 {
                     return ServiceResult<UserDto>.Forbidden(
-                        "Organization admin can only create users for their own organization");
+                        "Un administrateur d'organisation ne peut créer des utilisateurs que pour sa propre organisation");
                 }
             }
 
@@ -200,18 +200,18 @@ public class UserService : IUserService
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 _logger.LogError("Failed to create user {Email}: {Errors}", dto.Email, errors);
-                return ServiceResult<UserDto>.Failure($"User creation failed: {errors}");
+                return ServiceResult<UserDto>.Failure($"Échec de la création de l'utilisateur : {errors}");
             }
 
             _logger.LogInformation("Created new user with ID {UserId} and email {Email}", user.Id, user.Email);
 
             var userDto = _mapper.Map<UserDto>(user);
-            return ServiceResult<UserDto>.Success(userDto, "User created successfully");
+            return ServiceResult<UserDto>.Success(userDto, "Utilisateur créé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error while creating user with email {DtoEmail}", dto.Email);
-            return ServiceResult<UserDto>.InternalError("An error occurred while creating the user");
+            return ServiceResult<UserDto>.InternalError("Une erreur est survenue lors de la création de l'utilisateur");
         }
     }
 
@@ -234,7 +234,7 @@ public class UserService : IUserService
 
             if (user == null)
             {
-                return ServiceResult<UserDto>.NotFound($"User with ID {id} not found");
+                return ServiceResult<UserDto>.NotFound($"Utilisateur avec l'ID {id} introuvable");
             }
 
             // Check email uniqueness if email is being changed
@@ -243,7 +243,7 @@ public class UserService : IUserService
                 var emailExists = await _context.Users.AnyAsync(u => u.Email == dto.Email && u.Id != id);
                 if (emailExists)
                 {
-                    return ServiceResult<UserDto>.Conflict($"User with email '{dto.Email}' already exists");
+                    return ServiceResult<UserDto>.Conflict($"Un utilisateur avec l'email '{dto.Email}' existe déjà");
                 }
             }
 
@@ -253,7 +253,7 @@ public class UserService : IUserService
                 var orgExists = await _context.Organizations.AnyAsync(o => o.Id == dto.OrganizationId.Value);
                 if (!orgExists)
                 {
-                    return ServiceResult<UserDto>.Failure($"Organization with ID {dto.OrganizationId} not found");
+                    return ServiceResult<UserDto>.Failure($"Organisation avec l'ID {dto.OrganizationId} introuvable");
                 }
             }
 
@@ -267,12 +267,12 @@ public class UserService : IUserService
             _logger.LogInformation("Updated user with ID {UserId}", id);
 
             var userDto = _mapper.Map<UserDto>(user);
-            return ServiceResult<UserDto>.Success(userDto, "User updated successfully");
+            return ServiceResult<UserDto>.Success(userDto, "Utilisateur mis à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating user with ID {Id}", id);
-            return ServiceResult<UserDto>.InternalError("An error occurred while updating the user");
+            return ServiceResult<UserDto>.InternalError("Une erreur est survenue lors de la mise à jour de l'utilisateur");
         }
     }
 
@@ -283,7 +283,7 @@ public class UserService : IUserService
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return ServiceResult.NotFound($"User with ID {id} not found");
+                return ServiceResult.NotFound($"Utilisateur avec l'ID {id} introuvable");
             }
 
             // Softly delete
@@ -293,12 +293,12 @@ public class UserService : IUserService
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Soft deleted user with ID {UserId}", id);
-            return ServiceResult.Success("User deleted successfully");
+            return ServiceResult.Success("Utilisateur supprimé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting user with ID {UserId}", id);
-            return ServiceResult.InternalError("An error occurred while deleting the user");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression de l'utilisateur");
         }
     }
 
@@ -309,19 +309,19 @@ public class UserService : IUserService
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return ServiceResult.NotFound($"User with ID {id} not found");
+                return ServiceResult.NotFound($"Utilisateur avec l'ID {id} introuvable");
             }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Hard deleted user with ID {UserId}", id);
-            return ServiceResult.Success("User permanently deleted");
+            return ServiceResult.Success("Utilisateur supprimé définitivement");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error hard deleting user with ID {UserId}", id);
-            return ServiceResult.InternalError("An error occurred while permanently deleting the use");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression définitive de l'utilisateur");
         }
     }
 
@@ -340,7 +340,7 @@ public class UserService : IUserService
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
             {
-                return ServiceResult<UploadCvResponseDto>.NotFound($"User with ID {userId} not found");
+                return ServiceResult<UploadCvResponseDto>.NotFound($"Utilisateur avec l'ID {userId} introuvable");
             }
 
             // Delete existing CV from blob storage if replacing
@@ -353,7 +353,7 @@ public class UserService : IUserService
             var uploadResult = await _resumeService.UploadResumeAsync(dto.CvFile, userId);
             if (!uploadResult.IsSuccess)
             {
-                return ServiceResult<UploadCvResponseDto>.Failure($"Failed to upload CV: {uploadResult.Message}");
+                return ServiceResult<UploadCvResponseDto>.Failure($"Échec du téléversement du CV : {uploadResult.Message}");
             }
 
             // Update user CV path with the blob URL
@@ -366,7 +366,7 @@ public class UserService : IUserService
             var response = new UploadCvResponseDto
             {
                 Success = true,
-                Message = "CV uploaded successfully",
+                Message = "CV téléversé avec succès",
                 CvPath = uploadResult.Data, // This is now the Azure Blob Storage URL
                 FileName = Path.GetFileName(new Uri(uploadResult.Data).LocalPath),
                 FileSizeBytes = dto.CvFile.Length,
@@ -382,12 +382,12 @@ public class UserService : IUserService
             }
 
             _logger.LogInformation("Uploaded CV to Blob Storage for user {UserId}: {CvPath}", userId, uploadResult.Data);
-            return ServiceResult<UploadCvResponseDto>.Success(response, "CV uploaded successfully");
+            return ServiceResult<UploadCvResponseDto>.Success(response, "CV téléversé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading CV for user {UserId}", userId);
-            return ServiceResult<UploadCvResponseDto>.InternalError("An error occurred while uploading the CV");
+            return ServiceResult<UploadCvResponseDto>.InternalError("Une erreur est survenue lors du téléversement du CV");
         }
     }
 
@@ -399,7 +399,7 @@ public class UserService : IUserService
             if (!orgExists)
             {
                 return ServiceResult<IEnumerable<UserSearchResultDto>>.NotFound(
-                    $"Organization with ID {organizationId} not found");
+                    $"Organisation avec l'ID {organizationId} introuvable");
             }
 
             var users = await _context.Users
@@ -419,7 +419,7 @@ public class UserService : IUserService
         {
             _logger.LogError(ex, "Error retrieving users for organization {OrganizationId}", organizationId);
             return ServiceResult<IEnumerable<UserSearchResultDto>>.InternalError(
-                "An error occurred while retrieving users for the organization");
+                "Une erreur est survenue lors de la récupération des utilisateurs de l'organisation");
         }
     }
 
@@ -430,12 +430,12 @@ public class UserService : IUserService
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return ServiceResult.NotFound($"User with ID {id} not found");
+                return ServiceResult.NotFound($"Utilisateur avec l'ID {id} introuvable");
             }
 
             if (user.IsActive)
             {
-                return ServiceResult.Success("User is already active");
+                return ServiceResult.Success("L'utilisateur est déjà actif");
             }
 
             user.IsActive = true;
@@ -444,12 +444,12 @@ public class UserService : IUserService
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Activated user with ID {UserId}", id);
-            return ServiceResult.Success("User activated successfully");
+            return ServiceResult.Success("Utilisateur activé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error activating user with ID {UserId}", id);
-            return ServiceResult.InternalError("An error occurred while activating the user");
+            return ServiceResult.InternalError("Une erreur est survenue lors de l'activation de l'utilisateur");
         }
     }
 
@@ -460,12 +460,12 @@ public class UserService : IUserService
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return ServiceResult.NotFound($"User with ID {id} not found");
+                return ServiceResult.NotFound($"Utilisateur avec l'ID {id} introuvable");
             }
 
             if (!user.IsActive)
             {
-                return ServiceResult.Success("User is already inactive");
+                return ServiceResult.Success("L'utilisateur est déjà inactif");
             }
 
             user.IsActive = false;
@@ -474,12 +474,12 @@ public class UserService : IUserService
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Deactivated user with ID {UserId}", id);
-            return ServiceResult.Success("User deactivated successfully");
+            return ServiceResult.Success("Utilisateur désactivé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deactivating user with ID {UserId}", id);
-            return ServiceResult.InternalError("An error occurred while deactivating the user");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la désactivation de l'utilisateur");
         }
     }
 
@@ -493,7 +493,7 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if user exists with ID {UserId}", id);
-            return ServiceResult<bool>.InternalError("An error occurred while checking user existence");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de l'existence de l'utilisateur");
         }
     }
 
@@ -514,7 +514,7 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if email exists: {Email}", email);
-            return ServiceResult<bool>.InternalError("An error occurred while checking email existence");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de l'existence de l'email");
         }
     }
 
@@ -525,7 +525,7 @@ public class UserService : IUserService
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return ServiceResult.NotFound($"User with ID {id} not found");
+                return ServiceResult.NotFound($"Utilisateur avec l'ID {id} introuvable");
             }
 
             user.LastLoginAt = DateTime.UtcNow;
@@ -534,12 +534,12 @@ public class UserService : IUserService
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Updated last login for user {UserId}", id);
-            return ServiceResult.Success("Last login updated successfully");
+            return ServiceResult.Success("Dernière connexion mise à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating last login for user {UserId}", id);
-            return ServiceResult.InternalError("An error occurred while updating last login");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la mise à jour de la dernière connexion");
         }
     }
 
@@ -550,7 +550,7 @@ public class UserService : IUserService
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return ServiceResult<int>.NotFound($"User with ID {id} not found");
+                return ServiceResult<int>.NotFound($"Utilisateur avec l'ID {id} introuvable");
             }
 
             user.CalculateProfileCompletion();
@@ -561,12 +561,12 @@ public class UserService : IUserService
             _logger.LogInformation("Updated profile completion for user {UserId}: {Completion}%", id,
                 user.ProfileCompletionPercentage);
             return ServiceResult<int>.Success(user.ProfileCompletionPercentage,
-                "Profile completion updated successfully");
+                "Complétion du profil mise à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating profile completion for user {UserId}", id);
-            return ServiceResult<int>.InternalError("An error occurred while updating profile completion");
+            return ServiceResult<int>.InternalError("Une erreur est survenue lors de la mise à jour de la complétion du profil");
         }
     }
 
@@ -591,7 +591,7 @@ public class UserService : IUserService
         {
             _logger.LogError(ex, "Error retrieving users with incomplete profiles");
             return ServiceResult<List<UserSearchResultDto>>.InternalError(
-                "An error occurred while retrieving users with incomplete profiles");
+                "Une erreur est survenue lors de la récupération des utilisateurs avec profils incomplets");
         }
     }
 
@@ -616,7 +616,7 @@ public class UserService : IUserService
         {
             _logger.LogError(ex, "Error retrieving recently registered users");
             return ServiceResult<List<UserSearchResultDto>>.InternalError(
-                "An error occurred while retrieving recently registered users");
+                "Une erreur est survenue lors de la récupération des utilisateurs récemment inscrits");
         }
     }
 
@@ -642,7 +642,7 @@ public class UserService : IUserService
         {
             _logger.LogError(ex, "Error retrieving inactive users");
             return ServiceResult<List<UserSearchResultDto>>.InternalError(
-                "An error occurred while retrieving inactive users");
+                "Une erreur est survenue lors de la récupération des utilisateurs inactifs");
         }
     }
 
@@ -652,7 +652,7 @@ public class UserService : IUserService
         {
             if (!userIds.Any())
             {
-                return ServiceResult<int>.Success(0, "No users to update");
+                return ServiceResult<int>.Success(0, "Aucun utilisateur à mettre à jour");
             }
 
             var validationResult = await _updateUserValidator.ValidateAsync(updates);
@@ -668,7 +668,7 @@ public class UserService : IUserService
 
             if (!users.Any())
             {
-                return ServiceResult<int>.NotFound("No users found with the provided IDs");
+                return ServiceResult<int>.NotFound("Aucun utilisateur trouvé avec les identifiants fournis");
             }
 
             int updatedCount = 0;
@@ -709,12 +709,12 @@ public class UserService : IUserService
                     userIds.Count);
             }
 
-            return ServiceResult<int>.Success(updatedCount, $"Successfully updated {updatedCount} users");
+            return ServiceResult<int>.Success(updatedCount, $"{updatedCount} utilisateur(s) mis à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during bulk update of users");
-            return ServiceResult<int>.InternalError("An error occurred during bulk update");
+            return ServiceResult<int>.InternalError("Une erreur est survenue lors de la mise à jour groupée");
         }
     }
 
@@ -861,7 +861,7 @@ public class UserService : IUserService
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return ServiceResult<UserDto>.NotFound($"User with ID {id} not found");
+                return ServiceResult<UserDto>.NotFound($"Utilisateur avec l'ID {id} introuvable");
             }
 
             // Replace skills
@@ -883,12 +883,12 @@ public class UserService : IUserService
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             var userDto = _mapper.Map<UserDto>(updatedUser);
-            return ServiceResult<UserDto>.Success(userDto, "Skills updated successfully");
+            return ServiceResult<UserDto>.Success(userDto, "Compétences mises à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating skills for user {UserId}", id);
-            return ServiceResult<UserDto>.InternalError("An error occurred while updating user skills");
+            return ServiceResult<UserDto>.InternalError("Une erreur est survenue lors de la mise à jour des compétences de l'utilisateur");
         }
     }
 
@@ -902,7 +902,7 @@ public class UserService : IUserService
 
             if (user == null)
             {
-                return ServiceResult<UserDto>.NotFound($"User with ID {id} not found");
+                return ServiceResult<UserDto>.NotFound($"Utilisateur avec l'ID {id} introuvable");
             }
 
             // Update user properties
@@ -973,12 +973,12 @@ public class UserService : IUserService
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             var userDto = _mapper.Map<UserDto>(updatedUser);
-            return ServiceResult<UserDto>.Success(userDto, "Profile updated successfully");
+            return ServiceResult<UserDto>.Success(userDto, "Profil mis à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating profile for user {UserId}", id);
-            return ServiceResult<UserDto>.InternalError("An error occurred while updating user profile");
+            return ServiceResult<UserDto>.InternalError("Une erreur est survenue lors de la mise à jour du profil utilisateur");
         }
     }
 
@@ -989,24 +989,24 @@ public class UserService : IUserService
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
             {
-                return ServiceResult<CvDownloadResult>.NotFound($"User with ID {userId} not found");
+                return ServiceResult<CvDownloadResult>.NotFound($"Utilisateur avec l'ID {userId} introuvable");
             }
 
             if (string.IsNullOrEmpty(user.CvPath))
             {
-                return ServiceResult<CvDownloadResult>.NotFound("No CV uploaded for this user");
+                return ServiceResult<CvDownloadResult>.NotFound("Aucun CV téléversé pour cet utilisateur");
             }
 
             var metadataResult = await _resumeService.GetResumeMetadataAsync(user.CvPath);
             if (!metadataResult.IsSuccess)
             {
-                return ServiceResult<CvDownloadResult>.NotFound("CV file not found in storage");
+                return ServiceResult<CvDownloadResult>.NotFound("Fichier CV introuvable dans le stockage");
             }
 
             var downloadResult = await _resumeService.DownloadResumeAsync(user.CvPath);
             if (!downloadResult.IsSuccess)
             {
-                return ServiceResult<CvDownloadResult>.NotFound("CV file not found in storage");
+                return ServiceResult<CvDownloadResult>.NotFound("Fichier CV introuvable dans le stockage");
             }
 
             var cvDownloadResult = new CvDownloadResult
@@ -1021,7 +1021,7 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving CV for download for user {UserId}", userId);
-            return ServiceResult<CvDownloadResult>.InternalError("An error occurred while retrieving the CV");
+            return ServiceResult<CvDownloadResult>.InternalError("Une erreur est survenue lors de la récupération du CV");
         }
     }
 

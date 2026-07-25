@@ -102,7 +102,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Message.Should().Contain("Registration successful");
+        result.Message.Should().Contain("Inscription réussie");
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("User with this email already exists");
+        result.Errors.Should().Contain("Un utilisateur avec cet email existe déjà");
     }
 
     [Fact]
@@ -216,7 +216,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("An error occurred during login");
+        result.Errors.Should().Contain("Une erreur est survenue lors de la connexion");
     }
 
     [Fact]
@@ -252,7 +252,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("An error occurred during login");
+        result.Errors.Should().Contain("Une erreur est survenue lors de la connexion");
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
-        result.Message.Should().Contain("Email confirmed successfully");
+        result.Message.Should().Contain("Email confirmé avec succès");
     }
 
     [Fact]
@@ -334,7 +334,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("Email confirmation failed: Invalid token");
+        result.Errors.Should().Contain("Échec de la confirmation de l'email : Invalid token");
     }
 
     [Fact]
@@ -372,7 +372,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Message.Should().Contain("Password reset");
+        result.Message.Should().Contain("réinitialisation");
     }
 
     [Fact]
@@ -413,7 +413,7 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
-        result.Message.Should().Contain("Password reset successful");
+        result.Message.Should().Contain("Réinitialisation du mot de passe réussie");
     }
 
     [Fact]
@@ -441,7 +441,7 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.StatusCode.Should().Be(422);
-        result.Errors.Should().Contain("Experience #1 (\"Backend Developer\") is missing a description.");
+        result.Errors.Should().Contain("L'expérience n°1 (« Backend Developer ») n'a pas de description.");
     }
 
     [Fact]
@@ -469,7 +469,7 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.StatusCode.Should().Be(422);
-        result.Errors.Should().Contain("Experience #1 (\"Backend Developer\") is missing a description.");
+        result.Errors.Should().Contain("L'expérience n°1 (« Backend Developer ») n'a pas de description.");
     }
 
     [Fact]
@@ -497,7 +497,7 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.StatusCode.Should().Be(422);
-        result.Errors.Should().Contain("Experience #1 is missing a description.");
+        result.Errors.Should().Contain("L'expérience n°1 n'a pas de description.");
     }
 
     [Fact]
@@ -533,8 +533,8 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.StatusCode.Should().Be(422);
-        result.Errors.Should().Contain("Experience #1 (\"Backend Developer\") is missing a description.");
-        result.Errors.Should().Contain("Experience #2 (\"Frontend Developer\") is missing a description.");
+        result.Errors.Should().Contain("L'expérience n°1 (« Backend Developer ») n'a pas de description.");
+        result.Errors.Should().Contain("L'expérience n°2 (« Frontend Developer ») n'a pas de description.");
     }
 
     [Fact]
@@ -571,7 +571,7 @@ public class AuthenticationServiceTests : IDisposable
         result.IsSuccess.Should().BeFalse();
         result.StatusCode.Should().Be(422);
         result.Errors.Should().ContainSingle();
-        result.Errors.Should().Contain("Experience #2 (\"Frontend Developer\") is missing a description.");
+        result.Errors.Should().Contain("L'expérience n°2 (« Frontend Developer ») n'a pas de description.");
     }
 
     [Fact]
@@ -597,7 +597,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Message.Should().Contain("Registration successful");
+        result.Message.Should().Contain("Inscription réussie");
     }
 
     [Fact]

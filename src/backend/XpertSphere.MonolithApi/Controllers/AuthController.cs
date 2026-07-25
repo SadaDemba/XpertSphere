@@ -193,7 +193,7 @@ public class AuthController : ControllerBase
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return Unauthorized(new { message = "Invalid user context" });
+            return Unauthorized(new { message = "Contexte utilisateur invalide" });
         }
 
         var result = await _authService.GetCurrentUserAsync(userId.Value);

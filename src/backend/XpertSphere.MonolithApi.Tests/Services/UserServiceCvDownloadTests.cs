@@ -119,7 +119,7 @@ public class UserServiceCvDownloadTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.StatusCode.Should().Be(404);
-        result.Message.Should().Contain("No CV uploaded");
+        result.Message.Should().Contain("Aucun CV téléversé");
     }
 
     [Fact]

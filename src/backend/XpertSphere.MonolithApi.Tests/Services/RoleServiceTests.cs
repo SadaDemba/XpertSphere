@@ -94,7 +94,7 @@ public class RoleServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("A role with name 'ExistingRole' already exists");
+        result.Errors.Should().Contain("Un rôle avec le nom 'ExistingRole' existe déjà");
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public class RoleServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"Role with ID {nonExistingId} not found");
+        result.Errors.Should().Contain($"Rôle avec l'ID {nonExistingId} introuvable");
     }
 
     [Fact]
@@ -204,7 +204,7 @@ public class RoleServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Data.Should().NotBeNull();
-        result.Message.Should().Contain("Role updated successfully");
+        result.Message.Should().Contain("Rôle mis à jour avec succès");
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public class RoleServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Message.Should().Contain("Role deleted successfully");
+        result.Message.Should().Contain("Rôle supprimé avec succès");
     }
 
     [Fact]
@@ -258,7 +258,7 @@ public class RoleServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Message.Should().Contain("Role activated successfully");
+        result.Message.Should().Contain("Rôle activé avec succès");
     }
 
     [Fact]
@@ -285,7 +285,7 @@ public class RoleServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Message.Should().Contain("Role deactivated successfully");
+        result.Message.Should().Contain("Rôle désactivé avec succès");
     }
 
     [Fact]

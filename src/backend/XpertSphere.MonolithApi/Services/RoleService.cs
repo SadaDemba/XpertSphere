@@ -69,7 +69,7 @@ public class RoleService : IRoleService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving all roles");
-            return ServiceResult<IEnumerable<RoleDto>>.InternalError("An error occurred while retrieving roles");
+            return ServiceResult<IEnumerable<RoleDto>>.InternalError("Une erreur est survenue lors de la récupération des rôles");
         }
     }
 
@@ -82,7 +82,7 @@ public class RoleService : IRoleService
             if (!validationResult.IsValid)
             {
                 var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-                return PaginatedResult<RoleDto>.Failure(errors, "Invalid filter parameters");
+                return PaginatedResult<RoleDto>.Failure(errors, "Paramètres de filtre invalides");
             }
 
             var query = BuildRoleQuery(filter);
@@ -97,7 +97,7 @@ public class RoleService : IRoleService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving paginated roles with filter {Filter}", filter);
-            return PaginatedResult<RoleDto>.Failure("An error occurred while searching roles");
+            return PaginatedResult<RoleDto>.Failure("Une erreur est survenue lors de la recherche des rôles");
         }
     }
 
@@ -113,7 +113,7 @@ public class RoleService : IRoleService
 
             if (role == null)
             {
-                return ServiceResult<RoleDto>.NotFound($"Role with ID {id} not found");
+                return ServiceResult<RoleDto>.NotFound($"Rôle avec l'ID {id} introuvable");
             }
 
             var roleDto = _mapper.Map<RoleDto>(role);
@@ -122,7 +122,7 @@ public class RoleService : IRoleService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving role with ID {RoleId}", id);
-            return ServiceResult<RoleDto>.InternalError("An error occurred while retrieving the role");
+            return ServiceResult<RoleDto>.InternalError("Une erreur est survenue lors de la récupération du rôle");
         }
     }
 
@@ -138,7 +138,7 @@ public class RoleService : IRoleService
 
             if (role == null)
             {
-                return ServiceResult<RoleDto>.NotFound($"Role with name '{name}' not found");
+                return ServiceResult<RoleDto>.NotFound($"Rôle avec le nom '{name}' introuvable");
             }
 
             var roleDto = _mapper.Map<RoleDto>(role);
@@ -147,7 +147,7 @@ public class RoleService : IRoleService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving role with name {RoleName}", name);
-            return ServiceResult<RoleDto>.InternalError("An error occurred while retrieving the role");
+            return ServiceResult<RoleDto>.InternalError("Une erreur est survenue lors de la récupération du rôle");
         }
     }
 
@@ -168,7 +168,7 @@ public class RoleService : IRoleService
 
             if (existingRole != null)
             {
-                return ServiceResult<RoleDto>.Conflict($"A role with name '{createRoleDto.Name}' already exists");
+                return ServiceResult<RoleDto>.Conflict($"Un rôle avec le nom '{createRoleDto.Name}' existe déjà");
             }
 
             var role = _mapper.Map<Role>(createRoleDto);
@@ -181,12 +181,12 @@ public class RoleService : IRoleService
             _logger.LogInformation("Created new role with ID {RoleId} and name {RoleName}", role.Id, role.Name);
 
             var roleDto = _mapper.Map<RoleDto>(role);
-            return ServiceResult<RoleDto>.Success(roleDto, "Role created successfully");
+            return ServiceResult<RoleDto>.Success(roleDto, "Rôle créé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating role with name {RoleName}", createRoleDto.Name);
-            return ServiceResult<RoleDto>.InternalError("An error occurred while creating the role");
+            return ServiceResult<RoleDto>.InternalError("Une erreur est survenue lors de la création du rôle");
         }
     }
 
@@ -204,7 +204,7 @@ public class RoleService : IRoleService
             var role = await _context.Roles.FindAsync(id);
             if (role == null)
             {
-                return ServiceResult<RoleDto>.NotFound($"Role with ID {id} not found");
+                return ServiceResult<RoleDto>.NotFound($"Rôle avec l'ID {id} introuvable");
             }
 
             _mapper.Map(updateRoleDto, role);
@@ -214,12 +214,12 @@ public class RoleService : IRoleService
             _logger.LogInformation("Updated role with ID {RoleId}", id);
 
             var roleDto = _mapper.Map<RoleDto>(role);
-            return ServiceResult<RoleDto>.Success(roleDto, "Role updated successfully");
+            return ServiceResult<RoleDto>.Success(roleDto, "Rôle mis à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating role with ID {RoleId}", id);
-            return ServiceResult<RoleDto>.InternalError("An error occurred while updating the role");
+            return ServiceResult<RoleDto>.InternalError("Une erreur est survenue lors de la mise à jour du rôle");
         }
     }
 
@@ -230,7 +230,7 @@ public class RoleService : IRoleService
             var role = await _context.Roles.FindAsync(id);
             if (role == null)
             {
-                return ServiceResult.NotFound($"Role with ID {id} not found");
+                return ServiceResult.NotFound($"Rôle avec l'ID {id} introuvable");
             }
 
             // Check if the role has active users
@@ -239,7 +239,7 @@ public class RoleService : IRoleService
 
             if (hasActiveUsers)
             {
-                return ServiceResult.Failure("Cannot delete role that has active users assigned");
+                return ServiceResult.Failure("Impossible de supprimer un rôle ayant des utilisateurs actifs assignés");
             }
 
             // Remove role permissions first
@@ -261,12 +261,12 @@ public class RoleService : IRoleService
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Deleted role with ID {RoleId} and name {RoleName}", id, role.Name);
-            return ServiceResult.Success("Role deleted successfully");
+            return ServiceResult.Success("Rôle supprimé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting role with ID {RoleId}", id);
-            return ServiceResult.InternalError("An error occurred while deleting the role");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression du rôle");
         }
     }
 
@@ -277,24 +277,24 @@ public class RoleService : IRoleService
             var role = await _context.Roles.FindAsync(id);
             if (role == null)
             {
-                return ServiceResult.NotFound($"Role with ID {id} not found");
+                return ServiceResult.NotFound($"Rôle avec l'ID {id} introuvable");
             }
 
             if (role.IsActive)
             {
-                return ServiceResult.Success("Role is already active");
+                return ServiceResult.Success("Le rôle est déjà actif");
             }
 
             role.IsActive = true;
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Activated role with ID {RoleId}", id);
-            return ServiceResult.Success("Role activated successfully");
+            return ServiceResult.Success("Rôle activé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error activating role with ID {RoleId}", id);
-            return ServiceResult.InternalError("An error occurred while activating the role");
+            return ServiceResult.InternalError("Une erreur est survenue lors de l'activation du rôle");
         }
     }
 
@@ -305,24 +305,24 @@ public class RoleService : IRoleService
             var role = await _context.Roles.FindAsync(id);
             if (role == null)
             {
-                return ServiceResult.NotFound($"Role with ID {id} not found");
+                return ServiceResult.NotFound($"Rôle avec l'ID {id} introuvable");
             }
 
             if (!role.IsActive)
             {
-                return ServiceResult.Success("Role is already inactive");
+                return ServiceResult.Success("Le rôle est déjà inactif");
             }
 
             role.IsActive = false;
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Deactivated role with ID {RoleId}", id);
-            return ServiceResult.Success("Role deactivated successfully");
+            return ServiceResult.Success("Rôle désactivé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deactivating role with ID {RoleId}", id);
-            return ServiceResult.InternalError("An error occurred while deactivating the role");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la désactivation du rôle");
         }
     }
 
@@ -336,7 +336,7 @@ public class RoleService : IRoleService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if role exists with name {RoleName}", name);
-            return ServiceResult<bool>.InternalError("An error occurred while checking role existence");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de l'existence du rôle");
         }
     }
 
@@ -352,7 +352,7 @@ public class RoleService : IRoleService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if role can be deleted with ID {RoleId}", id);
-            return ServiceResult<bool>.InternalError("An error occurred while checking if role can be deleted");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de la suppressibilité du rôle");
         }
     }
 

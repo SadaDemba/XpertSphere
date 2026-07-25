@@ -51,7 +51,7 @@ public class PermissionService : IPermissionService
         {
             _logger.LogError(ex, "Error retrieving all permissions");
             return ServiceResult<IEnumerable<PermissionDto>>.InternalError(
-                "An error occurred while retrieving permissions");
+                "Une erreur est survenue lors de la récupération des permissions");
         }
     }
 
@@ -63,7 +63,7 @@ public class PermissionService : IPermissionService
             if (!validationResult.IsValid)
             {
                 var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-                return PaginatedResult<PermissionDto>.Failure(errors, "Invalid filter parameters");
+                return PaginatedResult<PermissionDto>.Failure(errors, "Paramètres de filtre invalides");
             }
 
             var query = BuildPermissionQuery(filter);
@@ -78,7 +78,7 @@ public class PermissionService : IPermissionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving paginated permissions with filter {Filter}", filter);
-            return PaginatedResult<PermissionDto>.Failure("An error occurred while searching permissions");
+            return PaginatedResult<PermissionDto>.Failure("Une erreur est survenue lors de la recherche des permissions");
         }
     }
 
@@ -94,7 +94,7 @@ public class PermissionService : IPermissionService
 
             if (permission == null)
             {
-                return ServiceResult<PermissionDto>.NotFound($"Permission with ID {id} not found");
+                return ServiceResult<PermissionDto>.NotFound($"Permission avec l'ID {id} introuvable");
             }
 
             var permissionDto = _mapper.Map<PermissionDto>(permission);
@@ -103,7 +103,7 @@ public class PermissionService : IPermissionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving permission with ID {PermissionId}", id);
-            return ServiceResult<PermissionDto>.InternalError("An error occurred while retrieving the permission");
+            return ServiceResult<PermissionDto>.InternalError("Une erreur est survenue lors de la récupération de la permission");
         }
     }
 
@@ -124,7 +124,7 @@ public class PermissionService : IPermissionService
         {
             _logger.LogError(ex, "Error retrieving permissions by resource {Resource}", resource);
             return ServiceResult<IEnumerable<PermissionDto>>.InternalError(
-                "An error occurred while retrieving permissions by resource");
+                "Une erreur est survenue lors de la récupération des permissions par ressource");
         }
     }
 
@@ -146,7 +146,7 @@ public class PermissionService : IPermissionService
         {
             _logger.LogError(ex, "Error retrieving permissions by category {Category}", category);
             return ServiceResult<IEnumerable<PermissionDto>>.InternalError(
-                "An error occurred while retrieving permissions by category");
+                "Une erreur est survenue lors de la récupération des permissions par catégorie");
         }
     }
 
@@ -168,7 +168,7 @@ public class PermissionService : IPermissionService
             if (existingPermission != null)
             {
                 return ServiceResult<PermissionDto>.Conflict(
-                    $"A permission with name '{createPermissionDto.Name}' already exists");
+                    $"Une permission avec le nom '{createPermissionDto.Name}' existe déjà");
             }
 
             var permission = _mapper.Map<Permission>(createPermissionDto);
@@ -181,12 +181,12 @@ public class PermissionService : IPermissionService
                 permission.Id, permission.Name);
 
             var permissionDto = _mapper.Map<PermissionDto>(permission);
-            return ServiceResult<PermissionDto>.Success(permissionDto, "Permission created successfully");
+            return ServiceResult<PermissionDto>.Success(permissionDto, "Permission créée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating permission with name {PermissionName}", createPermissionDto.Name);
-            return ServiceResult<PermissionDto>.InternalError("An error occurred while creating the permission");
+            return ServiceResult<PermissionDto>.InternalError("Une erreur est survenue lors de la création de la permission");
         }
     }
 
@@ -197,7 +197,7 @@ public class PermissionService : IPermissionService
             var permission = await _context.Permissions.FindAsync(id);
             if (permission == null)
             {
-                return ServiceResult.NotFound($"Permission with ID {id} not found");
+                return ServiceResult.NotFound($"Permission avec l'ID {id} introuvable");
             }
 
             // Check if permission is assigned to any roles
@@ -206,7 +206,7 @@ public class PermissionService : IPermissionService
 
             if (hasRoles)
             {
-                return ServiceResult.Failure("Cannot delete permission that is assigned to roles");
+                return ServiceResult.Failure("Impossible de supprimer une permission assignée à des rôles");
             }
 
             _context.Permissions.Remove(permission);
@@ -214,12 +214,12 @@ public class PermissionService : IPermissionService
 
             _logger.LogInformation("Deleted permission with ID {PermissionId} and name {PermissionName}", id,
                 permission.Name);
-            return ServiceResult.Success("Permission deleted successfully");
+            return ServiceResult.Success("Permission supprimée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting permission with ID {PermissionId}", id);
-            return ServiceResult.InternalError("An error occurred while deleting the permission");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression de la permission");
         }
     }
 
@@ -233,7 +233,7 @@ public class PermissionService : IPermissionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if permission exists with name {PermissionName}", name);
-            return ServiceResult<bool>.InternalError("An error occurred while checking permission existence");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de l'existence de la permission");
         }
     }
 
@@ -249,7 +249,7 @@ public class PermissionService : IPermissionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if permission can be deleted with ID {PermissionId}", id);
-            return ServiceResult<bool>.InternalError("An error occurred while checking if permission can be deleted");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de la suppressibilité de la permission");
         }
     }
 

@@ -136,7 +136,7 @@ public class ServiceResult<T>
         return new ServiceResult<T>
         {
             IsSuccess = false,
-            Message = "Validation failed",
+            Message = "Échec de la validation",
             Errors = validationErrors,
             StatusCode = 422
         };
@@ -234,7 +234,7 @@ public class ServiceResult
         return new ServiceResult
         {
             IsSuccess = false,
-            Message = "Validation failed",
+            Message = "Échec de la validation",
             Errors = validationErrors,
             StatusCode = 422
         };
