@@ -35,7 +35,8 @@ public class JobOfferMappingProfile : Profile
             .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedByUserId, opt => opt.Ignore())
             .ForMember(dest => dest.Organization, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedByUserNavigation, opt => opt.Ignore());
+            .ForMember(dest => dest.CreatedByUserNavigation, opt => opt.Ignore())
+            .ForMember(dest => dest.SalaryCurrency, opt => opt.Ignore());
 
         // UpdateJobOfferDto -> JobOffer
         CreateMap<UpdateJobOfferDto, JobOffer>()
@@ -52,6 +53,7 @@ public class JobOfferMappingProfile : Profile
             .ForMember(dest => dest.CreatedByUserId, opt => opt.Ignore())
             .ForMember(dest => dest.Organization, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedByUserNavigation, opt => opt.Ignore())
+            .ForMember(dest => dest.SalaryCurrency, opt => opt.Ignore())
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
     }
 }

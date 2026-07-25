@@ -1,5 +1,10 @@
 import type { RouteRecordRaw } from 'vue-router';
-import { organizationRoleGuard, adminSectionGuard, platformAdminGuard } from './guards/roleGuard';
+import {
+  organizationRoleGuard,
+  adminSectionGuard,
+  platformAdminGuard,
+  organizationAdminGuard,
+} from './guards/roleGuard';
 
 const routes: RouteRecordRaw[] = [
   // Authentication routes (with auth layout)
@@ -123,6 +128,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/admin/RolesPage.vue'),
         meta: { title: 'Gestion des rôles', requiresAdmin: true },
         beforeEnter: adminSectionGuard,
+      },
+      {
+        path: 'admin/organization-settings',
+        component: () => import('pages/admin/OrganizationSettingsPage.vue'),
+        meta: { title: "Paramètres de l'organisation", requiresAdmin: true },
+        // Reserved to Organization.Admin only, matching exactly the backend policy
+        // (RequireOrganizationAdminRole) guarding GET/PUT /api/organizations/me/currency - not
+        // adminSectionGuard (which also lets PlatformAdmin/PlatformSuperAdmin through, and would
+        // then hit a 403 from the API). See configurable-salary-currency.md, décision 5.
+        beforeEnter: organizationAdminGuard,
       },
       {
         path: 'unauthorized',

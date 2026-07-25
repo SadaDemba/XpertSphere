@@ -127,10 +127,13 @@ const showAdminSection = computed(() => {
 // Filter admin items based on role
 const filteredAdminItems = computed(() => {
   if (hasPlatformRole.value) {
-    // Platform admins see all admin items
-    return adminItems;
+    // Platform admins see all platform-wide admin items, but not the Organization.Admin-only
+    // currency settings (GET/PUT /api/organizations/me/currency is reserved to Organization.Admin
+    // by the backend policy - a platform admin without that role would get a 403).
+    return adminItems.filter((item) => item.name !== 'organization-settings');
   } else if (isOrganizationAdmin.value) {
-    // Organization admin doesn't see Organizations management
+    // Organization admin doesn't see Organizations management (platform-wide), but does see the
+    // self-service currency settings for their own organization.
     return adminItems.filter((item) => item.name !== 'organizations');
   }
   return [];
@@ -202,6 +205,13 @@ const adminItems = [
     icon: 'admin_panel_settings',
     route: '/admin/roles',
     description: 'Gérer les rôles et permissions',
+  },
+  {
+    name: 'organization-settings',
+    title: "Paramètres de l'organisation",
+    icon: 'settings',
+    route: '/admin/organization-settings',
+    description: "Configurer la devise appliquée aux offres d'emploi de l'organisation",
   },
 ];
 

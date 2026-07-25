@@ -25,6 +25,7 @@ public record UserSearchResultDto
     public string? Skills { get; set; }
     public int? Experience { get; set; }
     public decimal? DesiredSalary { get; set; }
+    public Currency? DesiredSalaryCurrency { get; set; }
     public DateTime? Availability { get; set; }
 
     // Profile metrics

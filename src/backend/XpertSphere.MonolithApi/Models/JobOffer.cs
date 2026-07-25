@@ -26,7 +26,7 @@ public class JobOffer : AuditableEntity
 
     [Column(TypeName = "decimal(18,2)")] public decimal? SalaryMax { get; set; }
 
-    [MaxLength(10)] public string? SalaryCurrency { get; set; } = "EUR";
+    [Required] public Currency SalaryCurrency { get; set; }
 
     [Required] public JobOfferStatus Status { get; set; } = JobOfferStatus.Draft;
 

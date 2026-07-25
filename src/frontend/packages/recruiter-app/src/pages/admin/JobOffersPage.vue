@@ -281,14 +281,14 @@
               class="col-12 col-sm-4"
             />
 
-            <q-input
-              v-model="formData.salaryCurrency"
-              label="Devise"
-              dense
-              outlined
-              class="col-12 col-sm-4"
-              placeholder="EUR"
-            />
+            <!-- La devise n'est plus un choix libre : stampée par le backend depuis la devise de
+                 l'organisation à la création, jamais modifiable ensuite (voir
+                 configurable-salary-currency.md, décision 3). En édition, affichage en lecture
+                 seule uniquement. -->
+            <div v-if="selectedJobOffer" class="col-12 col-sm-4 flex items-center text-grey-8">
+              <span class="text-caption q-mr-xs">Devise :</span>
+              <span class="text-weight-medium">{{ selectedJobOffer.salaryCurrency }}</span>
+            </div>
 
             <q-input
               v-model="formData.expiresAt"
@@ -348,7 +348,6 @@ const formData = ref<CreateJobOfferDto>({
   contractType: ContractType.FullTime,
   salaryMin: 0,
   salaryMax: 0,
-  salaryCurrency: 'EUR',
   expiresAt: '',
 });
 
@@ -509,7 +508,6 @@ function editJobOffer(jobOffer: JobOffer) {
     contractType: jobOffer.contractType,
     salaryMin: jobOffer.salaryMin,
     salaryMax: jobOffer.salaryMax,
-    salaryCurrency: jobOffer.salaryCurrency,
     expiresAt: jobOffer.expiresAt,
   };
   showCreateDialog.value = true;
@@ -548,7 +546,6 @@ function resetForm() {
     contractType: ContractType.FullTime,
     salaryMin: 35000,
     salaryMax: 45000,
-    salaryCurrency: 'EUR',
     expiresAt: '',
   };
 }

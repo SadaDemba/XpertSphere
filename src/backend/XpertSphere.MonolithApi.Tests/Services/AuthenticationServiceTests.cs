@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using XpertSphere.MonolithApi.DTOs.Auth;
 using XpertSphere.MonolithApi.DTOs.ExperienceDtos;
+using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
 using XpertSphere.MonolithApi.Services;
@@ -597,6 +598,100 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Message.Should().Contain("Registration successful");
+    }
+
+    [Fact]
+    public async Task RegisterCandidateAsync_WithDesiredSalaryAndNoCurrency_ShouldFallBackToXof()
+    {
+        // Arrange - covers configurable-salary-currency.md: a direct API call (Swagger, Postman, or
+        // a stale client) omitting DesiredSalaryCurrency while still sending a DesiredSalary must not
+        // break account creation; it falls back to Currency.XOF, consistent with the backfill applied
+        // to already-existing candidate accounts.
+        var registerDto = CreateValidRegisterCandidateDto();
+        registerDto = registerDto with { DesiredSalary = 35000m, DesiredSalaryCurrency = null };
+
+        User? capturedUser = null;
+        _mockUserManager.Setup(x => x.FindByEmailAsync(registerDto.Email))
+            .ReturnsAsync((User?)null);
+        _mockUserManager.Setup(x => x.CreateAsync(It.IsAny<User>(), registerDto.Password))
+            .Callback<User, string>((user, _) => capturedUser = user)
+            .ReturnsAsync(IdentityResult.Success);
+        _mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>()))
+            .ReturnsAsync(IdentityResult.Success);
+        _mockUserManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<User>()))
+            .ReturnsAsync("test-token");
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.RegisterCandidateAsync(registerDto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        capturedUser.Should().NotBeNull();
+        capturedUser!.DesiredSalaryCurrency.Should().Be(Currency.XOF);
+    }
+
+    [Fact]
+    public async Task RegisterCandidateAsync_WithDesiredSalaryCurrencyProvided_ShouldUseProvidedValue()
+    {
+        // Arrange - the registration form always sends a pre-selected currency; it must be honored
+        // rather than overridden by the XOF fallback.
+        var registerDto = CreateValidRegisterCandidateDto();
+        registerDto = registerDto with { DesiredSalary = 35000m, DesiredSalaryCurrency = Currency.EUR };
+
+        User? capturedUser = null;
+        _mockUserManager.Setup(x => x.FindByEmailAsync(registerDto.Email))
+            .ReturnsAsync((User?)null);
+        _mockUserManager.Setup(x => x.CreateAsync(It.IsAny<User>(), registerDto.Password))
+            .Callback<User, string>((user, _) => capturedUser = user)
+            .ReturnsAsync(IdentityResult.Success);
+        _mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>()))
+            .ReturnsAsync(IdentityResult.Success);
+        _mockUserManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<User>()))
+            .ReturnsAsync("test-token");
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.RegisterCandidateAsync(registerDto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        capturedUser.Should().NotBeNull();
+        capturedUser!.DesiredSalaryCurrency.Should().Be(Currency.EUR);
+    }
+
+    [Fact]
+    public async Task RegisterCandidateAsync_WithoutDesiredSalary_ShouldLeaveCurrencyNull()
+    {
+        // Arrange - no salary at all: the currency fallback must not invent a value out of nowhere.
+        var registerDto = CreateValidRegisterCandidateDto();
+        registerDto = registerDto with { DesiredSalary = null, DesiredSalaryCurrency = null };
+
+        User? capturedUser = null;
+        _mockUserManager.Setup(x => x.FindByEmailAsync(registerDto.Email))
+            .ReturnsAsync((User?)null);
+        _mockUserManager.Setup(x => x.CreateAsync(It.IsAny<User>(), registerDto.Password))
+            .Callback<User, string>((user, _) => capturedUser = user)
+            .ReturnsAsync(IdentityResult.Success);
+        _mockUserManager.Setup(x => x.UpdateAsync(It.IsAny<User>()))
+            .ReturnsAsync(IdentityResult.Success);
+        _mockUserManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<User>()))
+            .ReturnsAsync("test-token");
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.RegisterCandidateAsync(registerDto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        capturedUser.Should().NotBeNull();
+        capturedUser!.DesiredSalaryCurrency.Should().BeNull();
     }
 
     private static RegisterCandidateDto CreateValidRegisterCandidateDto(List<CreateExperienceDto>? experiences = null)

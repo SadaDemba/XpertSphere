@@ -201,7 +201,10 @@ const columns: Ref<QTableColumn<any>[]> = ref([
     ...dataTable.defaultConfig.value,
     sortable: true,
     align: 'center',
-    format: (val: number) => (val ? `${Math.round(val).toLocaleString()} FCFA` : 'Non spécifié'),
+    format: (val: number, row: any) =>
+      val
+        ? `${Math.round(val).toLocaleString()} ${row.desiredSalaryCurrency ?? ''}`
+        : 'Non spécifié',
   },
   {
     name: 'isActive',

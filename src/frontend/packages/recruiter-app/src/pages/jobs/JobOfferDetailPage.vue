@@ -247,13 +247,12 @@
                         class="col"
                       />
                     </div>
-                    <q-input
-                      v-model="editedJob.salaryCurrency"
-                      dense
-                      outlined
-                      label="Devise"
-                      class="q-mt-sm"
-                    />
+                    <!-- La devise n'est plus modifiable : stampée par le backend à la création,
+                         figée pour la durée de vie de l'offre (voir
+                         configurable-salary-currency.md, décision 3). -->
+                    <div class="q-mt-sm text-caption text-grey-7">
+                      Devise : <span class="text-weight-medium">{{ jobOffer.salaryCurrency }}</span>
+                    </div>
                   </div>
                 </div>
 

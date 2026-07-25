@@ -4,6 +4,8 @@ import type {
   CreateOrganizationDto,
   UpdateOrganizationDto,
   OrganizationFilterDto,
+  OrganizationCurrencyDto,
+  UpdateOrganizationCurrencyDto,
 } from '../models/organization';
 import type { PaginatedResult, ResponseResult, VoidResponseResult } from '../models/base';
 
@@ -41,6 +43,16 @@ export class OrganizationService extends BaseClient {
 
   async deleteOrganization(id: string): Promise<VoidResponseResult | null> {
     return this.delete<VoidResponseResult>(`/${id}`);
+  }
+
+  async getMyOrganizationCurrency(): Promise<ResponseResult<OrganizationCurrencyDto> | null> {
+    return this.get<ResponseResult<OrganizationCurrencyDto>>('/me/currency');
+  }
+
+  async updateMyOrganizationCurrency(
+    dto: UpdateOrganizationCurrencyDto,
+  ): Promise<ResponseResult<OrganizationCurrencyDto> | null> {
+    return this.put<ResponseResult<OrganizationCurrencyDto>>('/me/currency', dto);
   }
 }
 

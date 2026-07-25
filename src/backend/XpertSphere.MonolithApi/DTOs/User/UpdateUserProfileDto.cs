@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using XpertSphere.MonolithApi.Enums;
 
 namespace XpertSphere.MonolithApi.DTOs.User;
 
@@ -22,6 +23,7 @@ public class UpdateUserProfileDto
     // Professional Information
     public int? YearsOfExperience { get; set; }
     public decimal? DesiredSalary { get; set; }
+    public Currency? DesiredSalaryCurrency { get; set; }
     public DateTime? Availability { get; set; }
     public string? LinkedInProfile { get; set; }
 }

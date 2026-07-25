@@ -12,6 +12,7 @@ using XpertSphere.MonolithApi.Config;
 using XpertSphere.MonolithApi.DTOs.Auth;
 using XpertSphere.MonolithApi.DTOs.User;
 using XpertSphere.MonolithApi.Data;
+using XpertSphere.MonolithApi.Enums;
 using XpertSphere.MonolithApi.Extensions;
 using XpertSphere.MonolithApi.Interfaces;
 using XpertSphere.MonolithApi.Models;
@@ -239,6 +240,12 @@ public class AuthenticationService : IAuthenticationService
                     Skills = registerDto.Skills,
                     YearsOfExperience = registerDto.YearsOfExperience,
                     DesiredSalary = registerDto.DesiredSalary,
+                    // Repli explicite si la devise n'a pas été envoyée alors qu'un montant l'a été
+                    // (client direct sur l'API n'ayant pas mis à jour son contrat) : cohérent avec
+                    // le backfill des comptes candidats existants (Currency.XOF). Si aucun montant
+                    // n'est renseigné, la devise n'a pas de sens et reste null.
+                    DesiredSalaryCurrency = registerDto.DesiredSalaryCurrency
+                        ?? (registerDto.DesiredSalary.HasValue ? Currency.XOF : null),
                     Availability = registerDto.Availability,
                     LinkedInProfile = registerDto.LinkedInProfile,
 

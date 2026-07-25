@@ -19,6 +19,7 @@ namespace XpertSphere.MonolithApi.Services
         private readonly IValidator<CreateOrganizationDto> _createValidator;
         private readonly IValidator<UpdateOrganizationDto> _updateValidator;
         private readonly IValidator<OrganizationFilterDto> _filterValidator;
+        private readonly IValidator<UpdateOrganizationCurrencyDto> _updateCurrencyValidator;
         private readonly ILogger<OrganizationService> _logger;
         private readonly ICurrentUserService _currentUserService;
 
@@ -28,6 +29,7 @@ namespace XpertSphere.MonolithApi.Services
             IValidator<CreateOrganizationDto> createValidator,
             IValidator<UpdateOrganizationDto> updateValidator,
             IValidator<OrganizationFilterDto> filterValidator,
+            IValidator<UpdateOrganizationCurrencyDto> updateCurrencyValidator,
             ILogger<OrganizationService> logger,
             ICurrentUserService currentUserService)
         {
@@ -36,6 +38,7 @@ namespace XpertSphere.MonolithApi.Services
             _createValidator = createValidator;
             _updateValidator = updateValidator;
             _filterValidator = filterValidator;
+            _updateCurrencyValidator = updateCurrencyValidator;
             _logger = logger;
             _currentUserService = currentUserService;
         }
@@ -265,6 +268,65 @@ namespace XpertSphere.MonolithApi.Services
                 _logger.LogError(ex, "Error updating organization with ID {OrganizationId}", id);
                 return ServiceResult<OrganizationDto>.InternalError(
                     "An error occurred while updating the organization");
+            }
+        }
+
+        public async Task<ServiceResult<OrganizationCurrencyDto>> GetCurrencyAsync(Guid organizationId)
+        {
+            try
+            {
+                var organization = await _context.Organizations.FindAsync(organizationId);
+                if (organization == null)
+                {
+                    return ServiceResult<OrganizationCurrencyDto>.NotFound(
+                        $"Organization with ID {organizationId} not found");
+                }
+
+                var currencyDto = new OrganizationCurrencyDto { Currency = organization.Currency };
+                return ServiceResult<OrganizationCurrencyDto>.Success(currencyDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving currency for organization {OrganizationId}", organizationId);
+                return ServiceResult<OrganizationCurrencyDto>.InternalError(
+                    "An error occurred while retrieving the organization currency");
+            }
+        }
+
+        public async Task<ServiceResult<OrganizationCurrencyDto>> UpdateCurrencyAsync(Guid organizationId,
+            UpdateOrganizationCurrencyDto dto)
+        {
+            try
+            {
+                var validationResult = await _updateCurrencyValidator.ValidateAsync(dto);
+                if (!validationResult.IsValid)
+                {
+                    var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                    return ServiceResult<OrganizationCurrencyDto>.ValidationError(errors);
+                }
+
+                var organization = await _context.Organizations.FindAsync(organizationId);
+                if (organization == null)
+                {
+                    return ServiceResult<OrganizationCurrencyDto>.NotFound(
+                        $"Organization with ID {organizationId} not found");
+                }
+
+                organization.Currency = dto.Currency;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Updated currency for organization {OrganizationId} to {Currency}",
+                    organizationId, dto.Currency);
+
+                var currencyDto = new OrganizationCurrencyDto { Currency = organization.Currency };
+                return ServiceResult<OrganizationCurrencyDto>.Success(currencyDto,
+                    "Organization currency updated successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating currency for organization {OrganizationId}", organizationId);
+                return ServiceResult<OrganizationCurrencyDto>.InternalError(
+                    "An error occurred while updating the organization currency");
             }
         }
 

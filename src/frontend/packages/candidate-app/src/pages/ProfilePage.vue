@@ -111,7 +111,9 @@
 
                   <div class="info-item">
                     <div class="info-label">Salaire souhaité</div>
-                    <div class="info-value">{{ formatSalary(user?.desiredSalary) }}</div>
+                    <div class="info-value">
+                      {{ formatSalary(user?.desiredSalary, user?.desiredSalaryCurrency) }}
+                    </div>
                   </div>
                 </div>
               </q-card-section>
@@ -529,7 +531,7 @@ import { useAuthStore } from '../stores/authStore';
 import { useApplicationStore } from '../stores/applicationStore';
 import { useExperienceStore } from '../stores/experienceStore';
 import { useUserStore } from '../stores/userStore';
-import { ApplicationStatus } from '../enums';
+import { ApplicationStatus, Currency } from '../enums';
 import { formatDateWithoutTime } from 'src/helpers/DateHelper';
 import type { Experience, Training, User } from '../models/auth';
 import type { CreateExperienceDto } from '../models/experience';
@@ -635,12 +637,15 @@ const interviewsObtained = computed(() => {
 const profileViews = computed(() => 15);
 
 // Methods
-const formatSalary = (salary?: number) => {
+const formatSalary = (salary?: number, currency?: Currency) => {
   if (!salary) return 'Non renseigné';
   return (
     new Intl.NumberFormat('fr-FR', {
       maximumFractionDigits: 0,
-    }).format(salary) + ' FCFA / an'
+    }).format(salary) +
+    ' ' +
+    (currency ?? Currency.XOF) +
+    ' / an'
   );
 };
 

@@ -78,5 +78,40 @@ namespace XpertSphere.MonolithApi.Controllers
             var result = await organizationService.DeleteAsync(id);
             return this.ToActionResult(result);
         }
+
+        /// <summary>
+        /// Get the currency configured for the caller's own organization
+        /// </summary>
+        [HttpGet("me/currency")]
+        [Authorize(Policy = "RequireOrganizationAdminRole")]
+        public async Task<ActionResult<OrganizationCurrencyDto>> GetMyOrganizationCurrency()
+        {
+            var organizationId = this.GetCurrentUserOrganizationId();
+            if (organizationId is null)
+            {
+                return Forbid();
+            }
+
+            var result = await organizationService.GetCurrencyAsync(organizationId.Value);
+            return this.ToActionResult(result);
+        }
+
+        /// <summary>
+        /// Update the currency configured for the caller's own organization
+        /// </summary>
+        [HttpPut("me/currency")]
+        [Authorize(Policy = "RequireOrganizationAdminRole")]
+        public async Task<ActionResult<OrganizationCurrencyDto>> UpdateMyOrganizationCurrency(
+            UpdateOrganizationCurrencyDto dto)
+        {
+            var organizationId = this.GetCurrentUserOrganizationId();
+            if (organizationId is null)
+            {
+                return Forbid();
+            }
+
+            var result = await organizationService.UpdateCurrencyAsync(organizationId.Value, dto);
+            return this.ToActionResult(result);
+        }
     }
 }
