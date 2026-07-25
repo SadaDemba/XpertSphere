@@ -68,6 +68,15 @@
               </q-item-section>
             </q-item>
 
+            <!-- App version -->
+            <q-item>
+              <q-item-section>
+                <q-item-label caption class="text-grey"
+                  >Version {{ settings.app.version }}</q-item-label
+                >
+              </q-item-section>
+            </q-item>
+
             <q-separator />
 
             <!-- Profile link -->
@@ -116,6 +125,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import { useQuasar } from 'quasar';
 import AppLogo from './AppLogo.vue';
+import { settings } from 'src/settings';
 
 interface Props {
   drawerOpen: boolean;
