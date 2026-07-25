@@ -47,7 +47,10 @@ public static class AutoMapperHelper
                 IsActive = role.IsActive,
                 CreatedAt = role.CreatedAt,
                 UpdatedAt = role.UpdatedAt,
-                UsersCount = 0,
+                // Reproduit RoleMappingProfile.ForMember(UsersCount, ...) : compte les UserRoles actifs
+                // de la collection de navigation déjà matérialisée (potentiellement filtrée par organisation
+                // via un Include filtré côté RoleService.BuildRoleQuery), pas un total recalculé ici.
+                UsersCount = role.UserRoles.Count(ur => ur.IsActive),
                 PermissionsCount = 0
             });
 
