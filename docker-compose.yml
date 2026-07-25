@@ -84,6 +84,36 @@ services:
       - xpertsphere-network
     restart: unless-stopped
 
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    container_name: xpertsphere-smtp4dev
+    ports:
+      - "${SMTP_PORT:-2525}:25"
+      - "${SMTP_UI_PORT:-5080}:80"
+    networks:
+      - xpertsphere-network
+    restart: unless-stopped
+
+  communication-service:
+    build:
+      context: .
+      dockerfile: docker/backend/communication-service/Dockerfile
+    container_name: xpertsphere-communication-service
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Smtp__Host: smtp4dev
+      Smtp__Port: "25"
+      Smtp__EnableSsl: "false"
+      ApiKey: ${COMMUNICATION_API_KEY}
+    ports:
+      - "${COMMUNICATION_API_PORT:-5051}:8080"
+    depends_on:
+      smtp4dev:
+        condition: service_started
+    networks:
+      - xpertsphere-network
+    restart: unless-stopped
+
   resume-analyzer:
     build:
       context: .

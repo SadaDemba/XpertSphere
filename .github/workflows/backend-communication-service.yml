@@ -5,12 +5,14 @@ on:
     branches: [ main, develop ]
     paths:
       - "src/backend/XpertSphere.CommunicationService/**"
+      - "src/backend/XpertSphere.CommunicationService.Tests/**"
       - "XpertSphere.sln"
       - "docker/backend/communication-service/**"
   pull_request:
     branches: [ main, develop ]
     paths:
       - "src/backend/XpertSphere.CommunicationService/**"
+      - "src/backend/XpertSphere.CommunicationService.Tests/**"
       - "XpertSphere.sln"
       - "docker/backend/communication-service/**"
   workflow_dispatch:
@@ -35,13 +37,13 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore src/backend/XpertSphere.CommunicationService/XpertSphere.CommunicationService.csproj
+        run: dotnet restore src/backend/XpertSphere.CommunicationService.Tests/XpertSphere.CommunicationService.Tests.csproj
 
       - name: Build
-        run: dotnet build src/backend/XpertSphere.CommunicationService/XpertSphere.CommunicationService.csproj --no-restore
+        run: dotnet build src/backend/XpertSphere.CommunicationService.Tests/XpertSphere.CommunicationService.Tests.csproj --no-restore
 
       - name: Test
-        run: dotnet test src/backend/XpertSphere.CommunicationService/XpertSphere.CommunicationService.csproj --no-build --verbosity normal
+        run: dotnet test src/backend/XpertSphere.CommunicationService.Tests/XpertSphere.CommunicationService.Tests.csproj --no-build --verbosity normal
 
   # Build et push pour main/develop
   build-and-push:
