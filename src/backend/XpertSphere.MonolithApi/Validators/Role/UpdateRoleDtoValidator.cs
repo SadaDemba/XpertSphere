@@ -17,15 +17,15 @@ public class UpdateRoleDtoValidator : AbstractValidator<UpdateRoleDto>
     private void ConfigureBasicValidation()
     {
         RuleFor(x => x.DisplayName)
-            .NotEmpty().WithMessage("Display name is required")
-            .MaximumLength(150).WithMessage("Display name cannot exceed 150 characters")
-            .Matches(@"^[a-zA-ZÀ-ÿ0-9\s\-'\.]+$").WithMessage("Display name contains invalid characters");
+            .NotEmpty().WithMessage("Le nom d'affichage est obligatoire")
+            .MaximumLength(150).WithMessage("Le nom d'affichage ne peut pas dépasser 150 caractères")
+            .Matches(@"^[a-zA-ZÀ-ÿ0-9\s\-'\.]+$").WithMessage("Le nom d'affichage contient des caractères invalides");
 
         RuleFor(x => x.Description)
-            .MaximumLength(500).WithMessage("Description cannot exceed 500 characters")
+            .MaximumLength(500).WithMessage("La description ne peut pas dépasser 500 caractères")
             .When(x => !string.IsNullOrEmpty(x.Description));
 
         RuleFor(x => x.IsActive)
-            .NotNull().WithMessage("IsActive status is required");
+            .NotNull().WithMessage("Le statut IsActive est obligatoire");
     }
 }

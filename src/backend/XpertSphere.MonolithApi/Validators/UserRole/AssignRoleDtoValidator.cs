@@ -16,13 +16,13 @@ public class AssignRoleDtoValidator : AbstractValidator<AssignRoleDto>
     private void ConfigureBasicValidation()
     {
         RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage("User ID is required");
+            .NotEmpty().WithMessage("L'identifiant de l'utilisateur est obligatoire");
 
         RuleFor(x => x.RoleId)
-            .NotEmpty().WithMessage("Role ID is required");
+            .NotEmpty().WithMessage("L'identifiant du rôle est obligatoire");
 
         RuleFor(x => x.ExpiresAt)
-            .GreaterThan(DateTime.UtcNow).WithMessage("Expiry date must be in the future")
+            .GreaterThan(DateTime.UtcNow).WithMessage("La date d'expiration doit être dans le futur")
             .When(x => x.ExpiresAt.HasValue);
     }
 }

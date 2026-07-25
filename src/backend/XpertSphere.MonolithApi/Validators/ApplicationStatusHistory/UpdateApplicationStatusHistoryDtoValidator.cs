@@ -8,14 +8,14 @@ public class UpdateApplicationStatusHistoryDtoValidator : AbstractValidator<Upda
     public UpdateApplicationStatusHistoryDtoValidator()
     {
         RuleFor(x => x.Status)
-            .IsInEnum().WithMessage("Valid status is required");
+            .IsInEnum().WithMessage("Un statut valide est requis");
 
         RuleFor(x => x.Comment)
-            .NotEmpty().WithMessage("Comment is required")
-            .MaximumLength(1000).WithMessage("Comment cannot exceed 1000 characters");
+            .NotEmpty().WithMessage("Le commentaire est obligatoire")
+            .MaximumLength(1000).WithMessage("Le commentaire ne peut pas dépasser 1000 caractères");
 
         RuleFor(x => x.Rating)
-            .InclusiveBetween(1, 5).WithMessage("Rating must be between 1 and 5")
+            .InclusiveBetween(1, 5).WithMessage("La note doit être comprise entre 1 et 5")
             .When(x => x.Rating.HasValue);
     }
 }

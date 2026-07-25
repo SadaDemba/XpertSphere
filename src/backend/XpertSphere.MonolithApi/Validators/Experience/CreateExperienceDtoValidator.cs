@@ -10,6 +10,6 @@ public class CreateExperienceDtoValidator : AbstractValidator<CreateExperienceDt
 {
     public CreateExperienceDtoValidator()
     {
-        RuleFor(x => x.Description).NotEmpty().WithMessage("Description is required");
+        RuleFor(x => x.Description).NotEmpty().WithMessage("La description est obligatoire");
     }
 }

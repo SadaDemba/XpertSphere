@@ -8,17 +8,17 @@ public class ResetPasswordDtoValidator : AbstractValidator<ResetPasswordDto>
     public ResetPasswordDtoValidator()
     {
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required")
-            .EmailAddress().WithMessage("Invalid email format");
+            .NotEmpty().WithMessage("L'email est obligatoire")
+            .EmailAddress().WithMessage("Format d'email invalide");
 
         RuleFor(x => x.Token)
-            .NotEmpty().WithMessage("Reset token is required");
+            .NotEmpty().WithMessage("Le jeton de réinitialisation est obligatoire");
 
         RuleFor(x => x.NewPassword)
-            .NotEmpty().WithMessage("New password is required")
-            .MinimumLength(6).WithMessage("Password must be at least 6 characters");
+            .NotEmpty().WithMessage("Le nouveau mot de passe est obligatoire")
+            .MinimumLength(6).WithMessage("Le mot de passe doit contenir au moins 6 caractères");
 
         RuleFor(x => x.ConfirmPassword)
-            .Equal(x => x.NewPassword).WithMessage("Passwords do not match");
+            .Equal(x => x.NewPassword).WithMessage("Les mots de passe ne correspondent pas");
     }
 }

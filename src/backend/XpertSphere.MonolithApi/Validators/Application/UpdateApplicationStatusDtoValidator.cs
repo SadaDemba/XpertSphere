@@ -13,14 +13,14 @@ public class UpdateApplicationStatusDtoValidator : AbstractValidator<UpdateAppli
     private void ConfigureBasicValidation()
     {
         RuleFor(x => x.Status)
-            .IsInEnum().WithMessage("Invalid application status");
+            .IsInEnum().WithMessage("Statut de candidature invalide");
 
         RuleFor(x => x.Comment)
-            .NotEmpty().WithMessage("Comment is required when updating application status")
-            .MaximumLength(1000).WithMessage("Comment cannot exceed 1000 characters");
+            .NotEmpty().WithMessage("Un commentaire est requis lors de la mise à jour du statut de la candidature")
+            .MaximumLength(1000).WithMessage("Le commentaire ne peut pas dépasser 1000 caractères");
 
         RuleFor(x => x.Rating)
-            .InclusiveBetween(1, 5).WithMessage("Rating must be between 1 and 5")
+            .InclusiveBetween(1, 5).WithMessage("La note doit être comprise entre 1 et 5")
             .When(x => x.Rating.HasValue);
     }
 }

@@ -13,20 +13,20 @@ public class AddStatusChangeDtoValidator : AbstractValidator<AddStatusChangeDto>
     private void ConfigureBasicValidation()
     {
         RuleFor(x => x.ApplicationId)
-            .NotEmpty().WithMessage("Application ID is required");
+            .NotEmpty().WithMessage("L'identifiant de la candidature est obligatoire");
 
         RuleFor(x => x.Status)
-            .IsInEnum().WithMessage("Invalid application status");
+            .IsInEnum().WithMessage("Statut de candidature invalide");
 
         RuleFor(x => x.Comment)
-            .NotEmpty().WithMessage("Comment is required when adding status change")
-            .MaximumLength(1000).WithMessage("Comment cannot exceed 1000 characters");
+            .NotEmpty().WithMessage("Un commentaire est requis lors de l'ajout d'un changement de statut")
+            .MaximumLength(1000).WithMessage("Le commentaire ne peut pas dépasser 1000 caractères");
 
         RuleFor(x => x.Rating)
-            .InclusiveBetween(1, 5).WithMessage("Rating must be between 1 and 5")
+            .InclusiveBetween(1, 5).WithMessage("La note doit être comprise entre 1 et 5")
             .When(x => x.Rating.HasValue);
 
         RuleFor(x => x.UpdatedByUserId)
-            .NotEmpty().WithMessage("Updated by user ID is required");
+            .NotEmpty().WithMessage("L'identifiant de l'utilisateur ayant effectué la mise à jour est obligatoire");
     }
 }

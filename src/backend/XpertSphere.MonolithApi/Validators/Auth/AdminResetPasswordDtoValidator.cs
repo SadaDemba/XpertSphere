@@ -9,22 +9,22 @@ public class AdminResetPasswordDtoValidator : AbstractValidator<AdminResetPasswo
     {
         RuleFor(x => x.Email)
             .NotEmpty()
-            .WithMessage("Email is required")
+            .WithMessage("L'email est obligatoire")
             .EmailAddress()
-            .WithMessage("Invalid email format");
+            .WithMessage("Format d'email invalide");
 
         RuleFor(x => x.NewPassword)
             .NotEmpty()
-            .WithMessage("New password is required")
+            .WithMessage("Le nouveau mot de passe est obligatoire")
             .MinimumLength(6)
-            .WithMessage("Password must be at least 6 characters long")
+            .WithMessage("Le mot de passe doit contenir au moins 6 caractères")
             .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)")
-            .WithMessage("Password must contain at least one lowercase letter, one uppercase letter, and one digit");
+            .WithMessage("Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre");
 
         RuleFor(x => x.ConfirmPassword)
             .NotEmpty()
-            .WithMessage("Password confirmation is required")
+            .WithMessage("La confirmation du mot de passe est obligatoire")
             .Equal(x => x.NewPassword)
-            .WithMessage("Password confirmation must match the new password");
+            .WithMessage("La confirmation du mot de passe doit correspondre au nouveau mot de passe");
     }
 }

@@ -8,6 +8,6 @@ public class UpdateOrganizationCurrencyDtoValidator : AbstractValidator<UpdateOr
     public UpdateOrganizationCurrencyDtoValidator()
     {
         RuleFor(x => x.Currency)
-            .IsInEnum().WithMessage("Invalid currency");
+            .IsInEnum().WithMessage("Devise invalide");
     }
 }

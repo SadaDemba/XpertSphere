@@ -16,9 +16,9 @@ public class AssignPermissionDtoValidator : AbstractValidator<AssignPermissionDt
     private void ConfigureBasicValidation()
     {
         RuleFor(x => x.RoleId)
-            .NotEmpty().WithMessage("Role ID is required");
+            .NotEmpty().WithMessage("L'identifiant du rôle est obligatoire");
 
         RuleFor(x => x.PermissionId)
-            .NotEmpty().WithMessage("Permission ID is required");
+            .NotEmpty().WithMessage("L'identifiant de la permission est obligatoire");
     }
 }

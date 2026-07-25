@@ -13,14 +13,14 @@ public class CreateApplicationDtoValidator : AbstractValidator<CreateApplication
     private void ConfigureBasicValidation()
     {
         RuleFor(x => x.JobOfferId)
-            .NotEmpty().WithMessage("Job offer ID is required");
+            .NotEmpty().WithMessage("L'identifiant de l'offre d'emploi est obligatoire");
 
         RuleFor(x => x.CoverLetter)
-            .MaximumLength(2000).WithMessage("Cover letter cannot exceed 2000 characters")
+            .MaximumLength(2000).WithMessage("La lettre de motivation ne peut pas dépasser 2000 caractères")
             .When(x => !string.IsNullOrEmpty(x.CoverLetter));
 
         RuleFor(x => x.AdditionalNotes)
-            .MaximumLength(1000).WithMessage("Additional notes cannot exceed 1000 characters")
+            .MaximumLength(1000).WithMessage("Les notes complémentaires ne peuvent pas dépasser 1000 caractères")
             .When(x => !string.IsNullOrEmpty(x.AdditionalNotes));
     }
 }
