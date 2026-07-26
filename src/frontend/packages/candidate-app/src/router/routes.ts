@@ -22,6 +22,11 @@ const routes: RouteRecordRaw[] = [
         name: 'Register',
       },
       {
+        path: 'confirm-email',
+        component: () => import('pages/ConfirmEmailPage.vue'),
+        name: 'ConfirmEmail',
+      },
+      {
         path: 'jobs/:id',
         component: () => import('pages/JobDetailsPage.vue'),
         name: 'JobDetails',

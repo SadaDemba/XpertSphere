@@ -60,9 +60,12 @@ const handleRegister = async (formData: RegisterCandidateDto, cvFile: File | nul
 
   const success = await authStore.registerCandidate(formData, cvFile || undefined);
   if (success) {
-    showSuccessNotification('Compte créé avec succès ! Vous êtes maintenant connecté.');
-    // Redirect to job listings
-    router.push('/');
+    showSuccessNotification(
+      'Compte créé avec succès ! Un email d’activation vous a été envoyé. Vous devez cliquer sur le lien reçu par email avant de pouvoir vous connecter.',
+    );
+    // Activation stricte : la connexion n'est plus possible tant que l'email n'est pas confirmé,
+    // rediriger vers la page d'accueil serait trompeur - direction "se connecter" une fois confirmé.
+    router.push('/login');
   }
 };
 </script>

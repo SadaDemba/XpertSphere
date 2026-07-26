@@ -21,6 +21,10 @@ export interface AuthResponseDto {
   emailConfirmationToken?: string;
   redirectUrl?: string;
 
+  // True si le compte n'a pas encore confirmé son email (activation stricte). Positionné par le
+  // backend sur toute réponse basée sur User -> AuthResponseDto (login refusé, inscription, etc.).
+  requiresEmailConfirmation?: boolean;
+
   // Entra ID specific fields
   requiresEntraId?: boolean;
   entraIdAuthUrl?: string;
@@ -33,6 +37,15 @@ export interface AuthResponseDto {
 
 export interface RefreshTokenDto {
   refreshToken: string;
+}
+
+export interface ConfirmEmailDto {
+  email: string;
+  token: string;
+}
+
+export interface ResendConfirmationDto {
+  email: string;
 }
 
 export interface Address {

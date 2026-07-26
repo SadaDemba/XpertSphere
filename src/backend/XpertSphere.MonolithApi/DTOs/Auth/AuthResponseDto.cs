@@ -12,6 +12,14 @@ public record AuthResponseDto
     public string? RedirectUrl { get; set; }
     public List<string> Errors { get; init; } = [];
 
+    /// <summary>
+    /// True si le compte n'a pas encore confirmé son email (activation stricte,
+    /// RequireConfirmedEmail = true). Positionné automatiquement par
+    /// <see cref="XpertSphere.MonolithApi.Mappings.AuthMappingProfile"/> à partir de
+    /// <c>User.EmailConfirmed</c> pour toute projection User -> AuthResponseDto.
+    /// </summary>
+    public bool RequiresEmailConfirmation { get; init; } = false;
+
     // Entra ID specific fields
     public bool RequiresEntraId { get; init; } = false;
     public string? EntraIdAuthUrl { get; init; }
