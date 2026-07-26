@@ -95,6 +95,10 @@ Tous les comptes créés par ce correctif (utilisateurs d'organisation et candid
 
 Tous les comptes créés doivent être immédiatement exploitables pour une connexion (mêmes propriétés que le seed `PlatformSuperAdmin` existant) : `EmailConfirmed = true`, `IsActive = true`, `UserName = Email`, `ConsentGivenAt = DateTime.UtcNow`, `CreatedAt = DateTime.UtcNow`.
 
+## Coordination avec `configurable-salary-currency.md` (à vérifier au moment de l'implémentation)
+
+Cette spec a été écrite avant l'introduction prévue d'un champ `Organization.Currency` (voir spec `configurable-salary-currency.md`, écrite après celle-ci). Si ce champ existe déjà au moment d'implémenter ce seed, `SeedDemoOrganizationsAsync` doit aussi le renseigner, avec les mêmes valeurs déjà cohérentes avec les offres seedées plus bas (§Offres d'emploi) : `Currency = EUR` pour Meilleurtaux et Expertime, `Currency = XOF` pour Dynaminqs. Sans ce réglage, les offres seedées ici resteraient correctes (leur `SalaryCurrency` est un instantané figé par offre, non recalculé depuis `Organization.Currency`), mais toute nouvelle offre créée après le seed sans devise d'organisation configurée retomberait sur le comportement de repli décrit dans `configurable-salary-currency.md`, ce qui casserait la cohérence attendue pour Dynaminqs (XOF) si ce repli est `EUR`.
+
 ## Descriptions d'entreprise et avertissement
 
 ### Meilleurtaux (Code `MEILLEURTAUX`)
@@ -270,8 +274,8 @@ Pour chaque `Application` créée :
 ## Hors périmètre
 
 - Variation du `CurrentStatus` des candidatures au-delà de `Applied` (ex. simuler un pipeline de recrutement avec des candidatures à différents stades) : non demandé, non traité ici.
-- Upload de CV réel (`CvPath`) pour les 4 candidats : non demandé ; les candidats de démonstration n'ont pas de CV associé par cette spec.
-- Expériences (`Experience`)/formations (`Training`) pour les 4 candidats : non demandées, non seedées.
+- Upload de CV réel (`CvPath`) pour les 4 candidats : non demandé ; les candidats de démonstration n'ont pas de CV associé par cette spec. Ce point reste hors périmètre même après l'extension ci-dessous (contrainte explicite de l'utilisateur).
+- Expériences (`Experience`)/formations (`Training`) pour les 4 candidats : non demandées, non seedées par cette spec-ci. **Couvert depuis par une spec séparée** : voir `enrich-seed-candidate-profiles.md`, qui étend `SeedDemoCandidatesAsync` avec 2 `Experience` + 1 `Training` par candidat, ainsi que les champs scalaires `User` restés vides ici (`PhoneNumber`, `LinkedInProfile`, `Skills`, `YearsOfExperience`, `DesiredSalary`/`DesiredSalaryCurrency`, `Availability`, `Address`) et la correction de `ProfileCompletionPercentage`.
 - `ApplicationStatusHistory` : aucun historique de statut créé (cohérent avec `CurrentStatus = Applied` par défaut, qui ne nécessite pas de transition).
 - Toute activation de ce jeu de données en Staging : explicitement exclue par le garde-fou (§Garde-fou d'environnement) ; un retour de l'utilisateur en relecture pourrait changer ce choix, non anticipé ici.
 - Tests automatisés : cette spec définit des critères d'acceptation vérifiables ; l'écriture effective de tests relève de l'agent `developer`.

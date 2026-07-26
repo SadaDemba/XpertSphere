@@ -14,6 +14,7 @@
 **/.coverage
 **/htmlcov
 **/venv
+**/.venv
 **/env
 **/ENV
 **/.env.local

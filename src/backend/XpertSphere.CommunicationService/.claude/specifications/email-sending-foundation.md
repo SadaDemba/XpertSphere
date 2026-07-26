@@ -4,7 +4,7 @@
 
 Cette spec est le **ticket A** d'une fonctionnalité plus large ("système d'envoi de mail générique"), découpée en 2 tickets :
 - **Ticket A (cette spec)** : rendre `XpertSphere.CommunicationService` capable d'envoyer un email templatisé de façon **synchrone**, et rendre le service **réellement exécutable** (il ne l'est pas aujourd'hui, voir diagnostic ci-dessous). Aucun consommateur n'appelle ce service à l'issue de ce ticket.
-- **Ticket B (hors périmètre, spec séparée à écrire plus tard)** : brancher la création de compte du `MonolithApi` sur l'endpoint créé ici, pour déclencher l'email d'activation (génération réelle du lien/token, appel HTTP depuis `MonolithApi`). Le template `AccountActivation` est seedé ici par anticipation, mais son usage réel n'est pas dans ce ticket.
+- **Ticket B** : brancher la création de compte du `MonolithApi` sur l'endpoint créé ici, pour déclencher l'email d'activation (génération réelle du lien/token, appel HTTP depuis `MonolithApi`). Le template `AccountActivation` est seedé ici par anticipation, mais son usage réel n'est pas dans ce ticket. **Spec écrite** : `XpertSphere.MonolithApi/.claude/specifications/candidate-account-activation-email.md` — conclusion de son exploration : aucun changement supplémentaire n'est nécessaire côté `CommunicationService`, le contrat de `POST /api/emails/send` livré par ce ticket A couvre exactement le besoin.
 
 ## Diagnostic — état actuel du service
 
