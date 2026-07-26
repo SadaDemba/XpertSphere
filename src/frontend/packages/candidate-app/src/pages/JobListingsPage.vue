@@ -117,7 +117,13 @@
       <!-- Job Cards -->
       <div v-else class="row q-gutter-md q-pb-md justify-center">
         <div v-for="job in jobOffers" :key="job.id" class="col-12 col-md-6 col-lg-4">
-          <job-card :job="job" @view="viewJobDetails" @click="viewJobDetails(job.id)" />
+          <job-card
+            :job="job"
+            :has-applied="appliedJobOfferIds.has(job.id)"
+            @view="viewJobDetails"
+            @click="viewJobDetails(job.id)"
+            @apply="handleApply"
+          />
         </div>
       </div>
 
@@ -132,6 +138,13 @@
         />
       </div>
     </div>
+
+    <!-- Application Dialog -->
+    <application-dialog
+      v-model="showApplicationDialog"
+      :job="selectedJobForApplication"
+      @submitted="handleApplicationSubmitted"
+    />
   </q-page>
 </template>
 
@@ -140,21 +153,31 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useJobOfferStore } from '../stores/jobOfferStore';
+import { useApplicationStore } from '../stores/applicationStore';
+import { useAuthStore } from '../stores/authStore';
 import { workModeLabels, contractTypeLabels } from '../models/job';
+import type { JobOfferDto } from '../models/job';
 import JobCard from '../components/JobCard.vue';
+import ApplicationDialog from '../components/ApplicationDialog.vue';
 
 // Router
 const router = useRouter();
 
-// Store
+// Stores
 const jobOfferStore = useJobOfferStore();
+const applicationStore = useApplicationStore();
+const authStore = useAuthStore();
 const { jobOffers, paginationInfo, isLoading, error, hasError, hasJobOffers } =
   storeToRefs(jobOfferStore);
+const { applications } = storeToRefs(applicationStore);
+const { isAuthenticated } = storeToRefs(authStore);
 
 // Reactive state
 const searchTerm = ref('');
 const showFilters = ref(false);
 const currentPage = ref(1);
+const showApplicationDialog = ref(false);
+const selectedJobForApplication = ref<JobOfferDto | null>(null);
 
 const filters = ref({
   location: null as string | null,
@@ -172,6 +195,10 @@ const hasActiveFilters = computed(() => {
     searchTerm.value
   );
 });*/
+
+const appliedJobOfferIds = computed(
+  () => new Set(applications.value.map((application) => application.jobOfferId)),
+);
 
 const workModeOptions = computed(() =>
   Object.entries(workModeLabels).map(([value, label]) => ({
@@ -249,6 +276,26 @@ const viewJobDetails = (jobId: string) => {
   router.push(`/jobs/${jobId}`);
 };
 
+const handleApply = (jobId: string) => {
+  if (!isAuthenticated.value) {
+    router.push({
+      path: '/login',
+      query: { redirect: router.currentRoute.value.fullPath },
+    });
+    return;
+  }
+
+  const job = jobOffers.value.find((jobOffer) => jobOffer.id === jobId);
+  if (!job) return;
+
+  selectedJobForApplication.value = job;
+  showApplicationDialog.value = true;
+};
+
+const handleApplicationSubmitted = () => {
+  selectedJobForApplication.value = null;
+};
+
 // Watch for pagination changes
 watch(
   () => paginationInfo.value.currentPage,
@@ -260,6 +307,10 @@ watch(
 // Lifecycle
 onMounted(async () => {
   await loadJobOffers();
+
+  if (isAuthenticated.value) {
+    await applicationStore.fetchMyApplications();
+  }
 });
 </script>
 
