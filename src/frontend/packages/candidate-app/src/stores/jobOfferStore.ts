@@ -71,11 +71,10 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
         jobOffers.value = response.data!;
         paginationInfo.value = response.pagination;
         currentFilter.value = searchFilter;
-        notification.showSuccessNotification("Offres d'emploies chargées avec succès");
         return true;
       } else {
         setError(response?.message || 'Erreur lors de la chargement des offres');
-        notification.showSuccessNotification(
+        notification.showErrorNotification(
           response?.message || 'Erreur lors du chargement des offres',
         );
         return false;
@@ -99,7 +98,6 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       const jobOffer = await jobOfferService.getJobOfferById(id);
       if (jobOffer?.isSuccess) {
         currentJobOffer.value = jobOffer.data!;
-        notification.showSuccessNotification('Offre récupérée avec succès');
         return true;
       } else {
         setError(jobOffer?.message || "Erreur lors du chargement de l'offre");
