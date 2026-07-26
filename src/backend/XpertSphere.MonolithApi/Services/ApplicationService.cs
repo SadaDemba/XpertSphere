@@ -68,7 +68,7 @@ public class ApplicationService : IApplicationService
         {
             _logger.LogError(ex, "Error retrieving all applications");
             return ServiceResult<IEnumerable<ApplicationDto>>.InternalError(
-                "An error occurred while retrieving applications");
+                "Une erreur est survenue lors de la récupération des candidatures");
         }
     }
 
@@ -80,7 +80,7 @@ public class ApplicationService : IApplicationService
             if (!validationResult.IsValid)
             {
                 var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-                return PaginatedResult<ApplicationDto>.Failure(errors, "Invalid filter parameters");
+                return PaginatedResult<ApplicationDto>.Failure(errors, "Paramètres de filtre invalides");
             }
 
             var query = BuildApplicationQuery(filter);
@@ -95,7 +95,7 @@ public class ApplicationService : IApplicationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving paginated applications with filter {Filter}", filter);
-            return PaginatedResult<ApplicationDto>.Failure("An error occurred while searching applications");
+            return PaginatedResult<ApplicationDto>.Failure("Une erreur est survenue lors de la recherche des candidatures");
         }
     }
 
@@ -116,7 +116,7 @@ public class ApplicationService : IApplicationService
 
             if (application == null)
             {
-                return ServiceResult<ApplicationDto>.NotFound($"Application with ID {id} not found");
+                return ServiceResult<ApplicationDto>.NotFound($"Candidature avec l'ID {id} introuvable");
             }
 
             var applicationDto = _mapper.Map<ApplicationDto>(application);
@@ -125,7 +125,7 @@ public class ApplicationService : IApplicationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving application with ID {ApplicationId}", id);
-            return ServiceResult<ApplicationDto>.InternalError("An error occurred while retrieving the application");
+            return ServiceResult<ApplicationDto>.InternalError("Une erreur est survenue lors de la récupération de la candidature");
         }
     }
 
@@ -149,24 +149,24 @@ public class ApplicationService : IApplicationService
             if (jobOffer == null)
             {
                 return ServiceResult<ApplicationDto>.NotFound(
-                    $"Job offer with ID {createApplicationDto.JobOfferId} not found");
+                    $"Offre d'emploi avec l'ID {createApplicationDto.JobOfferId} introuvable");
             }
 
             if (jobOffer.Status != JobOfferStatus.Published)
             {
-                return ServiceResult<ApplicationDto>.Failure("Cannot apply to unpublished job offers");
+                return ServiceResult<ApplicationDto>.Failure("Impossible de postuler à une offre d'emploi non publiée");
             }
 
             if (jobOffer.IsExpired)
             {
-                return ServiceResult<ApplicationDto>.Failure("Cannot apply to expired job offers");
+                return ServiceResult<ApplicationDto>.Failure("Impossible de postuler à une offre d'emploi expirée");
             }
 
             // Check if candidate exists
             var candidate = await _context.Users.FirstOrDefaultAsync(u => u.Id == candidateId);
             if (candidate == null)
             {
-                return ServiceResult<ApplicationDto>.NotFound($"Candidate with ID {candidateId} not found");
+                return ServiceResult<ApplicationDto>.NotFound($"Candidat avec l'ID {candidateId} introuvable");
             }
 
             // Check if candidate has already applied to this job offer
@@ -176,7 +176,7 @@ public class ApplicationService : IApplicationService
 
             if (existingApplication != null)
             {
-                return ServiceResult<ApplicationDto>.Conflict("You have already applied to this job offer");
+                return ServiceResult<ApplicationDto>.Conflict("Vous avez déjà postulé à cette offre d'emploi");
             }
 
             var application = _mapper.Map<Application>(createApplicationDto);
@@ -194,7 +194,7 @@ public class ApplicationService : IApplicationService
             {
                 ApplicationId = application.Id,
                 Status = ApplicationStatus.Applied,
-                Comment = "Application submitted by candidate",
+                Comment = "Candidature soumise par le candidat",
                 UpdatedByUserId = candidateId
             };
 
@@ -215,13 +215,13 @@ public class ApplicationService : IApplicationService
                 .FirstAsync(a => a.Id == application.Id);
 
             var applicationDto = _mapper.Map<ApplicationDto>(application);
-            return ServiceResult<ApplicationDto>.Success(applicationDto, "Application submitted successfully");
+            return ServiceResult<ApplicationDto>.Success(applicationDto, "Candidature soumise avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating application for job offer {JobOfferId}",
                 createApplicationDto.JobOfferId);
-            return ServiceResult<ApplicationDto>.InternalError("An error occurred while creating the application");
+            return ServiceResult<ApplicationDto>.InternalError("Une erreur est survenue lors de la création de la candidature");
         }
     }
 
@@ -249,13 +249,13 @@ public class ApplicationService : IApplicationService
 
             if (application == null)
             {
-                return ServiceResult<ApplicationDto>.NotFound($"Application with ID {id} not found");
+                return ServiceResult<ApplicationDto>.NotFound($"Candidature avec l'ID {id} introuvable");
             }
 
             var canManage = await CanUserManageApplicationInternalAsync(application, userId);
             if (!canManage)
             {
-                return ServiceResult<ApplicationDto>.Forbidden("User cannot manage this application");
+                return ServiceResult<ApplicationDto>.Forbidden("L'utilisateur ne peut pas gérer cette candidature");
             }
 
             _mapper.Map(updateApplicationDto, application);
@@ -266,12 +266,12 @@ public class ApplicationService : IApplicationService
             _logger.LogInformation("Updated application with ID {ApplicationId}", id);
 
             var applicationDto = _mapper.Map<ApplicationDto>(application);
-            return ServiceResult<ApplicationDto>.Success(applicationDto, "Application updated successfully");
+            return ServiceResult<ApplicationDto>.Success(applicationDto, "Candidature mise à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating application with ID {ApplicationId}", id);
-            return ServiceResult<ApplicationDto>.InternalError("An error occurred while updating the application");
+            return ServiceResult<ApplicationDto>.InternalError("Une erreur est survenue lors de la mise à jour de la candidature");
         }
     }
 
@@ -285,18 +285,18 @@ public class ApplicationService : IApplicationService
 
             if (application == null)
             {
-                return ServiceResult.NotFound($"Application with ID {id} not found");
+                return ServiceResult.NotFound($"Candidature avec l'ID {id} introuvable");
             }
 
             var canManage = await CanUserManageApplicationInternalAsync(application, userId);
             if (!canManage)
             {
-                return ServiceResult.Forbidden("User cannot manage this application");
+                return ServiceResult.Forbidden("L'utilisateur ne peut pas gérer cette candidature");
             }
 
             if (application.IsCompleted)
             {
-                return ServiceResult.Failure("Cannot delete completed applications");
+                return ServiceResult.Failure("Impossible de supprimer une candidature terminée");
             }
 
             // Status history will be cascade deleted due to relationship configuration
@@ -304,12 +304,12 @@ public class ApplicationService : IApplicationService
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Deleted application with ID {ApplicationId}", id);
-            return ServiceResult.Success("Application deleted successfully");
+            return ServiceResult.Success("Candidature supprimée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting application with ID {ApplicationId}", id);
-            return ServiceResult.InternalError("An error occurred while deleting the application");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression de la candidature");
         }
     }
 
@@ -337,24 +337,24 @@ public class ApplicationService : IApplicationService
 
             if (application == null)
             {
-                return ServiceResult<ApplicationDto>.NotFound($"Application with ID {id} not found");
+                return ServiceResult<ApplicationDto>.NotFound($"Candidature avec l'ID {id} introuvable");
             }
 
             var canManage = await CanUserManageApplicationInternalAsync(application, userId);
             if (!canManage)
             {
-                return ServiceResult<ApplicationDto>.Forbidden("User cannot manage this application");
+                return ServiceResult<ApplicationDto>.Forbidden("L'utilisateur ne peut pas gérer cette candidature");
             }
 
             if (application.IsCompleted && updateStatusDto.Status != ApplicationStatus.Withdrawn)
             {
-                return ServiceResult<ApplicationDto>.Failure("Cannot update status of completed application");
+                return ServiceResult<ApplicationDto>.Failure("Impossible de mettre à jour le statut d'une candidature terminée");
             }
 
             // Validate status transition (this could be expanded with business rules)
             if (updateStatusDto.Status == ApplicationStatus.Applied)
             {
-                return ServiceResult<ApplicationDto>.Failure("Cannot change status back to Applied");
+                return ServiceResult<ApplicationDto>.Failure("Impossible de remettre le statut à 'Candidature déposée'");
             }
 
             // Add status change to history
@@ -370,7 +370,7 @@ public class ApplicationService : IApplicationService
             var historyResult = await _statusHistoryService.AddStatusChangeAsync(addStatusChangeDto);
             if (!historyResult.IsSuccess)
             {
-                return ServiceResult<ApplicationDto>.Failure("Failed to add status change to history");
+                return ServiceResult<ApplicationDto>.Failure("Échec de l'ajout du changement de statut à l'historique");
             }
 
             // Update application
@@ -398,12 +398,12 @@ public class ApplicationService : IApplicationService
                 .FirstAsync(a => a.Id == id);
 
             var applicationDto = _mapper.Map<ApplicationDto>(application);
-            return ServiceResult<ApplicationDto>.Success(applicationDto, "Application status updated successfully");
+            return ServiceResult<ApplicationDto>.Success(applicationDto, "Statut de la candidature mis à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating status for application {ApplicationId}", id);
-            return ServiceResult<ApplicationDto>.InternalError("An error occurred while updating application status");
+            return ServiceResult<ApplicationDto>.InternalError("Une erreur est survenue lors de la mise à jour du statut de la candidature");
         }
     }
 
@@ -413,23 +413,23 @@ public class ApplicationService : IApplicationService
         {
             if (string.IsNullOrWhiteSpace(reason))
             {
-                return ServiceResult.ValidationError(["Reason is required when withdrawing application"]);
+                return ServiceResult.ValidationError(["Un motif est requis lors du retrait d'une candidature"]);
             }
 
             var application = await _context.Applications.FirstOrDefaultAsync(a => a.Id == id);
             if (application == null)
             {
-                return ServiceResult.NotFound($"Application with ID {id} not found");
+                return ServiceResult.NotFound($"Candidature avec l'ID {id} introuvable");
             }
 
             if (application.CandidateId != candidateId)
             {
-                return ServiceResult.Forbidden("Only the candidate can withdraw their application");
+                return ServiceResult.Forbidden("Seul le candidat peut retirer sa candidature");
             }
 
             if (application.IsCompleted)
             {
-                return ServiceResult.Failure("Cannot withdraw completed application");
+                return ServiceResult.Failure("Impossible de retirer une candidature terminée");
             }
 
             var updateStatusDto = new UpdateApplicationStatusDto
@@ -441,16 +441,16 @@ public class ApplicationService : IApplicationService
             var result = await UpdateApplicationStatusAsync(id, updateStatusDto, candidateId);
             if (!result.IsSuccess)
             {
-                return ServiceResult.Failure("Failed to withdraw application");
+                return ServiceResult.Failure("Échec du retrait de la candidature");
             }
 
             _logger.LogInformation("Application {ApplicationId} withdrawn by candidate {CandidateId}", id, candidateId);
-            return ServiceResult.Success("Application withdrawn successfully");
+            return ServiceResult.Success("Candidature retirée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error withdrawing application {ApplicationId}", id);
-            return ServiceResult.InternalError("An error occurred while withdrawing the application");
+            return ServiceResult.InternalError("Une erreur est survenue lors du retrait de la candidature");
         }
     }
 
@@ -477,7 +477,7 @@ public class ApplicationService : IApplicationService
         {
             _logger.LogError(ex, "Error retrieving applications for job offer {JobOfferId}", jobOfferId);
             return ServiceResult<IEnumerable<ApplicationDto>>.InternalError(
-                "An error occurred while retrieving applications");
+                "Une erreur est survenue lors de la récupération des candidatures");
         }
     }
 
@@ -504,7 +504,7 @@ public class ApplicationService : IApplicationService
         {
             _logger.LogError(ex, "Error retrieving applications for candidate {CandidateId}", candidateId);
             return ServiceResult<IEnumerable<ApplicationDto>>.InternalError(
-                "An error occurred while retrieving applications");
+                "Une erreur est survenue lors de la récupération des candidatures");
         }
     }
 
@@ -532,7 +532,7 @@ public class ApplicationService : IApplicationService
         {
             _logger.LogError(ex, "Error retrieving applications for organization {OrganizationId}", organizationId);
             return ServiceResult<IEnumerable<ApplicationDto>>.InternalError(
-                "An error occurred while retrieving applications");
+                "Une erreur est survenue lors de la récupération des candidatures");
         }
     }
 
@@ -545,7 +545,7 @@ public class ApplicationService : IApplicationService
             if (application == null)
             {
                 return ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>.NotFound(
-                    $"Application with ID {applicationId} not found");
+                    $"Candidature avec l'ID {applicationId} introuvable");
             }
 
             return await _statusHistoryService.GetByApplicationIdAsync(applicationId);
@@ -554,7 +554,7 @@ public class ApplicationService : IApplicationService
         {
             _logger.LogError(ex, "Error retrieving status history for application {ApplicationId}", applicationId);
             return ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>.InternalError(
-                "An error occurred while retrieving status history");
+                "Une erreur est survenue lors de la récupération de l'historique des statuts");
         }
     }
 
@@ -568,7 +568,7 @@ public class ApplicationService : IApplicationService
 
             if (application == null)
             {
-                return ServiceResult<bool>.NotFound($"Application with ID {applicationId} not found");
+                return ServiceResult<bool>.NotFound($"Candidature avec l'ID {applicationId} introuvable");
             }
 
             var canManage = await CanUserManageApplicationInternalAsync(application, userId);
@@ -577,7 +577,7 @@ public class ApplicationService : IApplicationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if user can manage application {ApplicationId}", applicationId);
-            return ServiceResult<bool>.InternalError("An error occurred while checking permissions");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification des permissions");
         }
     }
 
@@ -593,7 +593,7 @@ public class ApplicationService : IApplicationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if candidate has applied to job {JobOfferId}", jobOfferId);
-            return ServiceResult<bool>.InternalError("An error occurred while checking application status");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification du statut de candidature");
         }
     }
 
@@ -814,14 +814,14 @@ public class ApplicationService : IApplicationService
             if (application == null)
             {
                 return ServiceResult<ApplicationDto>.NotFound(
-                    $"Application with ID {assignUserDto.ApplicationId} not found");
+                    $"Candidature avec l'ID {assignUserDto.ApplicationId} introuvable");
             }
 
             // Check if user can manage this application (recruiter of the organization)
             var canManage = await CanUserManageApplicationInternalAsync(application, assignedByUserId);
             if (!canManage)
             {
-                return ServiceResult<ApplicationDto>.Forbidden("User cannot manage this application");
+                return ServiceResult<ApplicationDto>.Forbidden("L'utilisateur ne peut pas gérer cette candidature");
             }
 
             // Verify that the user belongs to the same organization as the job offer
@@ -830,13 +830,13 @@ public class ApplicationService : IApplicationService
 
             if (user == null)
             {
-                return ServiceResult<ApplicationDto>.NotFound($"User with ID {assignUserDto.UserId} not found");
+                return ServiceResult<ApplicationDto>.NotFound($"Utilisateur avec l'ID {assignUserDto.UserId} introuvable");
             }
 
             if (user.OrganizationId != application.JobOffer.OrganizationId)
             {
                 return ServiceResult<ApplicationDto>.Failure(
-                    "User must belong to the same organization as the job offer");
+                    "L'utilisateur doit appartenir à la même organisation que l'offre d'emploi");
             }
 
             // Assign based on the assignment type
@@ -866,13 +866,13 @@ public class ApplicationService : IApplicationService
 
             var applicationDto = _mapper.Map<ApplicationDto>(application);
             return ServiceResult<ApplicationDto>.Success(applicationDto,
-                $"{assignUserDto.AssignmentType} assigned successfully");
+                $"{assignUserDto.AssignmentType} affecté(e) avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error assigning {AssignmentType} to application {ApplicationId}",
                 assignUserDto.AssignmentType, assignUserDto.ApplicationId);
-            return ServiceResult<ApplicationDto>.InternalError("An error occurred while assigning user");
+            return ServiceResult<ApplicationDto>.InternalError("Une erreur est survenue lors de l'affectation de l'utilisateur");
         }
     }
 
@@ -899,14 +899,14 @@ public class ApplicationService : IApplicationService
             if (application == null)
             {
                 return ServiceResult<ApplicationDto>.NotFound(
-                    $"Application with ID {unassignUserDto.ApplicationId} not found");
+                    $"Candidature avec l'ID {unassignUserDto.ApplicationId} introuvable");
             }
 
             // Check if user can manage this application (recruiter of the organization)
             var canManage = await CanUserManageApplicationInternalAsync(application, assignedByUserId);
             if (!canManage)
             {
-                return ServiceResult<ApplicationDto>.Forbidden("User cannot manage this application");
+                return ServiceResult<ApplicationDto>.Forbidden("L'utilisateur ne peut pas gérer cette candidature");
             }
 
             // Unassign based on the assignment type
@@ -914,7 +914,7 @@ public class ApplicationService : IApplicationService
             {
                 if (!application.AssignedTechnicalEvaluatorId.HasValue)
                 {
-                    return ServiceResult<ApplicationDto>.Failure("No technical evaluator assigned to this application");
+                    return ServiceResult<ApplicationDto>.Failure("Aucun évaluateur technique affecté à cette candidature");
                 }
 
                 application.AssignedTechnicalEvaluatorId = null;
@@ -923,7 +923,7 @@ public class ApplicationService : IApplicationService
             {
                 if (!application.AssignedManagerId.HasValue)
                 {
-                    return ServiceResult<ApplicationDto>.Failure("No manager assigned to this application");
+                    return ServiceResult<ApplicationDto>.Failure("Aucun manager affecté à cette candidature");
                 }
 
                 application.AssignedManagerId = null;
@@ -946,13 +946,13 @@ public class ApplicationService : IApplicationService
 
             var applicationDto = _mapper.Map<ApplicationDto>(application);
             return ServiceResult<ApplicationDto>.Success(applicationDto,
-                $"{unassignUserDto.AssignmentType} unassigned successfully");
+                $"{unassignUserDto.AssignmentType} désaffecté(e) avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unassigning {AssignmentType} from application {ApplicationId}",
                 unassignUserDto.AssignmentType, unassignUserDto.ApplicationId);
-            return ServiceResult<ApplicationDto>.InternalError("An error occurred while unassigning user");
+            return ServiceResult<ApplicationDto>.InternalError("Une erreur est survenue lors de la désaffectation de l'utilisateur");
         }
     }
 }

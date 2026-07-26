@@ -44,7 +44,7 @@ public class ApplicationStatusHistoryController(IApplicationStatusHistoryService
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await statusHistoryService.CreateAsync(dto, userId.Value);
@@ -62,7 +62,7 @@ public class ApplicationStatusHistoryController(IApplicationStatusHistoryService
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await statusHistoryService.UpdateAsync(id, dto, userId.Value);

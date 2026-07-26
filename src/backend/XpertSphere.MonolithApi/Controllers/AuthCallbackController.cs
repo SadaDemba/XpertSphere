@@ -55,8 +55,8 @@ public class AuthCallbackController : ControllerBase
 
             if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
             {
-                _errorHandler.HandleOAuth2Error("invalid_request", "Missing required parameters", "B2B", state);
-                return RedirectToClientWithError("invalid_request", "Missing required parameters", "b2b");
+                _errorHandler.HandleOAuth2Error("invalid_request", "Paramètres requis manquants", "B2B", state);
+                return RedirectToClientWithError("invalid_request", "Paramètres requis manquants", "b2b");
             }
 
             var result = await _authenticationService.HandleEntraIdCallback(code, state, error);
@@ -92,7 +92,7 @@ public class AuthCallbackController : ControllerBase
         {
             _authLogger.LogSecurityEvent("B2B_CALLBACK_ERROR", ex.Message, null, null);
             var errorResult = _errorHandler.HandleServiceUnavailable("B2B callback", ex);
-            return RedirectToClientWithError("server_error", "An unexpected error occurred", "b2b");
+            return RedirectToClientWithError("server_error", "Une erreur inattendue est survenue", "b2b");
         }
     }
 
@@ -127,8 +127,8 @@ public class AuthCallbackController : ControllerBase
             if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
             {
                 var errorResult =
-                    _errorHandler.HandleOAuth2Error("invalid_request", "Missing required parameters", "B2C", state);
-                return RedirectToClientWithError("invalid_request", "Missing required parameters", "b2c");
+                    _errorHandler.HandleOAuth2Error("invalid_request", "Paramètres requis manquants", "B2C", state);
+                return RedirectToClientWithError("invalid_request", "Paramètres requis manquants", "b2c");
             }
 
             var result = await _authenticationService.HandleEntraIdCallback(code, state, error);
@@ -163,7 +163,7 @@ public class AuthCallbackController : ControllerBase
         {
             _authLogger.LogSecurityEvent("B2C_CALLBACK_ERROR", ex.Message, null, null);
             var errorResult = _errorHandler.HandleServiceUnavailable("B2C callback", ex);
-            return RedirectToClientWithError("server_error", "An unexpected error occurred", "b2c");
+            return RedirectToClientWithError("server_error", "Une erreur inattendue est survenue", "b2c");
         }
     }
 
@@ -185,10 +185,10 @@ public class AuthCallbackController : ControllerBase
             var errorResponse = new
             {
                 error = errorRequest.Error ?? "unknown_error",
-                error_description = errorRequest.ErrorDescription ?? "An unknown error occurred",
+                error_description = errorRequest.ErrorDescription ?? "Une erreur inconnue est survenue",
                 auth_flow = errorRequest.AuthFlow ?? "unknown",
                 timestamp = DateTime.UtcNow,
-                support_message = "Please try again or contact support if the problem persists"
+                support_message = "Veuillez réessayer ou contacter le support si le problème persiste"
             };
 
             var statusCode = errorRequest.Error switch
@@ -213,7 +213,7 @@ public class AuthCallbackController : ControllerBase
             return StatusCode(500, new
             {
                 error = "server_error",
-                error_description = "An unexpected error occurred while processing the error",
+                error_description = "Une erreur inattendue est survenue lors du traitement de l'erreur",
                 timestamp = DateTime.UtcNow
             });
         }

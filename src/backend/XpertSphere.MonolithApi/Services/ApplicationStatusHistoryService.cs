@@ -52,7 +52,7 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
             if (application == null)
             {
                 return ServiceResult<ApplicationStatusHistoryDto>.NotFound(
-                    $"Application with ID {addStatusChangeDto.ApplicationId} not found");
+                    $"Candidature avec l'ID {addStatusChangeDto.ApplicationId} introuvable");
             }
 
             var user = await _context.Users
@@ -61,7 +61,7 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
             if (user == null)
             {
                 return ServiceResult<ApplicationStatusHistoryDto>.NotFound(
-                    $"User with ID {addStatusChangeDto.UpdatedByUserId} not found");
+                    $"Utilisateur avec l'ID {addStatusChangeDto.UpdatedByUserId} introuvable");
             }
 
             var statusHistory = _mapper.Map<ApplicationStatusHistory>(addStatusChangeDto);
@@ -78,7 +78,7 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
                 addStatusChangeDto.UpdatedByUserId);
 
             return ServiceResult<ApplicationStatusHistoryDto>.Success(
-                _mapper.Map<ApplicationStatusHistoryDto>(statusHistory), "Status change added successfully");
+                _mapper.Map<ApplicationStatusHistoryDto>(statusHistory), "Changement de statut ajouté avec succès");
         }
         catch (Exception ex)
         {
@@ -86,7 +86,7 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
                 "Error adding status change for application {ApplicationId}",
                 addStatusChangeDto.ApplicationId);
             return ServiceResult<ApplicationStatusHistoryDto>.InternalError(
-                "An error occurred while adding status change");
+                "Une erreur est survenue lors de l'ajout du changement de statut");
         }
     }
 
@@ -113,7 +113,7 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
         {
             _logger.LogError(ex, "Error retrieving status history for application {ApplicationId}", applicationId);
             return ServiceResult<IEnumerable<ApplicationStatusHistoryDto>>.InternalError(
-                "An error occurred while retrieving status history");
+                "Une erreur est survenue lors de la récupération de l'historique des statuts");
         }
     }
 
@@ -128,7 +128,7 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
 
             if (statusHistory == null)
             {
-                return ServiceResult<ApplicationStatusHistoryDto>.NotFound($"Status history with ID {id} not found");
+                return ServiceResult<ApplicationStatusHistoryDto>.NotFound($"Historique de statut avec l'ID {id} introuvable");
             }
 
             var statusHistoryDto = _mapper.Map<ApplicationStatusHistoryDto>(statusHistory);
@@ -138,7 +138,7 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
         {
             _logger.LogError(ex, "Error retrieving status history with ID {Id}", id);
             return ServiceResult<ApplicationStatusHistoryDto>.InternalError(
-                "An error occurred while retrieving status history");
+                "Une erreur est survenue lors de la récupération de l'historique des statuts");
         }
     }
 
@@ -158,13 +158,13 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
             if (application == null)
             {
                 return ServiceResult<ApplicationStatusHistoryDto>.NotFound(
-                    $"Application with ID {dto.ApplicationId} not found");
+                    $"Candidature avec l'ID {dto.ApplicationId} introuvable");
             }
 
             var user = await _context.Users.FindAsync(updatedByUserId);
             if (user == null)
             {
-                return ServiceResult<ApplicationStatusHistoryDto>.NotFound($"User with ID {updatedByUserId} not found");
+                return ServiceResult<ApplicationStatusHistoryDto>.NotFound($"Utilisateur avec l'ID {updatedByUserId} introuvable");
             }
 
             var statusHistory = _mapper.Map<ApplicationStatusHistory>(dto);
@@ -186,13 +186,13 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
                 statusHistory.Id, dto.ApplicationId);
 
             return ServiceResult<ApplicationStatusHistoryDto>.Success(statusHistoryDto,
-                "Status history created successfully");
+                "Historique de statut créé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating status history for application {ApplicationId}", dto.ApplicationId);
             return ServiceResult<ApplicationStatusHistoryDto>.InternalError(
-                "An error occurred while creating status history");
+                "Une erreur est survenue lors de la création de l'historique de statut");
         }
     }
 
@@ -215,7 +215,7 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
 
             if (statusHistory == null)
             {
-                return ServiceResult<ApplicationStatusHistoryDto>.NotFound($"Status history with ID {id} not found");
+                return ServiceResult<ApplicationStatusHistoryDto>.NotFound($"Historique de statut avec l'ID {id} introuvable");
             }
 
             _mapper.Map(dto, statusHistory);
@@ -229,13 +229,13 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
             _logger.LogInformation("Updated status history with ID {Id}", id);
 
             return ServiceResult<ApplicationStatusHistoryDto>.Success(statusHistoryDto,
-                "Status history updated successfully");
+                "Historique de statut mis à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating status history with ID {Id}", id);
             return ServiceResult<ApplicationStatusHistoryDto>.InternalError(
-                "An error occurred while updating status history");
+                "Une erreur est survenue lors de la mise à jour de l'historique de statut");
         }
     }
 
@@ -246,7 +246,7 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
             var statusHistory = await _context.ApplicationStatusHistories.FindAsync(id);
             if (statusHistory == null)
             {
-                return ServiceResult.NotFound($"Status history with ID {id} not found");
+                return ServiceResult.NotFound($"Historique de statut avec l'ID {id} introuvable");
             }
 
             _context.ApplicationStatusHistories.Remove(statusHistory);
@@ -254,12 +254,12 @@ public class ApplicationStatusHistoryService : IApplicationStatusHistoryService
 
             _logger.LogInformation("Deleted status history with ID {Id}", id);
 
-            return ServiceResult.Success("Status history deleted successfully");
+            return ServiceResult.Success("Historique de statut supprimé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting status history with ID {Id}", id);
-            return ServiceResult.InternalError("An error occurred while deleting status history");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression de l'historique de statut");
         }
     }
 }

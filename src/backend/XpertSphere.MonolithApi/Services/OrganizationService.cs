@@ -61,7 +61,7 @@ namespace XpertSphere.MonolithApi.Services
                 if (existingOrg != null)
                 {
                     return ServiceResult<OrganizationDto>.Conflict(
-                        $"An organization with name '{createDto.Name}' or code '{createDto.Code}' already exists");
+                        $"Une organisation avec le nom '{createDto.Name}' ou le code '{createDto.Code}' existe déjà");
                 }
 
                 var organization = _mapper.Map<Organization>(createDto);
@@ -75,13 +75,13 @@ namespace XpertSphere.MonolithApi.Services
                     organization.Id, organization.Name);
 
                 var organizationDto = _mapper.Map<OrganizationDto>(organization);
-                return ServiceResult<OrganizationDto>.Success(organizationDto, "Organization created successfully");
+                return ServiceResult<OrganizationDto>.Success(organizationDto, "Organisation créée avec succès");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating organization with name {OrganizationName}", createDto.Name);
                 return ServiceResult<OrganizationDto>.InternalError(
-                    "An error occurred while creating the organization");
+                    "Une erreur est survenue lors de la création de l'organisation");
             }
         }
 
@@ -95,14 +95,14 @@ namespace XpertSphere.MonolithApi.Services
 
                 if (organization == null)
                 {
-                    return ServiceResult.NotFound($"Organization with ID {id} not found");
+                    return ServiceResult.NotFound($"Organisation avec l'ID {id} introuvable");
                 }
 
                 // Check if organization has active users
                 var hasActiveUsers = organization.Users.Any(u => u.IsActive);
                 if (hasActiveUsers)
                 {
-                    return ServiceResult.Failure("Cannot delete organization that has active users");
+                    return ServiceResult.Failure("Impossible de supprimer une organisation ayant des utilisateurs actifs");
                 }
 
                 _context.Organizations.Remove(organization);
@@ -110,12 +110,12 @@ namespace XpertSphere.MonolithApi.Services
 
                 _logger.LogInformation("Deleted organization with ID {OrganizationId} and name {OrganizationName}", id,
                     organization.Name);
-                return ServiceResult.Success("Organization deleted successfully");
+                return ServiceResult.Success("Organisation supprimée avec succès");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting organization with ID {OrganizationId}", id);
-                return ServiceResult.InternalError("An error occurred while deleting the organization");
+                return ServiceResult.InternalError("Une erreur est survenue lors de la suppression de l'organisation");
             }
         }
 
@@ -129,7 +129,7 @@ namespace XpertSphere.MonolithApi.Services
 
                 if (organization == null)
                 {
-                    return ServiceResult<OrganizationDto>.NotFound($"Organization with ID {id} not found");
+                    return ServiceResult<OrganizationDto>.NotFound($"Organisation avec l'ID {id} introuvable");
                 }
 
                 var organizationDto = _mapper.Map<OrganizationDto>(organization);
@@ -139,7 +139,7 @@ namespace XpertSphere.MonolithApi.Services
             {
                 _logger.LogError(ex, "Error retrieving organization with ID {OrganizationId}", id);
                 return ServiceResult<OrganizationDto>.InternalError(
-                    "An error occurred while retrieving the organization");
+                    "Une erreur est survenue lors de la récupération de l'organisation");
             }
         }
 
@@ -151,7 +151,7 @@ namespace XpertSphere.MonolithApi.Services
                 if (!validationResult.IsValid)
                 {
                     var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-                    return PaginatedResult<OrganizationDto>.Failure(errors, "Invalid filter parameters");
+                    return PaginatedResult<OrganizationDto>.Failure(errors, "Paramètres de filtre invalides");
                 }
 
                 var query = BuildOrganizationQuery(filter);
@@ -180,7 +180,7 @@ namespace XpertSphere.MonolithApi.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving organizations with filter {Filter}", filter);
-                return PaginatedResult<OrganizationDto>.Failure("An error occurred while searching organizations");
+                return PaginatedResult<OrganizationDto>.Failure("Une erreur est survenue lors de la recherche des organisations");
             }
         }
 
@@ -214,7 +214,7 @@ namespace XpertSphere.MonolithApi.Services
             {
                 _logger.LogError(ex, "Error retrieving all organizations");
                 return ServiceResult<IEnumerable<OrganizationDto>>.InternalError(
-                    "An error occurred while retrieving organizations");
+                    "Une erreur est survenue lors de la récupération des organisations");
             }
         }
 
@@ -232,7 +232,7 @@ namespace XpertSphere.MonolithApi.Services
                 var organization = await _context.Organizations.FindAsync(id);
                 if (organization == null)
                 {
-                    return ServiceResult<OrganizationDto>.NotFound($"Organization with ID {id} not found");
+                    return ServiceResult<OrganizationDto>.NotFound($"Organisation avec l'ID {id} introuvable");
                 }
 
                 if (!string.IsNullOrEmpty(updateDto.Name) && updateDto.Name != organization.Name)
@@ -241,7 +241,7 @@ namespace XpertSphere.MonolithApi.Services
                     if (nameExists)
                     {
                         return ServiceResult<OrganizationDto>.Conflict(
-                            $"An organization with name '{updateDto.Name}' already exists");
+                            $"Une organisation avec le nom '{updateDto.Name}' existe déjà");
                     }
                 }
 
@@ -251,7 +251,7 @@ namespace XpertSphere.MonolithApi.Services
                     if (codeExists)
                     {
                         return ServiceResult<OrganizationDto>.Conflict(
-                            $"An organization with code '{updateDto.Code}' already exists");
+                            $"Une organisation avec le code '{updateDto.Code}' existe déjà");
                     }
                 }
 
@@ -261,13 +261,13 @@ namespace XpertSphere.MonolithApi.Services
                 _logger.LogInformation("Updated organization with ID {OrganizationId}", id);
 
                 var organizationDto = _mapper.Map<OrganizationDto>(organization);
-                return ServiceResult<OrganizationDto>.Success(organizationDto, "Organization updated successfully");
+                return ServiceResult<OrganizationDto>.Success(organizationDto, "Organisation mise à jour avec succès");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating organization with ID {OrganizationId}", id);
                 return ServiceResult<OrganizationDto>.InternalError(
-                    "An error occurred while updating the organization");
+                    "Une erreur est survenue lors de la mise à jour de l'organisation");
             }
         }
 
@@ -279,7 +279,7 @@ namespace XpertSphere.MonolithApi.Services
                 if (organization == null)
                 {
                     return ServiceResult<OrganizationCurrencyDto>.NotFound(
-                        $"Organization with ID {organizationId} not found");
+                        $"Organisation avec l'ID {organizationId} introuvable");
                 }
 
                 var currencyDto = new OrganizationCurrencyDto { Currency = organization.Currency };
@@ -289,7 +289,7 @@ namespace XpertSphere.MonolithApi.Services
             {
                 _logger.LogError(ex, "Error retrieving currency for organization {OrganizationId}", organizationId);
                 return ServiceResult<OrganizationCurrencyDto>.InternalError(
-                    "An error occurred while retrieving the organization currency");
+                    "Une erreur est survenue lors de la récupération de la devise de l'organisation");
             }
         }
 
@@ -309,7 +309,7 @@ namespace XpertSphere.MonolithApi.Services
                 if (organization == null)
                 {
                     return ServiceResult<OrganizationCurrencyDto>.NotFound(
-                        $"Organization with ID {organizationId} not found");
+                        $"Organisation avec l'ID {organizationId} introuvable");
                 }
 
                 organization.Currency = dto.Currency;
@@ -320,13 +320,13 @@ namespace XpertSphere.MonolithApi.Services
 
                 var currencyDto = new OrganizationCurrencyDto { Currency = organization.Currency };
                 return ServiceResult<OrganizationCurrencyDto>.Success(currencyDto,
-                    "Organization currency updated successfully");
+                    "Devise de l'organisation mise à jour avec succès");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating currency for organization {OrganizationId}", organizationId);
                 return ServiceResult<OrganizationCurrencyDto>.InternalError(
-                    "An error occurred while updating the organization currency");
+                    "Une erreur est survenue lors de la mise à jour de la devise de l'organisation");
             }
         }
 

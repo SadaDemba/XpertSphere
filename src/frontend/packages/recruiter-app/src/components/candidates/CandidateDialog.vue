@@ -328,13 +328,13 @@ const skillsOptions = [
   'Figma',
   'Adobe Creative Suite',
   'Sketch',
-  'Prototyping',
-  'User Research',
-  'UI/UX Design',
+  'Prototypage',
+  'Recherche utilisateur',
+  'Design UI/UX',
   'Marketing Digital',
   'SEO/SEM',
   'Analytics',
-  'Project Management',
+  'Gestion de projet',
   'Agile/Scrum',
 ];
 

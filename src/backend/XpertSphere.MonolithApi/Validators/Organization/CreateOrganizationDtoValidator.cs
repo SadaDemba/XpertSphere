@@ -8,36 +8,36 @@ public class CreateOrganizationDtoValidator : AbstractValidator<CreateOrganizati
     public CreateOrganizationDtoValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Organization name is required.")
-            .Length(2, 100).WithMessage("Organization name must be between 2 and 100 characters.")
-            .Matches(@"^[a-zA-Z0-9\s\-&.()]+$").WithMessage("Organization name contains invalid characters.");
+            .NotEmpty().WithMessage("Le nom de l'organisation est obligatoire.")
+            .Length(2, 100).WithMessage("Le nom de l'organisation doit contenir entre 2 et 100 caractères.")
+            .Matches(@"^[a-zA-Z0-9\s\-&.()]+$").WithMessage("Le nom de l'organisation contient des caractères invalides.");
 
         RuleFor(x => x.Code)
-            .NotEmpty().WithMessage("Organization code is required.")
-            .Length(2, 20).WithMessage("Organization code must be between 2 and 20 characters.")
+            .NotEmpty().WithMessage("Le code de l'organisation est obligatoire.")
+            .Length(2, 20).WithMessage("Le code de l'organisation doit contenir entre 2 et 20 caractères.")
             .Matches(@"^[A-Z0-9_-]+$")
-            .WithMessage("Organization code must contain only uppercase letters, numbers, underscores and dashes.");
+            .WithMessage("Le code de l'organisation ne peut contenir que des majuscules, des chiffres, des underscores et des tirets.");
 
         RuleFor(x => x.Description)
-            .MaximumLength(500).WithMessage("Description cannot exceed 500 characters.");
+            .MaximumLength(500).WithMessage("La description ne peut pas dépasser 500 caractères.");
 
         RuleFor(x => x.Industry)
-            .MaximumLength(100).WithMessage("Industry cannot exceed 100 characters.");
+            .MaximumLength(100).WithMessage("Le secteur d'activité ne peut pas dépasser 100 caractères.");
 
         RuleFor(x => x.Size)
-            .IsInEnum().WithMessage("Organization size must be a valid value.");
+            .IsInEnum().WithMessage("La taille de l'organisation doit être une valeur valide.");
 
 
         RuleFor(x => x.ContactEmail)
-            .EmailAddress().WithMessage("Contact email must be a valid email address.")
+            .EmailAddress().WithMessage("L'email de contact doit être une adresse email valide.")
             .When(x => !string.IsNullOrEmpty(x.ContactEmail));
 
         RuleFor(x => x.ContactPhone)
-            .Matches(@"^[\+]?[0-9\-\(\)\s]+$").WithMessage("Contact phone contains invalid characters.")
+            .Matches(@"^[\+]?[0-9\-\(\)\s]+$").WithMessage("Le téléphone de contact contient des caractères invalides.")
             .When(x => !string.IsNullOrEmpty(x.ContactPhone));
 
         RuleFor(x => x.Website)
-            .Must(BeAValidUrl).WithMessage("Website must be a valid URL.")
+            .Must(BeAValidUrl).WithMessage("Le site web doit être une URL valide.")
             .When(x => !string.IsNullOrEmpty(x.Website));
     }
 

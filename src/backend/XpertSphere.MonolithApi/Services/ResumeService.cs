@@ -61,12 +61,12 @@ public class ResumeService : IResumeService
 
             _logger.LogInformation("Resume uploaded successfully for user {UserId}: {BlobName}", userId, blobName);
 
-            return ServiceResult<string>.Success(blobClient.Uri.ToString(), "Resume uploaded successfully");
+            return ServiceResult<string>.Success(blobClient.Uri.ToString(), "CV téléversé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading resume for user {UserId}", userId);
-            return ServiceResult<string>.InternalError("An error occurred while uploading the resume");
+            return ServiceResult<string>.InternalError("Une erreur est survenue lors du téléversement du CV");
         }
     }
 
@@ -87,7 +87,7 @@ public class ResumeService : IResumeService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating resume for user {UserId}", userId);
-            return ServiceResult<string>.InternalError("An error occurred while updating the resume");
+            return ServiceResult<string>.InternalError("Une erreur est survenue lors de la mise à jour du CV");
         }
     }
 
@@ -97,7 +97,7 @@ public class ResumeService : IResumeService
         {
             if (string.IsNullOrEmpty(resumePath))
             {
-                return ServiceResult.Failure("Resume path is required");
+                return ServiceResult.Failure("Le chemin du CV est obligatoire");
             }
 
             // Extract blob name from URL
@@ -112,18 +112,18 @@ public class ResumeService : IResumeService
             if (response.Value)
             {
                 _logger.LogInformation("Resume deleted successfully: {ResumePath}", resumePath);
-                return ServiceResult.Success("Resume deleted successfully");
+                return ServiceResult.Success("CV supprimé avec succès");
             }
             else
             {
                 _logger.LogWarning("Resume not found for deletion: {ResumePath}", resumePath);
-                return ServiceResult.NotFound("Resume not found");
+                return ServiceResult.NotFound("CV introuvable");
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting resume: {ResumePath}", resumePath);
-            return ServiceResult.InternalError("An error occurred while deleting the resume");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression du CV");
         }
     }
 
@@ -133,7 +133,7 @@ public class ResumeService : IResumeService
         {
             if (string.IsNullOrEmpty(resumePath))
             {
-                return ServiceResult<Stream>.Failure("Resume path is required");
+                return ServiceResult<Stream>.Failure("Le chemin du CV est obligatoire");
             }
 
             // Extract blob name from URL
@@ -146,16 +146,16 @@ public class ResumeService : IResumeService
             var exists = await blobClient.ExistsAsync();
             if (!exists.Value)
             {
-                return ServiceResult<Stream>.NotFound("Resume not found");
+                return ServiceResult<Stream>.NotFound("CV introuvable");
             }
 
             var response = await blobClient.OpenReadAsync();
-            return ServiceResult<Stream>.Success(response, "Resume downloaded successfully");
+            return ServiceResult<Stream>.Success(response, "CV téléchargé avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error downloading resume: {ResumePath}", resumePath);
-            return ServiceResult<Stream>.InternalError("An error occurred while downloading the resume");
+            return ServiceResult<Stream>.InternalError("Une erreur est survenue lors du téléchargement du CV");
         }
     }
 
@@ -165,7 +165,7 @@ public class ResumeService : IResumeService
         {
             if (string.IsNullOrEmpty(resumePath))
             {
-                return ServiceResult<ResumeMetadata>.Failure("Resume path is required");
+                return ServiceResult<ResumeMetadata>.Failure("Le chemin du CV est obligatoire");
             }
 
             var uri = new Uri(resumePath);
@@ -190,12 +190,12 @@ public class ResumeService : IResumeService
                     : properties.Value.LastModified.DateTime
             };
 
-            return ServiceResult<ResumeMetadata>.Success(metadata, "Metadata retrieved successfully");
+            return ServiceResult<ResumeMetadata>.Success(metadata, "Métadonnées récupérées avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting resume metadata: {ResumePath}", resumePath);
-            return ServiceResult<ResumeMetadata>.InternalError("An error occurred while retrieving resume metadata");
+            return ServiceResult<ResumeMetadata>.InternalError("Une erreur est survenue lors de la récupération des métadonnées du CV");
         }
     }
 
@@ -203,23 +203,23 @@ public class ResumeService : IResumeService
     {
         if (file == null || file.Length == 0)
         {
-            return ServiceResult<string>.ValidationError(["No file provided"]);
+            return ServiceResult<string>.ValidationError(["Aucun fichier fourni"]);
         }
 
         if (file.Length > _maxFileSize)
         {
-            return ServiceResult<string>.ValidationError([$"File size exceeds {_maxFileSize / (1024 * 1024)}MB limit"]);
+            return ServiceResult<string>.ValidationError([$"La taille du fichier dépasse la limite de {_maxFileSize / (1024 * 1024)} Mo"]);
         }
 
         var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!_allowedExtensions.Contains(fileExtension))
         {
             return ServiceResult<string>.ValidationError([
-                $"File type {fileExtension} is not allowed. Allowed types: {string.Join(", ", _allowedExtensions)}"
+                $"Le type de fichier {fileExtension} n'est pas autorisé. Types autorisés : {string.Join(", ", _allowedExtensions)}"
             ]);
         }
 
-        return ServiceResult<string>.Success("", "File validation passed");
+        return ServiceResult<string>.Success("", "Validation du fichier réussie");
     }
 
     private static string GetContentType(string fileExtension)

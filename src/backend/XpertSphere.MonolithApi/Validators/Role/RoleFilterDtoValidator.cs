@@ -16,31 +16,31 @@ public class RoleFilterDtoValidator : AbstractValidator<RoleFilterDto>
     private void ConfigureFilterValidation()
     {
         RuleFor(x => x.Name)
-            .MaximumLength(100).WithMessage("Role name filter cannot exceed 100 characters")
+            .MaximumLength(100).WithMessage("Le filtre de nom de rôle ne peut pas dépasser 100 caractères")
             .When(x => !string.IsNullOrEmpty(x.Name));
 
         RuleFor(x => x.DisplayName)
-            .MaximumLength(150).WithMessage("Display name filter cannot exceed 150 characters")
+            .MaximumLength(150).WithMessage("Le filtre de nom d'affichage ne peut pas dépasser 150 caractères")
             .When(x => !string.IsNullOrEmpty(x.DisplayName));
 
         RuleFor(x => x.Description)
-            .MaximumLength(500).WithMessage("Description filter cannot exceed 500 characters")
+            .MaximumLength(500).WithMessage("Le filtre de description ne peut pas dépasser 500 caractères")
             .When(x => !string.IsNullOrEmpty(x.Description));
 
         RuleFor(x => x.SearchTerms)
-            .MaximumLength(255).WithMessage("Search terms cannot exceed 255 characters")
+            .MaximumLength(255).WithMessage("Les termes de recherche ne peuvent pas dépasser 255 caractères")
             .When(x => !string.IsNullOrEmpty(x.SearchTerms));
 
         RuleFor(x => x.PageSize)
-            .Must(BeValidPageSize).WithMessage("Page size must be between 1 and 100")
+            .Must(BeValidPageSize).WithMessage("La taille de page doit être comprise entre 1 et 100")
             .When(x => !string.IsNullOrEmpty(x.PageSize));
 
         RuleFor(x => x.PageNumber)
-            .Must(BeValidPageNumber).WithMessage("Page number must be greater than 0")
+            .Must(BeValidPageNumber).WithMessage("Le numéro de page doit être supérieur à 0")
             .When(x => !string.IsNullOrEmpty(x.PageNumber));
 
         RuleFor(x => x.SortBy)
-            .Must(BeValidSortField).WithMessage("Invalid sort field. Valid fields are: name, displayname, createdat")
+            .Must(BeValidSortField).WithMessage("Champ de tri invalide. Champs valides : name, displayname, createdat")
             .When(x => !string.IsNullOrEmpty(x.SortBy));
     }
 

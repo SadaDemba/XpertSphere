@@ -109,7 +109,7 @@ public class AuthenticationService : IAuthenticationService
             var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
             if (existingUser != null)
             {
-                return AuthResult.Conflict("User with this email already exists");
+                return AuthResult.Conflict("Un utilisateur avec cet email existe déjà");
             }
 
             // Check if we should redirect to Entra ID
@@ -122,7 +122,7 @@ public class AuthenticationService : IAuthenticationService
                 {
                     _logger.LogInformation("Redirecting candidate {Email} to Entra ID B2C registration",
                         registerDto.Email);
-                    return AuthResult.Success("Complete your registration with your preferred identity provider",
+                    return AuthResult.Success("Terminez votre inscription avec votre fournisseur d'identité préféré",
                         entraIdSignUpUrl);
                 }
             }
@@ -147,7 +147,7 @@ public class AuthenticationService : IAuthenticationService
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return AuthResult.Failure($"Registration failed: {errors}");
+                return AuthResult.Failure($"Échec de l'inscription : {errors}");
             }
 
 
@@ -159,12 +159,12 @@ public class AuthenticationService : IAuthenticationService
             var authDto = _mapper.Map<AuthResponseDto>(user);
 
             return AuthResult.SuccessWithUser(authDto,
-                "Registration successful. Please check your email to confirm your account.");
+                "Inscription réussie. Veuillez vérifier votre email pour confirmer votre compte.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during user registration for {Email}", registerDto.Email);
-            return AuthResult.Failure("An error occurred during registration");
+            return AuthResult.Failure("Une erreur est survenue lors de l'inscription");
         }
     }
 
@@ -179,7 +179,7 @@ public class AuthenticationService : IAuthenticationService
                 // Basic validation
                 if (!registerDto.AcceptTerms || !registerDto.AcceptPrivacyPolicy)
                 {
-                    return AuthResult.ValidationError(["You must accept the terms and privacy policy"]);
+                    return AuthResult.ValidationError(["Vous devez accepter les conditions d'utilisation et la politique de confidentialité"]);
                 }
 
                 // Each experience, once added, must have a non-empty description
@@ -192,8 +192,8 @@ public class AuthenticationService : IAuthenticationService
                         if (string.IsNullOrWhiteSpace(experience.Description))
                         {
                             experienceErrors.Add(string.IsNullOrWhiteSpace(experience.Title)
-                                ? $"Experience #{i + 1} is missing a description."
-                                : $"Experience #{i + 1} (\"{experience.Title}\") is missing a description.");
+                                ? $"L'expérience n°{i + 1} n'a pas de description."
+                                : $"L'expérience n°{i + 1} (« {experience.Title} ») n'a pas de description.");
                         }
                     }
 
@@ -206,7 +206,7 @@ public class AuthenticationService : IAuthenticationService
                 var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
                 if (existingUser != null)
                 {
-                    return AuthResult.Conflict("User with this email already exists");
+                    return AuthResult.Conflict("Un utilisateur avec cet email existe déjà");
                 }
 
                 // Create user using UserManager directly
@@ -265,7 +265,7 @@ public class AuthenticationService : IAuthenticationService
                 if (!createResult.Succeeded)
                 {
                     var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
-                    return AuthResult.Failure($"User creation failed: {errors}");
+                    return AuthResult.Failure($"Échec de la création de l'utilisateur : {errors}");
                 }
 
                 // Add trainings if provided
@@ -330,13 +330,13 @@ public class AuthenticationService : IAuthenticationService
                 var authResponseDto = _mapper.Map<AuthResponseDto>(user);
 
                 return AuthResult.SuccessWithUser(authResponseDto,
-                    "Registration successful. Please check your email to confirm your account.");
+                    "Inscription réussie. Veuillez vérifier votre email pour confirmer votre compte.");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Error occurred during candidate registration for {Email}", registerDto.Email);
-                return AuthResult.Failure("An error occurred during registration");
+                return AuthResult.Failure("Une erreur est survenue lors de l'inscription");
             }
         });
     }
@@ -365,7 +365,7 @@ public class AuthenticationService : IAuthenticationService
                     {
                         _logger.LogInformation("Redirecting organizational user {Email} to Entra ID B2B login",
                             loginDto.Email);
-                        return AuthResult.Success("Please use your organizational account to login", entraIdLoginUrl);
+                        return AuthResult.Success("Veuillez utiliser votre compte organisationnel pour vous connecter", entraIdLoginUrl);
                     }
                 }
 
@@ -385,7 +385,7 @@ public class AuthenticationService : IAuthenticationService
             if (user == null)
             {
                 _logger.LogWarning("Login attempt with non-existent email: {Email}", loginDto.Email);
-                return AuthResult.Failure("Invalid credentials");
+                return AuthResult.Failure("Identifiants invalides");
             }
 
             // Check if account is locked and auto-unlock if time has passed
@@ -404,13 +404,13 @@ public class AuthenticationService : IAuthenticationService
                 }
 
                 _logger.LogWarning("Login attempt on locked account: {Email}", loginDto.Email);
-                return AuthResult.Failure($"Account is locked until {user.AccountLockedUntil:yyyy-MM-dd HH:mm}");
+                return AuthResult.Failure($"Le compte est verrouillé jusqu'au {user.AccountLockedUntil:yyyy-MM-dd HH:mm}");
             }
 
             if (!user.IsActive)
             {
                 _logger.LogWarning("Login attempt on inactive account: {Email}", loginDto.Email);
-                return AuthResult.Failure("Account is inactive");
+                return AuthResult.Failure("Le compte est inactif");
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, lockoutOnFailure: true);
@@ -436,7 +436,7 @@ public class AuthenticationService : IAuthenticationService
 
                 return AuthResult.SuccessWithUser(
                     authResponseDto,
-                    "Login successful"
+                    "Connexion réussie"
                 );
             }
 
@@ -446,13 +446,13 @@ public class AuthenticationService : IAuthenticationService
                 await _userManager.UpdateAsync(user);
 
                 _logger.LogWarning("Account locked out for user: {Email}", loginDto.Email);
-                return AuthResult.Failure("Account locked due to multiple failed login attempts");
+                return AuthResult.Failure("Compte verrouillé suite à plusieurs tentatives de connexion échouées");
             }
 
             if (result.IsNotAllowed)
             {
                 _logger.LogWarning("Login not allowed for user: {Email}", loginDto.Email);
-                return AuthResult.Failure("Login not allowed. Please confirm your email address");
+                return AuthResult.Failure("Connexion non autorisée. Veuillez confirmer votre adresse email");
             }
 
             // Increment failed login attempts
@@ -460,12 +460,12 @@ public class AuthenticationService : IAuthenticationService
             await _userManager.UpdateAsync(user);
 
             _logger.LogWarning("Failed login attempt for user: {Email}", loginDto.Email);
-            return AuthResult.Failure("Invalid credentials");
+            return AuthResult.Failure("Identifiants invalides");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during login for {Email}", loginDto.Email);
-            return AuthResult.Failure("An error occurred during login");
+            return AuthResult.Failure("Une erreur est survenue lors de la connexion");
         }
     }
 
@@ -491,7 +491,7 @@ public class AuthenticationService : IAuthenticationService
             if (user == null || !user.IsTokenValid || user.RefreshToken != refreshTokenDto.RefreshToken)
             {
                 _logger.LogWarning("Invalid refresh token attempt for {Email}", refreshTokenDto.Email);
-                return AuthResult.Failure("Invalid refresh token");
+                return AuthResult.Failure("Jeton de rafraîchissement invalide");
             }
 
             // Generate new tokens
@@ -507,13 +507,13 @@ public class AuthenticationService : IAuthenticationService
             authResponseDto.AccessToken = accessToken;
             return AuthResult.SuccessWithUser(
                 authResponseDto,
-                "Token refreshed successfully"
+                "Jeton rafraîchi avec succès"
             );
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during token refresh for {Email}", refreshTokenDto.Email);
-            return AuthResult.Failure("An error occurred during token refresh");
+            return AuthResult.Failure("Une erreur est survenue lors du rafraîchissement du jeton");
         }
     }
 
@@ -524,7 +524,7 @@ public class AuthenticationService : IAuthenticationService
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
-                return AuthResult.Failure("User not found");
+                return AuthResult.Failure("Utilisateur introuvable");
             }
 
             // Clear refresh token
@@ -534,12 +534,12 @@ public class AuthenticationService : IAuthenticationService
             await _signInManager.SignOutAsync();
 
             _logger.LogInformation("User {Email} logged out successfully", email);
-            return AuthResult.Success("Logout successful");
+            return AuthResult.Success("Déconnexion réussie");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during logout for {Email}", email);
-            return AuthResult.Failure("An error occurred during logout");
+            return AuthResult.Failure("Une erreur est survenue lors de la déconnexion");
         }
     }
 
@@ -557,23 +557,23 @@ public class AuthenticationService : IAuthenticationService
             var user = await _userManager.FindByEmailAsync(confirmEmailDto.Email);
             if (user == null)
             {
-                return AuthResult.Failure("User not found");
+                return AuthResult.Failure("Utilisateur introuvable");
             }
 
             var result = await _userManager.ConfirmEmailAsync(user, confirmEmailDto.Token);
             if (result.Succeeded)
             {
                 _logger.LogInformation("Email confirmed for user: {Email}", confirmEmailDto.Email);
-                return AuthResult.Success("Email confirmed successfully");
+                return AuthResult.Success("Email confirmé avec succès");
             }
 
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return AuthResult.Failure($"Email confirmation failed: {errors}");
+            return AuthResult.Failure($"Échec de la confirmation de l'email : {errors}");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during email confirmation for {Email}", confirmEmailDto.Email);
-            return AuthResult.Failure("An error occurred during email confirmation");
+            return AuthResult.Failure("Une erreur est survenue lors de la confirmation de l'email");
         }
     }
 
@@ -591,7 +591,7 @@ public class AuthenticationService : IAuthenticationService
             var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
             if (user == null)
             {
-                return AuthResult.Success("If an account with that email exists, a password reset link has been sent");
+                return AuthResult.Success("Si un compte existe avec cet email, un lien de réinitialisation a été envoyé");
             }
 
             var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -600,12 +600,12 @@ public class AuthenticationService : IAuthenticationService
 
             _logger.LogInformation("Password reset token generated for user: {Email}", forgotPasswordDto.Email);
             var authResponseDto = _mapper.Map<AuthResponseDto>(user);
-            return AuthResult.SuccessWithUser(authResponseDto, "Password reset email sent");
+            return AuthResult.SuccessWithUser(authResponseDto, "Email de réinitialisation du mot de passe envoyé");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during password reset request for {Email}", forgotPasswordDto.Email);
-            return AuthResult.Failure("An error occurred while processing your request");
+            return AuthResult.Failure("Une erreur est survenue lors du traitement de votre demande");
         }
     }
 
@@ -623,7 +623,7 @@ public class AuthenticationService : IAuthenticationService
             var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
             if (user == null)
             {
-                return AuthResult.Failure("Invalid request");
+                return AuthResult.Failure("Requête invalide");
             }
 
             var result =
@@ -636,16 +636,16 @@ public class AuthenticationService : IAuthenticationService
                 await _userManager.UpdateAsync(user);
 
                 _logger.LogInformation("Password reset successfully for user: {Email}", resetPasswordDto.Email);
-                return AuthResult.Success("Password reset successful");
+                return AuthResult.Success("Réinitialisation du mot de passe réussie");
             }
 
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return AuthResult.Failure($"Password reset failed: {errors}");
+            return AuthResult.Failure($"Échec de la réinitialisation du mot de passe : {errors}");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during password reset for {Email}", resetPasswordDto.Email);
-            return AuthResult.Failure("An error occurred during password reset");
+            return AuthResult.Failure("Une erreur est survenue lors de la réinitialisation du mot de passe");
         }
     }
 
@@ -666,14 +666,14 @@ public class AuthenticationService : IAuthenticationService
 
             if (targetUser == null)
             {
-                return AuthResult.Failure("User not found");
+                return AuthResult.Failure("Utilisateur introuvable");
             }
 
             // Get current admin user information
             var currentUser = _httpContextAccessor.HttpContext?.User;
             if (currentUser == null)
             {
-                return AuthResult.Failure("Invalid admin context");
+                return AuthResult.Failure("Contexte administrateur invalide");
             }
 
             // Check authorization - Organization admins can only reset passwords for users in their organization
@@ -684,12 +684,12 @@ public class AuthenticationService : IAuthenticationService
                 var adminOrgIdClaim = currentUser.FindFirst("OrganizationId");
                 if (adminOrgIdClaim == null || !Guid.TryParse(adminOrgIdClaim.Value, out var adminOrgId))
                 {
-                    return AuthResult.Failure("Invalid admin organization context");
+                    return AuthResult.Failure("Contexte d'organisation administrateur invalide");
                 }
 
                 if (targetUser.OrganizationId != adminOrgId)
                 {
-                    return AuthResult.Failure("You can only reset passwords for users in your organization");
+                    return AuthResult.Failure("Vous ne pouvez réinitialiser le mot de passe que des utilisateurs de votre organisation");
                 }
             }
 
@@ -698,14 +698,14 @@ public class AuthenticationService : IAuthenticationService
             if (!removePasswordResult.Succeeded)
             {
                 var errors = string.Join(", ", removePasswordResult.Errors.Select(e => e.Description));
-                return AuthResult.Failure($"Failed to remove current password: {errors}");
+                return AuthResult.Failure($"Échec de la suppression du mot de passe actuel : {errors}");
             }
 
             var addPasswordResult = await _userManager.AddPasswordAsync(targetUser, adminResetPasswordDto.NewPassword);
             if (!addPasswordResult.Succeeded)
             {
                 var errors = string.Join(", ", addPasswordResult.Errors.Select(e => e.Description));
-                return AuthResult.Failure($"Failed to set new password: {errors}");
+                return AuthResult.Failure($"Échec de la définition du nouveau mot de passe : {errors}");
             }
 
             // Update password change timestamp
@@ -720,12 +720,12 @@ public class AuthenticationService : IAuthenticationService
             _logger.LogInformation("Password reset by admin {AdminEmail} for user: {Email}",
                 adminEmail, adminResetPasswordDto.Email);
 
-            return AuthResult.Success($"Password successfully reset for {targetUser.Email}");
+            return AuthResult.Success($"Mot de passe réinitialisé avec succès pour {targetUser.Email}");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during admin password reset for {Email}", adminResetPasswordDto.Email);
-            return AuthResult.Failure("An error occurred during password reset");
+            return AuthResult.Failure("Une erreur est survenue lors de la réinitialisation du mot de passe");
         }
     }
 
@@ -744,7 +744,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (user == null)
             {
-                return ServiceResult<UserDto>.NotFound("User not found");
+                return ServiceResult<UserDto>.NotFound("Utilisateur introuvable");
             }
 
             var userDto = _mapper.Map<UserDto>(user);
@@ -753,7 +753,7 @@ public class AuthenticationService : IAuthenticationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving current user {UserId}", userId);
-            return ServiceResult<UserDto>.InternalError("An error occurred while retrieving user information");
+            return ServiceResult<UserDto>.InternalError("Une erreur est survenue lors de la récupération des informations utilisateur");
         }
     }
 
@@ -875,18 +875,18 @@ public class AuthenticationService : IAuthenticationService
         {
             if (!ShouldUseEntraId)
             {
-                return AuthResult.Failure("Entra ID authentication is disabled");
+                return AuthResult.Failure("L'authentification Entra ID est désactivée");
             }
 
             if (!string.IsNullOrEmpty(error))
             {
                 _logger.LogWarning("Entra ID callback returned error: {Error}", error);
-                return AuthResult.Failure($"Authentication failed: {error}");
+                return AuthResult.Failure($"Échec de l'authentification : {error}");
             }
 
             if (string.IsNullOrEmpty(code))
             {
-                return AuthResult.Failure("Authorization code is required");
+                return AuthResult.Failure("Le code d'autorisation est obligatoire");
             }
 
             // Parse and validate state parameter
@@ -905,14 +905,14 @@ public class AuthenticationService : IAuthenticationService
 
             if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(idToken))
             {
-                return AuthResult.Failure("Failed to obtain tokens from Entra ID");
+                return AuthResult.Failure("Échec de l'obtention des jetons depuis Entra ID");
             }
 
             // Extract user information from ID token
             var userInfo = GetUserFromEntraIdToken(idToken);
             if (userInfo == null)
             {
-                return AuthResult.Failure("Failed to extract user information from token");
+                return AuthResult.Failure("Échec de l'extraction des informations utilisateur depuis le jeton");
             }
 
             // Find or create user in database (this will be handled by ClaimsEnrichmentMiddleware)
@@ -938,20 +938,20 @@ public class AuthenticationService : IAuthenticationService
                 authResponseDto.RedirectUrl = returnUrl;
                 return AuthResult.SuccessWithUser(
                     authResponseDto,
-                    "Entra ID authentication successful"
+                    "Authentification Entra ID réussie"
                 );
             }
 
             // New user will be created by ClaimsEnrichmentMiddleware
             _logger.LogInformation("New Entra ID user {Email} will be created via middleware", userEmail);
 
-            return AuthResult.Success("Authentication successful. User profile will be created automatically.",
+            return AuthResult.Success("Authentification réussie. Le profil utilisateur sera créé automatiquement.",
                 returnUrl);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during Entra ID callback processing");
-            return AuthResult.Failure("An error occurred during authentication");
+            return AuthResult.Failure("Une erreur est survenue lors de l'authentification");
         }
     }
 
@@ -961,32 +961,32 @@ public class AuthenticationService : IAuthenticationService
         {
             if (!ShouldUseEntraId)
             {
-                return AuthResult.Failure("Entra ID linking is disabled");
+                return AuthResult.Failure("La liaison Entra ID est désactivée");
             }
 
             if (!Guid.TryParse(userId, out var userGuid))
             {
-                return AuthResult.Failure("Invalid user ID");
+                return AuthResult.Failure("Identifiant utilisateur invalide");
             }
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return AuthResult.Failure("User not found");
+                return AuthResult.Failure("Utilisateur introuvable");
             }
 
             // Extract user info from Entra ID token
             var entraUserInfo = GetUserFromEntraIdToken(entraIdToken);
             if (entraUserInfo == null)
             {
-                return AuthResult.Failure("Invalid Entra ID token");
+                return AuthResult.Failure("Jeton Entra ID invalide");
             }
 
             // Check if email matches
             if (!string.Equals(user.Email, entraUserInfo.Email, StringComparison.OrdinalIgnoreCase))
             {
                 return AuthResult.Failure(
-                    "Email address mismatch. Cannot link accounts with different email addresses.");
+                    "Les adresses email ne correspondent pas. Impossible de lier des comptes avec des adresses email différentes.");
             }
 
             // Check if this Entra ID is already linked to another user
@@ -995,7 +995,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (existingUserWithEntraId != null)
             {
-                return AuthResult.Failure("This Entra ID account is already linked to another user");
+                return AuthResult.Failure("Ce compte Entra ID est déjà lié à un autre utilisateur");
             }
 
             // Link accounts
@@ -1006,16 +1006,16 @@ public class AuthenticationService : IAuthenticationService
             {
                 _logger.LogInformation("Successfully linked Entra ID account {EntraId} to user {UserId}",
                     entraUserInfo.ExternalId, userId);
-                return AuthResult.Success("Account successfully linked to Entra ID");
+                return AuthResult.Success("Compte lié avec succès à Entra ID");
             }
 
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return AuthResult.Failure($"Failed to link account: {errors}");
+            return AuthResult.Failure($"Échec de la liaison du compte : {errors}");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while linking Entra ID account for user {UserId}", userId);
-            return AuthResult.Failure("An error occurred while linking accounts");
+            return AuthResult.Failure("Une erreur est survenue lors de la liaison des comptes");
         }
     }
 
@@ -1120,16 +1120,16 @@ public class AuthenticationService : IAuthenticationService
             {
                 _logger.LogError("Token exchange failed: {StatusCode} - {Content}", response.StatusCode,
                     responseContent);
-                return AuthResult.Failure("Failed to exchange authorization code for tokens");
+                return AuthResult.Failure("Échec de l'échange du code d'autorisation contre des jetons");
             }
 
             var tokenResponse = System.Text.Json.JsonSerializer.Deserialize<object>(responseContent);
-            return AuthResult.SuccessWithData(tokenResponse!, "Token exchange successful");
+            return AuthResult.SuccessWithData(tokenResponse!, "Échange de jeton réussi");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during token exchange");
-            return AuthResult.Failure("Token exchange failed");
+            return AuthResult.Failure("Échec de l'échange de jeton");
         }
     }
 
@@ -1204,7 +1204,7 @@ public class AuthenticationService : IAuthenticationService
                 {
                     UseLocalAuth = true,
                     LocalEndpoint = "/api/auth/login",
-                    Message = "Use local authentication"
+                    Message = "Utiliser l'authentification locale"
                 };
                 return ServiceResult<AuthUrlResponseDto>.Success(response);
             }
@@ -1214,7 +1214,7 @@ public class AuthenticationService : IAuthenticationService
                 UseLocalAuth = false,
                 EntraIdUrl = loginUrl,
                 AuthType = "B2B",
-                Message = "Redirect to Entra ID for authentication"
+                Message = "Rediriger vers Entra ID pour l'authentification"
             };
 
             return ServiceResult<AuthUrlResponseDto>.Success(entraResponse);
@@ -1222,7 +1222,7 @@ public class AuthenticationService : IAuthenticationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating login URL for email {Email}", email);
-            return ServiceResult<AuthUrlResponseDto>.InternalError("Failed to generate login URL");
+            return ServiceResult<AuthUrlResponseDto>.InternalError("Échec de la génération de l'URL de connexion");
         }
     }
 
@@ -1238,7 +1238,7 @@ public class AuthenticationService : IAuthenticationService
                 {
                     UseLocalAuth = true,
                     LocalEndpoint = "/api/auth/register",
-                    Message = "Use local registration"
+                    Message = "Utiliser l'inscription locale"
                 };
                 return ServiceResult<AuthUrlResponseDto>.Success(response);
             }
@@ -1248,7 +1248,7 @@ public class AuthenticationService : IAuthenticationService
                 UseLocalAuth = false,
                 EntraIdUrl = signupUrl,
                 AuthType = "B2C",
-                Message = "Redirect to Entra ID for registration"
+                Message = "Rediriger vers Entra ID pour l'inscription"
             };
 
             return ServiceResult<AuthUrlResponseDto>.Success(entraResponse);
@@ -1256,7 +1256,7 @@ public class AuthenticationService : IAuthenticationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating signup URL");
-            return ServiceResult<AuthUrlResponseDto>.InternalError("Failed to generate signup URL");
+            return ServiceResult<AuthUrlResponseDto>.InternalError("Échec de la génération de l'URL d'inscription");
         }
     }
 
@@ -1266,7 +1266,7 @@ public class AuthenticationService : IAuthenticationService
         {
             if (string.IsNullOrEmpty(email))
             {
-                return ServiceResult<UserTypeResponseDto>.ValidationError(["Email address is required"]);
+                return ServiceResult<UserTypeResponseDto>.ValidationError(["L'adresse email est obligatoire"]);
             }
 
             // Check if user exists in database
@@ -1284,8 +1284,8 @@ public class AuthenticationService : IAuthenticationService
                     RecommendedAuth = authType,
                     AuthEndpoint = endpoint,
                     Message = userType == "organizational"
-                        ? "Use organizational account for authentication"
-                        : "Use candidate authentication"
+                        ? "Utiliser le compte organisationnel pour l'authentification"
+                        : "Utiliser l'authentification candidat"
                 };
 
                 return ServiceResult<UserTypeResponseDto>.Success(response);
@@ -1304,8 +1304,8 @@ public class AuthenticationService : IAuthenticationService
                 RecommendedAuth = isOrganizationalDomain ? "B2B" : "B2C",
                 AuthEndpoint = isOrganizationalDomain ? "/api/auth/login-url" : "/api/auth/signup-url",
                 Message = isOrganizationalDomain
-                    ? "Use organizational account for authentication"
-                    : "Use candidate registration or authentication"
+                    ? "Utiliser le compte organisationnel pour l'authentification"
+                    : "Utiliser l'inscription ou l'authentification candidat"
             };
 
             return ServiceResult<UserTypeResponseDto>.Success(newUserResponse);
@@ -1313,7 +1313,7 @@ public class AuthenticationService : IAuthenticationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error determining user type for email {Email}", email);
-            return ServiceResult<UserTypeResponseDto>.InternalError("Failed to determine user type");
+            return ServiceResult<UserTypeResponseDto>.InternalError("Échec de la détermination du type d'utilisateur");
         }
     }
 

@@ -8,10 +8,10 @@ public class RefreshTokenDtoValidator : AbstractValidator<RefreshTokenDto>
     public RefreshTokenDtoValidator()
     {
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required")
-            .EmailAddress().WithMessage("Invalid email format");
+            .NotEmpty().WithMessage("L'email est obligatoire")
+            .EmailAddress().WithMessage("Format d'email invalide");
 
         RuleFor(x => x.RefreshToken)
-            .NotEmpty().WithMessage("Refresh token is required");
+            .NotEmpty().WithMessage("Le jeton de rafraîchissement est obligatoire");
     }
 }

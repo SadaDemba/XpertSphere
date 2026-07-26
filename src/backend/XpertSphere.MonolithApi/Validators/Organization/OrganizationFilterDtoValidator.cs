@@ -8,27 +8,27 @@ public class OrganizationFilterDtoValidator : AbstractValidator<OrganizationFilt
     public OrganizationFilterDtoValidator()
     {
         RuleFor(x => x.PageNumber)
-            .GreaterThanOrEqualTo("1").WithMessage("Page number must be 1 or greater.")
+            .GreaterThanOrEqualTo("1").WithMessage("Le numéro de page doit être supérieur ou égal à 1.")
             .When(x => !string.IsNullOrEmpty(x.PageNumber));
 
         RuleFor(x => x.PageSize)
-            .Must(BeValidPageSize).WithMessage("Page size must be between 1 and 100.")
+            .Must(BeValidPageSize).WithMessage("La taille de page doit être comprise entre 1 et 100.")
             .When(x => !string.IsNullOrEmpty(x.PageSize));
 
         RuleFor(x => x.SearchTerms)
-            .MaximumLength(100).WithMessage("Search terms cannot exceed 100 characters.")
+            .MaximumLength(100).WithMessage("Les termes de recherche ne peuvent pas dépasser 100 caractères.")
             .When(x => !string.IsNullOrEmpty(x.SearchTerms));
 
         RuleFor(x => x.SortBy)
             .Must(BeValidSortField)
-            .WithMessage("Invalid sort field. Valid fields are: name, code, industry, contactemail, createdat.")
+            .WithMessage("Champ de tri invalide. Champs valides : name, code, industry, contactemail, createdat.")
             .When(x => !string.IsNullOrEmpty(x.SortBy));
 
         RuleFor(x => x.SortDirection)
-            .IsInEnum().WithMessage("Sort direction must be Ascending or Descending.");
+            .IsInEnum().WithMessage("La direction de tri doit être Ascending ou Descending.");
 
         RuleFor(x => x.OrganizationSize)
-            .IsInEnum().WithMessage("Organization size must be a valid value.")
+            .IsInEnum().WithMessage("La taille de l'organisation doit être une valeur valide.")
             .When(x => x.OrganizationSize != 0);
     }
 

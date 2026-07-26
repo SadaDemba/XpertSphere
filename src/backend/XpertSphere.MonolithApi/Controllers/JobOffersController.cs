@@ -54,7 +54,7 @@ public class JobOffersController(IJobOfferService jobOfferService) : ControllerB
 
         if (!userId.HasValue || !organizationId.HasValue)
         {
-            return BadRequest("User ID or Organization ID not found in claims");
+            return BadRequest("Identifiant utilisateur ou d'organisation introuvable dans les claims");
         }
 
         var result = await jobOfferService.CreateJobOfferAsync(createJobOfferDto, userId.Value, organizationId.Value);
@@ -71,7 +71,7 @@ public class JobOffersController(IJobOfferService jobOfferService) : ControllerB
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await jobOfferService.UpdateJobOfferAsync(id, updateJobOfferDto, userId.Value);
@@ -88,7 +88,7 @@ public class JobOffersController(IJobOfferService jobOfferService) : ControllerB
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await jobOfferService.DeleteJobOfferAsync(id, userId.Value);
@@ -105,7 +105,7 @@ public class JobOffersController(IJobOfferService jobOfferService) : ControllerB
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await jobOfferService.PublishJobOfferAsync(id, userId.Value);
@@ -122,7 +122,7 @@ public class JobOffersController(IJobOfferService jobOfferService) : ControllerB
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await jobOfferService.CloseJobOfferAsync(id, userId.Value);
@@ -149,7 +149,7 @@ public class JobOffersController(IJobOfferService jobOfferService) : ControllerB
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await jobOfferService.GetJobOffersByUserAsync(userId.Value);
@@ -166,7 +166,7 @@ public class JobOffersController(IJobOfferService jobOfferService) : ControllerB
         var userId = this.GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return BadRequest("User ID not found in claims");
+            return BadRequest("Identifiant utilisateur introuvable dans les claims");
         }
 
         var result = await jobOfferService.CanUserManageJobOfferAsync(id, userId.Value);

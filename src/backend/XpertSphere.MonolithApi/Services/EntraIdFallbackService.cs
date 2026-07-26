@@ -166,7 +166,7 @@ public class EntraIdFallbackService : IEntraIdFallbackService
             {
                 UseLocalAuth = true,
                 LocalEndpoint = "/api/auth/login",
-                Message = "Entra ID unavailable, use local authentication"
+                Message = "Entra ID indisponible, utiliser l'authentification locale"
             });
         }
 
@@ -185,7 +185,7 @@ public class EntraIdFallbackService : IEntraIdFallbackService
             {
                 UseLocalAuth = true,
                 LocalEndpoint = "/api/auth/login",
-                Message = "Authentication service temporarily unavailable, use local authentication"
+                Message = "Service d'authentification temporairement indisponible, utiliser l'authentification locale"
             });
         }
         catch (Exception ex)
@@ -197,7 +197,7 @@ public class EntraIdFallbackService : IEntraIdFallbackService
             {
                 UseLocalAuth = true,
                 LocalEndpoint = "/api/auth/login",
-                Message = "Authentication service error, use local authentication"
+                Message = "Erreur du service d'authentification, utiliser l'authentification locale"
             });
         }
     }
@@ -227,11 +227,11 @@ public class EntraIdFallbackService : IEntraIdFallbackService
 
     public AuthResult CreateFallbackResponse(string operation, string reason, string? redirectEndpoint = null)
     {
-        var message = $"External authentication unavailable for {operation}. {reason}";
+        var message = $"Authentification externe indisponible pour {operation}. {reason}";
 
         if (!string.IsNullOrEmpty(redirectEndpoint))
         {
-            message += $" Please use {redirectEndpoint}";
+            message += $" Veuillez utiliser {redirectEndpoint}";
         }
 
         return AuthResult.Success(message, redirectEndpoint);

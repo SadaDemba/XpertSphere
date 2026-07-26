@@ -51,7 +51,7 @@ public class UserRoleService : IUserRoleService
         {
             _logger.LogError(ex, "Error retrieving user roles for user {UserId}", userId);
             return ServiceResult<IEnumerable<UserRoleDto>>.InternalError(
-                "An error occurred while retrieving user roles");
+                "Une erreur est survenue lors de la récupération des rôles de l'utilisateur");
         }
     }
 
@@ -91,7 +91,7 @@ public class UserRoleService : IUserRoleService
         {
             _logger.LogError(ex, "Error retrieving users for role {RoleId}", roleId);
             return ServiceResult<IEnumerable<UserRoleDto>>.InternalError(
-                "An error occurred while retrieving role users");
+                "Une erreur est survenue lors de la récupération des utilisateurs du rôle");
         }
     }
 
@@ -110,19 +110,19 @@ public class UserRoleService : IUserRoleService
             var user = await _context.Users.FindAsync(assignRoleDto.UserId);
             if (user == null)
             {
-                return ServiceResult<UserRoleDto>.NotFound($"User with ID {assignRoleDto.UserId} not found");
+                return ServiceResult<UserRoleDto>.NotFound($"Utilisateur avec l'ID {assignRoleDto.UserId} introuvable");
             }
 
             // Check if the role exists
             var role = await _context.Roles.FindAsync(assignRoleDto.RoleId);
             if (role == null)
             {
-                return ServiceResult<UserRoleDto>.NotFound($"Role with ID {assignRoleDto.RoleId} not found");
+                return ServiceResult<UserRoleDto>.NotFound($"Rôle avec l'ID {assignRoleDto.RoleId} introuvable");
             }
 
             if (!role.IsActive)
             {
-                return ServiceResult<UserRoleDto>.Failure("Cannot assign inactive role");
+                return ServiceResult<UserRoleDto>.Failure("Impossible d'assigner un rôle inactif");
             }
 
             // Check if user already has this role (active)
@@ -133,7 +133,7 @@ public class UserRoleService : IUserRoleService
 
             if (existingUserRole != null)
             {
-                return ServiceResult<UserRoleDto>.Conflict("User already has this role assigned");
+                return ServiceResult<UserRoleDto>.Conflict("L'utilisateur possède déjà ce rôle");
             }
 
             var userRole = _mapper.Map<UserRole>(assignRoleDto);
@@ -154,13 +154,13 @@ public class UserRoleService : IUserRoleService
                 .FirstOrDefaultAsync(ur => ur.Id == userRole.Id);
 
             var userRoleDto = _mapper.Map<UserRoleDto>(createdUserRole);
-            return ServiceResult<UserRoleDto>.Success(userRoleDto, "Role assigned successfully");
+            return ServiceResult<UserRoleDto>.Success(userRoleDto, "Rôle assigné avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error assigning role {RoleId} to user {UserId}", assignRoleDto.RoleId,
                 assignRoleDto.UserId);
-            return ServiceResult<UserRoleDto>.InternalError("An error occurred while assigning role to user");
+            return ServiceResult<UserRoleDto>.InternalError("Une erreur est survenue lors de l'affectation du rôle à l'utilisateur");
         }
     }
 
@@ -175,19 +175,19 @@ public class UserRoleService : IUserRoleService
 
             if (userRole == null)
             {
-                return ServiceResult.NotFound($"User role assignment with ID {userRoleId} not found");
+                return ServiceResult.NotFound($"Affectation de rôle utilisateur avec l'ID {userRoleId} introuvable");
             }
 
             _context.UserRoles.Remove(userRole);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Removed role {RoleName} from user {UserId}", userRole.Role.Name, userRole.UserId);
-            return ServiceResult.Success("Role removed successfully");
+            return ServiceResult.Success("Rôle retiré avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing user role with ID {UserRoleId}", userRoleId);
-            return ServiceResult.InternalError("An error occurred while removing role from user");
+            return ServiceResult.InternalError("Une erreur est survenue lors du retrait du rôle de l'utilisateur");
         }
     }
 
@@ -198,12 +198,12 @@ public class UserRoleService : IUserRoleService
             var userRole = await _context.UserRoles.FindAsync(userRoleId);
             if (userRole == null)
             {
-                return ServiceResult.NotFound($"User role assignment with ID {userRoleId} not found");
+                return ServiceResult.NotFound($"Affectation de rôle utilisateur avec l'ID {userRoleId} introuvable");
             }
 
             if (userRole.IsActive == isActive)
             {
-                return ServiceResult.Success($"User role is already {(isActive ? "active" : "inactive")}");
+                return ServiceResult.Success($"Le rôle utilisateur est déjà {(isActive ? "actif" : "inactif")}");
             }
 
             userRole.IsActive = isActive;
@@ -211,12 +211,12 @@ public class UserRoleService : IUserRoleService
 
             _logger.LogInformation("{Action} user role with ID {UserRoleId}", isActive ? "Activated" : "Deactivated",
                 userRoleId);
-            return ServiceResult.Success($"User role {(isActive ? "activated" : "deactivated")} successfully");
+            return ServiceResult.Success($"Rôle utilisateur {(isActive ? "activé" : "désactivé")} avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating status for user role with ID {UserRoleId}", userRoleId);
-            return ServiceResult.InternalError("An error occurred while updating user role status");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la mise à jour du statut du rôle utilisateur");
         }
     }
 
@@ -227,7 +227,7 @@ public class UserRoleService : IUserRoleService
             var userRole = await _context.UserRoles.FindAsync(userRoleId);
             if (userRole == null)
             {
-                return ServiceResult.NotFound($"User role assignment with ID {userRoleId} not found");
+                return ServiceResult.NotFound($"Affectation de rôle utilisateur avec l'ID {userRoleId} introuvable");
             }
 
             userRole.ExpiresAt = newExpiryDate;
@@ -235,12 +235,12 @@ public class UserRoleService : IUserRoleService
 
             _logger.LogInformation("Extended user role with ID {UserRoleId} to {ExpiryDate}", userRoleId,
                 newExpiryDate);
-            return ServiceResult.Success("User role expiry updated successfully");
+            return ServiceResult.Success("Date d'expiration du rôle utilisateur mise à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error extending user role with ID {UserRoleId}", userRoleId);
-            return ServiceResult.InternalError("An error occurred while extending user role");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la prolongation du rôle utilisateur");
         }
     }
 
@@ -258,7 +258,7 @@ public class UserRoleService : IUserRoleService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if user {UserId} has role {RoleName}", userId, roleName);
-            return ServiceResult<bool>.InternalError("An error occurred while checking user role");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification du rôle utilisateur");
         }
     }
 
@@ -279,7 +279,7 @@ public class UserRoleService : IUserRoleService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if user {UserId} has active role {RoleName}", userId, roleName);
-            return ServiceResult<bool>.InternalError("An error occurred while checking active user role");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification du rôle utilisateur actif");
         }
     }
 
@@ -302,7 +302,7 @@ public class UserRoleService : IUserRoleService
         {
             _logger.LogError(ex, "Error retrieving role names for user {UserId}", userId);
             return ServiceResult<IEnumerable<string>>.InternalError(
-                "An error occurred while retrieving user role names");
+                "Une erreur est survenue lors de la récupération des noms de rôles de l'utilisateur");
         }
     }
 }

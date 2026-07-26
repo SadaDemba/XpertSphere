@@ -69,7 +69,7 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
         }
 
         return AuthResult.Failure(
-            "Authentication service is experiencing delays. Please try again or use local authentication.",
+            "Le service d'authentification rencontre des délais. Veuillez réessayer ou utiliser l'authentification locale.",
             ["API_TIMEOUT"]
         ).WithStatusCode(504);
     }
@@ -81,7 +81,7 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
             operation, retryAfter.TotalSeconds);
 
         return AuthResult.Failure(
-                $"Too many authentication requests. Please wait {Math.Ceiling(retryAfter.TotalSeconds)} seconds before trying again.",
+                $"Trop de tentatives d'authentification. Veuillez patienter {Math.Ceiling(retryAfter.TotalSeconds)} secondes avant de réessayer.",
                 ["RATE_LIMIT_EXCEEDED"]
             )
             .WithStatusCode(429)
@@ -94,8 +94,8 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
             "Entra ID service unavailable for operation {Operation}", operation);
 
         var fallbackMessage = _environment.IsDevelopment()
-            ? "Entra ID is unavailable in development. Use local authentication."
-            : "External authentication is temporarily unavailable. Please use local authentication or try again later.";
+            ? "Entra ID est indisponible en environnement de développement. Utilisez l'authentification locale."
+            : "L'authentification externe est temporairement indisponible. Veuillez utiliser l'authentification locale ou réessayer plus tard.";
 
         return AuthResult.Failure(fallbackMessage, ["SERVICE_UNAVAILABLE"])
             .WithStatusCode(503)
@@ -189,16 +189,16 @@ public class EntraIdErrorHandler : IEntraIdErrorHandler
     {
         return errorCode switch
         {
-            "ACCESS_DENIED" => "Authentication was cancelled or access was denied.",
-            "INVALID_REQUEST" => "Invalid authentication request. Please try again.",
-            "INVALID_CLIENT" => "Authentication configuration error. Please contact support.",
-            "INVALID_GRANT" => "Authentication session expired. Please try again.",
-            "UNAUTHORIZED_CLIENT" => "This application is not authorized for this authentication method.",
-            "UNSUPPORTED_GRANT_TYPE" => "Authentication method not supported.",
-            "INVALID_SCOPE" => "Insufficient permissions for this authentication.",
-            "SERVER_ERROR" => "Authentication service error. Please try again or use local authentication.",
-            "TEMPORARILY_UNAVAILABLE" => "Authentication service is temporarily unavailable. Please try again later.",
-            _ => "Authentication failed. Please try again or use local authentication."
+            "ACCESS_DENIED" => "L'authentification a été annulée ou l'accès a été refusé.",
+            "INVALID_REQUEST" => "Requête d'authentification invalide. Veuillez réessayer.",
+            "INVALID_CLIENT" => "Erreur de configuration de l'authentification. Veuillez contacter le support.",
+            "INVALID_GRANT" => "La session d'authentification a expiré. Veuillez réessayer.",
+            "UNAUTHORIZED_CLIENT" => "Cette application n'est pas autorisée pour cette méthode d'authentification.",
+            "UNSUPPORTED_GRANT_TYPE" => "Méthode d'authentification non prise en charge.",
+            "INVALID_SCOPE" => "Permissions insuffisantes pour cette authentification.",
+            "SERVER_ERROR" => "Erreur du service d'authentification. Veuillez réessayer ou utiliser l'authentification locale.",
+            "TEMPORARILY_UNAVAILABLE" => "Le service d'authentification est temporairement indisponible. Veuillez réessayer plus tard.",
+            _ => "Échec de l'authentification. Veuillez réessayer ou utiliser l'authentification locale."
         };
     }
 

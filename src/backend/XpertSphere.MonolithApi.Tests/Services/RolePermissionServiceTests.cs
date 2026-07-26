@@ -138,7 +138,7 @@ public class RolePermissionServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"Role with ID {assignPermissionDto.RoleId} not found");
+        result.Errors.Should().Contain($"Rôle avec l'ID {assignPermissionDto.RoleId} introuvable");
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public class RolePermissionServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"Permission with ID {assignPermissionDto.PermissionId} not found");
+        result.Errors.Should().Contain($"Permission avec l'ID {assignPermissionDto.PermissionId} introuvable");
     }
 
     [Fact]
@@ -230,7 +230,7 @@ public class RolePermissionServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("Role already has this permission assigned");
+        result.Errors.Should().Contain("Le rôle possède déjà cette permission");
     }
 
     [Fact]
@@ -246,7 +246,7 @@ public class RolePermissionServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"Role permission assignment with ID {rolePermissionId} not found");
+        result.Errors.Should().Contain($"Affectation permission-rôle avec l'ID {rolePermissionId} introuvable");
     }
 
     [Fact]

@@ -48,7 +48,7 @@ public class RolePermissionService : IRolePermissionService
         {
             _logger.LogError(ex, "Error retrieving permissions for role {RoleId}", roleId);
             return ServiceResult<IEnumerable<RolePermissionDto>>.InternalError(
-                "An error occurred while retrieving role permissions");
+                "Une erreur est survenue lors de la récupération des permissions du rôle");
         }
     }
 
@@ -70,7 +70,7 @@ public class RolePermissionService : IRolePermissionService
         {
             _logger.LogError(ex, "Error retrieving roles for permission {PermissionId}", permissionId);
             return ServiceResult<IEnumerable<RolePermissionDto>>.InternalError(
-                "An error occurred while retrieving permission roles");
+                "Une erreur est survenue lors de la récupération des rôles de la permission");
         }
     }
 
@@ -91,7 +91,7 @@ public class RolePermissionService : IRolePermissionService
             if (role == null)
             {
                 return ServiceResult<RolePermissionDto>.NotFound(
-                    $"Role with ID {assignPermissionDto.RoleId} not found");
+                    $"Rôle avec l'ID {assignPermissionDto.RoleId} introuvable");
             }
 
             // Check if permission exists
@@ -99,7 +99,7 @@ public class RolePermissionService : IRolePermissionService
             if (permission == null)
             {
                 return ServiceResult<RolePermissionDto>.NotFound(
-                    $"Permission with ID {assignPermissionDto.PermissionId} not found");
+                    $"Permission avec l'ID {assignPermissionDto.PermissionId} introuvable");
             }
 
             // Check if the role already has this permission
@@ -109,7 +109,7 @@ public class RolePermissionService : IRolePermissionService
 
             if (existingRolePermission != null)
             {
-                return ServiceResult<RolePermissionDto>.Conflict("Role already has this permission assigned");
+                return ServiceResult<RolePermissionDto>.Conflict("Le rôle possède déjà cette permission");
             }
 
             var rolePermission = _mapper.Map<RolePermission>(assignPermissionDto);
@@ -129,14 +129,14 @@ public class RolePermissionService : IRolePermissionService
 
             var rolePermissionDto = _mapper.Map<RolePermissionDto>(createdRolePermission);
             return ServiceResult<RolePermissionDto>.Success(rolePermissionDto,
-                "Permission assigned to role successfully");
+                "Permission assignée au rôle avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error assigning permission {PermissionId} to role {RoleId}",
                 assignPermissionDto.PermissionId, assignPermissionDto.RoleId);
             return ServiceResult<RolePermissionDto>.InternalError(
-                "An error occurred while assigning permission to role");
+                "Une erreur est survenue lors de l'affectation de la permission au rôle");
         }
     }
 
@@ -151,7 +151,7 @@ public class RolePermissionService : IRolePermissionService
 
             if (rolePermission == null)
             {
-                return ServiceResult.NotFound($"Role permission assignment with ID {rolePermissionId} not found");
+                return ServiceResult.NotFound($"Affectation permission-rôle avec l'ID {rolePermissionId} introuvable");
             }
 
             _context.RolePermissions.Remove(rolePermission);
@@ -159,12 +159,12 @@ public class RolePermissionService : IRolePermissionService
 
             _logger.LogInformation("Removed permission {PermissionName} from role {RoleName}",
                 rolePermission.Permission.Name, rolePermission.Role.Name);
-            return ServiceResult.Success("Permission removed from role successfully");
+            return ServiceResult.Success("Permission retirée du rôle avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing permission from role with ID {RolePermissionId}", rolePermissionId);
-            return ServiceResult.InternalError("An error occurred while removing permission from role");
+            return ServiceResult.InternalError("Une erreur est survenue lors du retrait de la permission du rôle");
         }
     }
 
@@ -183,7 +183,7 @@ public class RolePermissionService : IRolePermissionService
         {
             _logger.LogError(ex, "Error checking if role {RoleId} has permission {PermissionName}", roleId,
                 permissionName);
-            return ServiceResult<bool>.InternalError("An error occurred while checking role permission");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de la permission du rôle");
         }
     }
 
@@ -203,7 +203,7 @@ public class RolePermissionService : IRolePermissionService
         {
             _logger.LogError(ex, "Error retrieving permission names for role {RoleId}", roleId);
             return ServiceResult<IEnumerable<string>>.InternalError(
-                "An error occurred while retrieving role permission names");
+                "Une erreur est survenue lors de la récupération des noms de permissions du rôle");
         }
     }
 }

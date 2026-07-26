@@ -149,7 +149,7 @@ public class UserRoleServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"User with ID {assignRoleDto.UserId} not found");
+        result.Errors.Should().Contain($"Utilisateur avec l'ID {assignRoleDto.UserId} introuvable");
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public class UserRoleServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"Role with ID {assignRoleDto.RoleId} not found");
+        result.Errors.Should().Contain($"Rôle avec l'ID {assignRoleDto.RoleId} introuvable");
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public class UserRoleServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"User role assignment with ID {userRoleId} not found");
+        result.Errors.Should().Contain($"Affectation de rôle utilisateur avec l'ID {userRoleId} introuvable");
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public class UserRoleServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"User role assignment with ID {userRoleId} not found");
+        result.Errors.Should().Contain($"Affectation de rôle utilisateur avec l'ID {userRoleId} introuvable");
     }
 
     [Fact]
@@ -235,7 +235,7 @@ public class UserRoleServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain($"User role assignment with ID {userRoleId} not found");
+        result.Errors.Should().Contain($"Affectation de rôle utilisateur avec l'ID {userRoleId} introuvable");
     }
 
     [Fact]

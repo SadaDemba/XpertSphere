@@ -48,7 +48,7 @@ public class ExperienceService : IExperienceService
         {
             _logger.LogError(ex, "Error retrieving experiences for user {UserId}", userId);
             return ServiceResult<IEnumerable<ExperienceDto>>.InternalError(
-                "An error occurred while retrieving user experiences");
+                "Une erreur est survenue lors de la récupération des expériences de l'utilisateur");
         }
     }
 
@@ -62,7 +62,7 @@ public class ExperienceService : IExperienceService
 
             if (experience == null)
             {
-                return ServiceResult<ExperienceDto>.NotFound($"Experience with ID {id} not found");
+                return ServiceResult<ExperienceDto>.NotFound($"Expérience avec l'ID {id} introuvable");
             }
 
             var experienceDto = _mapper.Map<ExperienceDto>(experience);
@@ -71,7 +71,7 @@ public class ExperienceService : IExperienceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving experience with ID {ExperienceId}", id);
-            return ServiceResult<ExperienceDto>.InternalError("An error occurred while retrieving the experience");
+            return ServiceResult<ExperienceDto>.InternalError("Une erreur est survenue lors de la récupération de l'expérience");
         }
     }
 
@@ -96,12 +96,12 @@ public class ExperienceService : IExperienceService
             await _context.Experiences.AddAsync(experience);
 
             var experienceDto = _mapper.Map<ExperienceDto>(createDto);
-            return ServiceResult<ExperienceDto>.Success(experienceDto, "Experience created successfully");
+            return ServiceResult<ExperienceDto>.Success(experienceDto, "Expérience créée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating experience for user {UserId}", createDto.UserId);
-            return ServiceResult<ExperienceDto>.InternalError("An error occurred while creating the experience");
+            return ServiceResult<ExperienceDto>.InternalError("Une erreur est survenue lors de la création de l'expérience");
         }
     }
 
@@ -126,7 +126,7 @@ public class ExperienceService : IExperienceService
 
             if (experience == null)
             {
-                return ServiceResult<ExperienceDto>.NotFound($"Experience with ID {id} not found");
+                return ServiceResult<ExperienceDto>.NotFound($"Expérience avec l'ID {id} introuvable");
             }
 
             // If updating to IsCurrent = true, update other experiences
@@ -150,12 +150,12 @@ public class ExperienceService : IExperienceService
             _logger.LogInformation("Updated experience with ID {ExperienceId}", id);
 
             var experienceDto = _mapper.Map<ExperienceDto>(experience);
-            return ServiceResult<ExperienceDto>.Success(experienceDto, "Experience updated successfully");
+            return ServiceResult<ExperienceDto>.Success(experienceDto, "Expérience mise à jour avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating experience with ID {ExperienceId}", id);
-            return ServiceResult<ExperienceDto>.InternalError("An error occurred while updating the experience");
+            return ServiceResult<ExperienceDto>.InternalError("Une erreur est survenue lors de la mise à jour de l'expérience");
         }
     }
 
@@ -166,19 +166,19 @@ public class ExperienceService : IExperienceService
             var experience = await _context.Experiences.FindAsync(id);
             if (experience == null)
             {
-                return ServiceResult.NotFound($"Experience with ID {id} not found");
+                return ServiceResult.NotFound($"Expérience avec l'ID {id} introuvable");
             }
 
             _context.Experiences.Remove(experience);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Deleted experience with ID {ExperienceId}", id);
-            return ServiceResult.Success("Experience deleted successfully");
+            return ServiceResult.Success("Expérience supprimée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting experience with ID {ExperienceId}", id);
-            return ServiceResult.InternalError("An error occurred while deleting the experience");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression de l'expérience");
         }
     }
 
@@ -192,19 +192,19 @@ public class ExperienceService : IExperienceService
 
             if (!experiences.Any())
             {
-                return ServiceResult.Success("No experiences to delete");
+                return ServiceResult.Success("Aucune expérience à supprimer");
             }
 
             _context.Experiences.RemoveRange(experiences);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Deleted {Count} experiences for user {UserId}", experiences.Count, userId);
-            return ServiceResult.Success($"Deleted {experiences.Count} experiences successfully");
+            return ServiceResult.Success($"{experiences.Count} expérience(s) supprimée(s) avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting experiences for user {UserId}", userId);
-            return ServiceResult.InternalError("An error occurred while deleting user experiences");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la suppression des expériences de l'utilisateur");
         }
     }
 
@@ -217,7 +217,7 @@ public class ExperienceService : IExperienceService
             var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
             if (!userExists)
             {
-                return ServiceResult<IEnumerable<ExperienceDto>>.NotFound($"User with ID {userId} not found");
+                return ServiceResult<IEnumerable<ExperienceDto>>.NotFound($"Utilisateur avec l'ID {userId} introuvable");
             }
 
             // Delete all existing experiences for the user
@@ -269,13 +269,13 @@ public class ExperienceService : IExperienceService
 
             var experienceDtos = _mapper.Map<IEnumerable<ExperienceDto>>(savedExperiences);
             return ServiceResult<IEnumerable<ExperienceDto>>.Success(experienceDtos,
-                $"Successfully replaced user experiences with {experiences.Count} new experiences");
+                $"Expériences de l'utilisateur remplacées avec succès par {experiences.Count} nouvelle(s) expérience(s)");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error replacing experiences for user {UserId}", userId);
             return ServiceResult<IEnumerable<ExperienceDto>>.InternalError(
-                "An error occurred while replacing user experiences");
+                "Une erreur est survenue lors du remplacement des expériences de l'utilisateur");
         }
     }
 
@@ -289,20 +289,20 @@ public class ExperienceService : IExperienceService
 
             if (experience == null)
             {
-                return ServiceResult<ExperienceDto>.NotFound($"Experience with ID {experienceId} not found");
+                return ServiceResult<ExperienceDto>.NotFound($"Expérience avec l'ID {experienceId} introuvable");
             }
 
             var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
             if (!userExists)
             {
-                return ServiceResult<ExperienceDto>.NotFound($"User with ID {userId} not found");
+                return ServiceResult<ExperienceDto>.NotFound($"Utilisateur avec l'ID {userId} introuvable");
             }
 
             if (experience.UserId == userId)
             {
                 return ServiceResult<ExperienceDto>.Success(
                     _mapper.Map<ExperienceDto>(experience),
-                    "Experience is already assigned to this user");
+                    "L'expérience est déjà affectée à cet utilisateur");
             }
 
             experience.UserId = userId;
@@ -313,12 +313,12 @@ public class ExperienceService : IExperienceService
             _logger.LogInformation("Assigned experience {ExperienceId} to user {UserId}", experienceId, userId);
 
             var experienceDto = _mapper.Map<ExperienceDto>(experience);
-            return ServiceResult<ExperienceDto>.Success(experienceDto, "Experience assigned successfully");
+            return ServiceResult<ExperienceDto>.Success(experienceDto, "Expérience affectée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error assigning experience {ExperienceId} to user {UserId}", experienceId, userId);
-            return ServiceResult<ExperienceDto>.InternalError("An error occurred while assigning the experience");
+            return ServiceResult<ExperienceDto>.InternalError("Une erreur est survenue lors de l'affectation de l'expérience");
         }
     }
 
@@ -329,7 +329,7 @@ public class ExperienceService : IExperienceService
             var experience = await _context.Experiences.FindAsync(experienceId);
             if (experience == null)
             {
-                return ServiceResult.NotFound($"Experience with ID {experienceId} not found");
+                return ServiceResult.NotFound($"Expérience avec l'ID {experienceId} introuvable");
             }
 
             // Instead of unassigning, we delete the experience
@@ -338,12 +338,12 @@ public class ExperienceService : IExperienceService
 
             _logger.LogInformation("Deleted experience {ExperienceId} (was assigned to user {UserId})",
                 experienceId, experience.UserId);
-            return ServiceResult.Success("Experience removed successfully");
+            return ServiceResult.Success("Expérience supprimée avec succès");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unassigning experience {ExperienceId}", experienceId);
-            return ServiceResult.InternalError("An error occurred while unassigning the experience");
+            return ServiceResult.InternalError("Une erreur est survenue lors de la désaffectation de l'expérience");
         }
     }
 
@@ -359,7 +359,7 @@ public class ExperienceService : IExperienceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if user {UserId} has experience {ExperienceId}", userId, experienceId);
-            return ServiceResult<bool>.InternalError("An error occurred while checking user experience");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de l'expérience de l'utilisateur");
         }
     }
 
@@ -373,7 +373,7 @@ public class ExperienceService : IExperienceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if experience {ExperienceId} can be deleted", id);
-            return ServiceResult<bool>.InternalError("An error occurred while checking if experience can be deleted");
+            return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de la suppressibilité de l'expérience");
         }
     }
 }

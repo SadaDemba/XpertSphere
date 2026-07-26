@@ -13,12 +13,12 @@ public class AssignUserDtoValidator : AbstractValidator<AssignUserDto>
     private void ConfigureBasicValidation()
     {
         RuleFor(x => x.ApplicationId)
-            .NotEmpty().WithMessage("Application ID is required");
+            .NotEmpty().WithMessage("L'identifiant de la candidature est obligatoire");
 
         RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage("User ID is required");
+            .NotEmpty().WithMessage("L'identifiant de l'utilisateur est obligatoire");
 
         RuleFor(x => x.AssignmentType)
-            .IsInEnum().WithMessage("Invalid assignment type");
+            .IsInEnum().WithMessage("Type d'affectation invalide");
     }
 }
