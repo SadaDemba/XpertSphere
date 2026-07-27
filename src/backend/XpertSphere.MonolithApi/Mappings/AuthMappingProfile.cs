@@ -16,6 +16,7 @@ public class AuthMappingProfile : Profile
             .ForMember(dest => dest.TokenExpiry, opt => opt.MapFrom(src => src.RefreshTokenExpiry))
             .ForMember(dest => dest.EmailConfirmationToken, opt => opt.Ignore())
             .ForMember(dest => dest.RedirectUrl, opt => opt.Ignore())
+            .ForMember(dest => dest.RequiresEmailConfirmation, opt => opt.MapFrom(src => !src.EmailConfirmed))
             .ForMember(dest => dest.Errors, opt => opt.MapFrom(src => new List<string>()))
             .ForMember(dest => dest.RequiresEntraId, opt => opt.MapFrom(src => false))
             .ForMember(dest => dest.EntraIdAuthUrl, opt => opt.Ignore())

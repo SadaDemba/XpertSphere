@@ -34,12 +34,14 @@ public class AuthenticationServiceTests : IDisposable
     private readonly Mock<IValidator<ConfirmEmailDto>> _mockConfirmEmailValidator;
     private readonly Mock<IValidator<ForgotPasswordDto>> _mockForgotPasswordValidator;
     private readonly Mock<IValidator<AdminResetPasswordDto>> _mockAdminResetPasswordValidator;
+    private readonly Mock<IValidator<ResendConfirmationDto>> _mockResendConfirmationValidator;
     private readonly Mock<IWebHostEnvironment> _mockEnvironment;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<IUserService> _mockUserService;
     private readonly Mock<IExperienceService> _mockExperienceService;
     private readonly Mock<ITrainingService> _mockTrainingService;
     private readonly Mock<IResumeService> _mockResumeService;
+    private readonly Mock<IEmailNotificationService> _mockEmailNotificationService;
     private readonly XpertSphereDbContext _context;
 
     public AuthenticationServiceTests()
@@ -55,12 +57,14 @@ public class AuthenticationServiceTests : IDisposable
         _mockConfirmEmailValidator = new Mock<IValidator<ConfirmEmailDto>>();
         _mockForgotPasswordValidator = new Mock<IValidator<ForgotPasswordDto>>();
         _mockAdminResetPasswordValidator = new Mock<IValidator<AdminResetPasswordDto>>();
+        _mockResendConfirmationValidator = new Mock<IValidator<ResendConfirmationDto>>();
         _mockEnvironment = new Mock<IWebHostEnvironment>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockExperienceService = new Mock<IExperienceService>();
         _mockTrainingService = new Mock<ITrainingService>();
         _mockUserService = new Mock<IUserService>();
         _mockResumeService = new Mock<IResumeService>();
+        _mockEmailNotificationService = new Mock<IEmailNotificationService>();
 
         // Setup environment to be Development (to avoid Entra ID logic)
         _mockEnvironment.Setup(x => x.EnvironmentName).Returns("Development");
@@ -232,6 +236,7 @@ public class AuthenticationServiceTests : IDisposable
         var user = new User
         {
             Id = Guid.NewGuid(),
+            UserName = loginDto.Email,
             Email = loginDto.Email,
             EmailConfirmed = false,
             FirstName = "Test",
@@ -241,18 +246,49 @@ public class AuthenticationServiceTests : IDisposable
         _mockLoginValidator.Setup(x => x.ValidateAsync(loginDto, default))
             .ReturnsAsync(new FluentValidation.Results.ValidationResult());
 
-        _mockUserManager.Setup(x => x.FindByEmailAsync(loginDto.Email))
-            .ReturnsAsync(user);
+        // LoginAsync loads the user via `_userManager.Users.Include(...).FirstOrDefaultAsync(...)`,
+        // not `FindByEmailAsync` - mocking FindByEmailAsync alone (as a previous version of this
+        // test did) leaves `Users` returning Moq's default LINQ-to-Objects queryable, whose
+        // provider is not IAsyncQueryProvider: FirstOrDefaultAsync throws, and that exception -
+        // not the intended IsNotAllowed branch - is what the generic catch below actually turns
+        // into the (coincidentally matching) generic error message. Backing `Users` with a real EF
+        // Core InMemory DbSet (same technique as AuthenticationServiceProfileCompletenessTests)
+        // makes the async LINQ chain actually work.
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+        _mockUserManager.Setup(x => x.Users).Returns(_context.Users);
+
+        // Exercise the real SignInResult.NotAllowed branch (activation stricte,
+        // RequireConfirmedEmail = true) rather than relying on Moq's default `null` return for an
+        // unconfigured setup - a previous version of this test omitted this Setup entirely, which
+        // made CheckPasswordSignInAsync return null, throw a NullReferenceException caught by the
+        // generic try/catch, and pass "by coincidence" on the generic error message instead of
+        // actually covering the unconfirmed-email path (see candidate-account-activation-email.md,
+        // Constat point 9).
+        _mockSignInManager
+            .Setup(x => x.CheckPasswordSignInAsync(It.IsAny<User>(), loginDto.Password, true))
+            .ReturnsAsync(SignInResult.NotAllowed);
 
         var mapper = AutoMapperHelper.CreateMapper();
+        // AutoMapperHelper.CreateMapper() has no User -> AuthResponseDto mapping configured
+        // (see AuthenticationServiceProfileCompletenessTests' doc comment) - add it explicitly for
+        // this test so LoginAsync's IsNotAllowed branch can map RequiresEmailConfirmation.
+        Mock.Get(mapper)
+            .Setup(m => m.Map<AuthResponseDto>(It.IsAny<User>()))
+            .Returns((User u) => new AuthResponseDto { RequiresEmailConfirmation = !u.EmailConfirmed });
+
         var authService = CreateAuthenticationService(mapper);
 
         // Act
         var result = await authService.LoginAsync(loginDto);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("Une erreur est survenue lors de la connexion");
+        result.IsSuccess.Should().BeFalse(because: result.Message + string.Join(",", result.Errors));
+        result.Errors.Should().Contain(
+            "Votre compte n'est pas encore activé. Veuillez consulter l'email de confirmation envoyé lors de votre inscription, ou demandez un nouvel envoi.");
+        result.Data.Should().NotBeNull();
+        result.Data!.RequiresEmailConfirmation.Should().BeTrue();
     }
 
     [Fact]
@@ -373,6 +409,96 @@ public class AuthenticationServiceTests : IDisposable
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Message.Should().Contain("réinitialisation");
+    }
+
+    private const string ResendConfirmationGenericMessage =
+        "Si un compte existe pour cet email et n'est pas encore confirmé, un nouvel email d'activation vient d'être envoyé.";
+
+    [Fact]
+    public async Task ResendConfirmationEmailAsync_WithUnconfirmedAccount_ShouldSendEmailAndReturnGenericMessage()
+    {
+        // Arrange
+        var dto = new ResendConfirmationDto { Email = $"unconfirmed-{Guid.NewGuid()}@example.com" };
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = dto.Email,
+            EmailConfirmed = false,
+            FirstName = "Test",
+            LastName = "User"
+        };
+
+        _mockResendConfirmationValidator.Setup(x => x.ValidateAsync(dto, default))
+            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+        _mockUserManager.Setup(x => x.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+        _mockUserManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(user)).ReturnsAsync("some-token");
+        _mockEmailNotificationService
+            .Setup(x => x.SendAccountActivationEmailAsync(dto.Email, It.IsAny<string>()))
+            .ReturnsAsync(true);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.ResendConfirmationEmailAsync(dto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Message.Should().Be(ResendConfirmationGenericMessage);
+        _mockEmailNotificationService.Verify(
+            x => x.SendAccountActivationEmailAsync(dto.Email, It.IsAny<string>()), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(false)] // compte inexistant
+    [InlineData(true)] // compte déjà confirmé
+    public async Task ResendConfirmationEmailAsync_EnumerationSafety_ShouldNeverSendEmail(bool accountExistsAndConfirmed)
+    {
+        // Arrange
+        var dto = new ResendConfirmationDto { Email = "irrelevant@example.com" };
+
+        _mockResendConfirmationValidator.Setup(x => x.ValidateAsync(dto, default))
+            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+        User? user = accountExistsAndConfirmed
+            ? new User { Id = Guid.NewGuid(), Email = dto.Email, EmailConfirmed = true, FirstName = "T", LastName = "U" }
+            : null;
+        _mockUserManager.Setup(x => x.FindByEmailAsync(dto.Email)).ReturnsAsync(user);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.ResendConfirmationEmailAsync(dto);
+
+        // Assert - same generic message regardless of the real underlying reason (enumeration-safety)
+        result.IsSuccess.Should().BeTrue();
+        result.Message.Should().Be(ResendConfirmationGenericMessage);
+        _mockEmailNotificationService.Verify(
+            x => x.SendAccountActivationEmailAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ResendConfirmationEmailAsync_WithInvalidEmail_ShouldReturnValidationError()
+    {
+        // Arrange
+        var dto = new ResendConfirmationDto { Email = "not-an-email" };
+        var validationErrors = new FluentValidation.Results.ValidationResult(
+        [
+            new FluentValidation.Results.ValidationFailure("Email", "Format d'email invalide")
+        ]);
+        _mockResendConfirmationValidator.Setup(x => x.ValidateAsync(dto, default))
+            .ReturnsAsync(validationErrors);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var authService = CreateAuthenticationService(mapper);
+
+        // Act
+        var result = await authService.ResendConfirmationEmailAsync(dto);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain("Format d'email invalide");
     }
 
     [Fact]
@@ -730,6 +856,10 @@ public class AuthenticationServiceTests : IDisposable
 
         var jwtOptions = MockHelper.CreateMockOptions(jwtSettings);
         var entraIdOptions = MockHelper.CreateMockOptions(entraIdSettings);
+        var frontendOptions = MockHelper.CreateMockOptions(new FrontendSettings
+        {
+            CandidateAppBaseUrl = "http://localhost:3000"
+        });
 
         return new AuthenticationService(
             _mockUserManager.Object,
@@ -745,12 +875,15 @@ public class AuthenticationServiceTests : IDisposable
             _mockConfirmEmailValidator.Object,
             _mockForgotPasswordValidator.Object,
             _mockAdminResetPasswordValidator.Object,
+            _mockResendConfirmationValidator.Object,
             _mockEnvironment.Object,
             _mockHttpContextAccessor.Object,
             _mockUserService.Object,
             _mockResumeService.Object,
             _mockTrainingService.Object,
             _mockExperienceService.Object,
+            _mockEmailNotificationService.Object,
+            frontendOptions,
             _context
         );
     }

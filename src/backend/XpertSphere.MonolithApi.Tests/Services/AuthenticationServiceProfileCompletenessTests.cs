@@ -97,6 +97,11 @@ public class AuthenticationServiceProfileCompletenessTests : IDisposable
             ClientSecret = "test-client-secret"
         };
 
+        var frontendOptions = MockHelper.CreateMockOptions(new FrontendSettings
+        {
+            CandidateAppBaseUrl = "http://localhost:3000"
+        });
+
         return new AuthenticationService(
             _mockUserManager.Object,
             _mockSignInManager.Object,
@@ -111,12 +116,15 @@ public class AuthenticationServiceProfileCompletenessTests : IDisposable
             new Mock<IValidator<ConfirmEmailDto>>().Object,
             new Mock<IValidator<ForgotPasswordDto>>().Object,
             new Mock<IValidator<AdminResetPasswordDto>>().Object,
+            new Mock<IValidator<ResendConfirmationDto>>().Object,
             _mockEnvironment.Object,
             new Mock<IHttpContextAccessor>().Object,
             new Mock<IUserService>().Object,
             new Mock<IResumeService>().Object,
             trainingService ?? new Mock<ITrainingService>().Object,
             experienceService ?? new Mock<IExperienceService>().Object,
+            new Mock<IEmailNotificationService>().Object,
+            frontendOptions,
             context ?? _context);
     }
 

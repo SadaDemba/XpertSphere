@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using XpertSphere.MonolithApi.DTOs.Auth;
 using XpertSphere.MonolithApi.DTOs.User;
 using XpertSphere.MonolithApi.Extensions;
@@ -85,6 +86,19 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponseDto>> ConfirmEmail([FromBody] ConfirmEmailDto confirmEmailDto)
     {
         var result = await _authService.ConfirmEmailAsync(confirmEmailDto);
+        return this.ToActionResult(result);
+    }
+
+    /// <summary>
+    /// Resend the account activation email for an account that is not yet confirmed.
+    /// Always returns success (enumeration-safe) - see candidate-account-activation-email.md.
+    /// </summary>
+    [HttpPost("resend-confirmation")]
+    [AllowAnonymous]
+    [EnableRateLimiting("resend-confirmation")]
+    public async Task<ActionResult<AuthResponseDto>> ResendConfirmation([FromBody] ResendConfirmationDto dto)
+    {
+        var result = await _authService.ResendConfirmationEmailAsync(dto);
         return this.ToActionResult(result);
     }
 
