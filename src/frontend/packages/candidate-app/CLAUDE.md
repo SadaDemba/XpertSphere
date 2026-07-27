@@ -11,11 +11,12 @@ Stack technique : Vue 3 (Composition API) + Quasar Framework 2 + TypeScript + Pi
 ## Documentation
 
 - Structure détaillée, conventions de code et intégration avec le backend : voir `.claude/docs/architecture.md`
-- Spécifications fonctionnelles (une par fonctionnalité) : voir `.claude/specifications/`. Actuellement : `fix-devise-salaire-souhaite-eur-vers-xof.md` (devise du salaire souhaité, EUR → XOF) et `candidate-registration-training-validation-error.md` (gating de l'étape "Formations" du formulaire d'inscription et normalisation des réponses d'erreur backend dans `authStore`).
+- Spécifications fonctionnelles (une par fonctionnalité) : voir `.claude/specifications/`, dont l'index est tenu à jour dans `.claude/specifications/README.md`.
 - Le téléchargement sécurisé du CV (`ProfilePage.vue`) est piloté par une spécification backend qui impacte directement ce package : voir `src/backend/XpertSphere.MonolithApi/.claude/specifications/secure-cv-download.md`, section « Coordination frontend — candidate-app ».
 - Le blocage et le message d'erreur explicite sur la description d'expérience vide à l'inscription (`MultiStepRegisterForm.vue`, `RegisterPage.vue`) sont pilotés par une spécification backend qui impacte directement ce package : voir `src/backend/XpertSphere.MonolithApi/.claude/specifications/candidate-registration-experience-description-error.md`, section « Frontend — candidate-app ».
 - Le correctif du bug « expériences/formations absentes de `ProfilePage.vue` juste après connexion, sans reload » est entièrement backend (`LoginAsync`/`RefreshTokenAsync` ne chargeaient pas `Experiences`/`Trainings`/`Address`) : voir `src/backend/XpertSphere.MonolithApi/.claude/specifications/login-response-missing-experiences-trainings.md`, section « Coordination frontend — candidate-app ». Aucune modification de code attendue dans ce package.
 - Le sélecteur de devise du salaire souhaité (inscription, profil) et la devise réellement affichée sur `ProfilePage.vue`/`JobDetailsPage.vue` sont pilotés par une spécification backend qui impacte directement ce package : voir `src/backend/XpertSphere.MonolithApi/.claude/specifications/configurable-salary-currency.md`, section « Coordination frontend — candidate-app ».
+- L'alignement des règles de mot de passe de `MultiStepRegisterForm.vue` (ajout d'une règle « caractère spécial », longueur minimale portée à 8) sur la politique réelle du backend est piloté par une spécification backend qui impacte directement ce package : voir `src/backend/XpertSphere.MonolithApi/.claude/specifications/localize-identity-error-messages.md`, section « Coordination frontend — alignement des règles de mot de passe ».
 
 ## Commandes
 
