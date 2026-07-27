@@ -772,7 +772,6 @@ const saveExperiences = async () => {
       user.value.experiences = editableExperiences.value;
     }
     isEditingExperiences.value = false;
-    notification.showSuccessNotification('Expériences mises à jour avec succès');
   }
 };
 
