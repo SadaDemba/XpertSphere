@@ -10,6 +10,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
   // State
   const jobOffers = ref<JobOfferDto[]>([]);
   const currentJobOffer = ref<JobOfferDto | null>(null);
+  const organizationJobOffers = ref<JobOfferDto[]>([]);
   const paginationInfo = ref<Pagination>({
     currentPage: 1,
     pageSize: 10,
@@ -116,6 +117,23 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     }
   };
 
+  const fetchJobOffersByOrganization = async (organizationId: string): Promise<boolean> => {
+    // Chargement en arrière-plan (bloc "Autres offres de cette entreprise") :
+    // volontairement silencieux, sans notification de succès/erreur (cf. prune-non-actionable-notifications.md).
+    try {
+      const response = await jobOfferService.getJobOffersByOrganization(organizationId);
+      if (response?.isSuccess) {
+        organizationJobOffers.value = response.data ?? [];
+        return true;
+      }
+      organizationJobOffers.value = [];
+      return false;
+    } catch {
+      organizationJobOffers.value = [];
+      return false;
+    }
+  };
+
   const searchJobOffers = async (searchTerms: string): Promise<boolean> => {
     return fetchJobOffers({
       ...currentFilter.value,
@@ -141,6 +159,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
 
   const clearCurrentJobOffer = () => {
     currentJobOffer.value = null;
+    organizationJobOffers.value = [];
   };
 
   const resetFilters = () => {
@@ -155,6 +174,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     // State
     jobOffers: jobOffers,
     currentJobOffer: currentJobOffer,
+    organizationJobOffers: organizationJobOffers,
     paginationInfo: paginationInfo,
     isLoading: isLoading,
     error: error,
@@ -169,6 +189,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     clearError,
     fetchJobOffers,
     fetchJobOfferById,
+    fetchJobOffersByOrganization,
     searchJobOffers,
     filterJobOffers,
     loadPage,

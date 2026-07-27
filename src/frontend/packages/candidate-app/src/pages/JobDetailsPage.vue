@@ -49,7 +49,7 @@
 
       <!-- Content -->
       <div class="job-content q-pa-lg">
-        <div class="row q-gutter-lg">
+        <div class="row q-col-gutter-lg">
           <!-- Main Content -->
           <div class="col-12 col-md-8">
             <!-- Description -->
@@ -90,10 +90,44 @@
                 <!--eslint-enable-->
               </q-card-section>
             </q-card>
+
+            <!-- Other job offers from the same organization -->
+            <q-card v-if="otherOrganizationJobOffers.length > 0" class="q-mb-lg">
+              <q-card-section>
+                <h6 class="text-h6 q-mt-none q-mb-md">
+                  <q-icon name="business_center" class="q-mr-sm" />
+                  Autres offres de cette entreprise
+                </h6>
+
+                <q-list separator>
+                  <q-item
+                    v-for="otherJobOffer in otherOrganizationJobOffers"
+                    :key="otherJobOffer.id"
+                    clickable
+                    :to="`/jobs/${otherJobOffer.id}`"
+                  >
+                    <q-item-section>
+                      <q-item-label class="text-weight-medium">{{
+                        otherJobOffer.title
+                      }}</q-item-label>
+                      <q-item-label caption>
+                        <q-icon name="place" size="14px" class="q-mr-xs" />
+                        {{ otherJobOffer.location || 'Non spécifiée' }}
+                        ·
+                        {{ contractTypeLabels[otherJobOffer.contractType] }}
+                      </q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <q-icon name="chevron_right" color="grey-6" />
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-card-section>
+            </q-card>
           </div>
 
           <!-- Sidebar -->
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-4 sidebar-sticky">
             <!-- Application Card -->
             <q-card class="application-card q-mb-lg">
               <q-card-section>
@@ -172,7 +206,7 @@
 
                 <div v-if="currentJobOffer.expiresAt" class="info-item q-mb-md">
                   <div class="text-weight-medium">Date d'expiration</div>
-                  <div>{{ formatDate(currentJobOffer.expiresAt) }}</div>
+                  <div>{{ formatDateWithoutTime(currentJobOffer.expiresAt) }}</div>
                 </div>
 
                 <div v-if="statusConfig" class="info-item">
@@ -188,6 +222,16 @@
                 </div>
               </q-card-section>
             </q-card>
+
+            <!-- Share -->
+            <q-btn
+              outline
+              color="primary"
+              icon="share"
+              label="Partager cette offre"
+              class="full-width"
+              @click="shareJob"
+            />
           </div>
         </div>
       </div>
@@ -203,16 +247,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { date } from 'quasar';
 import { storeToRefs } from 'pinia';
 import { useJobOfferStore } from '../stores/jobOfferStore';
 import { useApplicationStore } from '../stores/applicationStore';
 import { useAuthStore } from '../stores/authStore';
+import { JobOfferStatus } from '../enums';
 import { jobOfferStatusConfig, workModeLabels, contractTypeLabels } from '../models/job';
 import ApplicationDialog from '../components/ApplicationDialog.vue';
 import { SanitizerService } from '../services/sanitizer';
+import { formatDate, formatDateWithoutTime } from '../helpers/DateHelper';
+import { useNotification } from '../composables/notification';
 
 // Router
 const route = useRoute();
@@ -223,18 +269,37 @@ const jobOfferStore = useJobOfferStore();
 const applicationStore = useApplicationStore();
 const authStore = useAuthStore();
 
-const { currentJobOffer, isLoading, error, hasError } = storeToRefs(jobOfferStore);
+const { currentJobOffer, organizationJobOffers, isLoading, error, hasError } =
+  storeToRefs(jobOfferStore);
 const { isAuthenticated } = storeToRefs(authStore);
+const notification = useNotification();
 
 // State
 const showApplicationDialog = ref(false);
 const applicationLoading = ref(false);
 const hasApplied = ref(false);
 
+// Nombre maximum d'"autres offres de cette entreprise" affichées dans la colonne principale.
+const MAX_OTHER_ORGANIZATION_JOB_OFFERS = 3;
+
 // Computed
 const statusConfig = computed(() =>
   currentJobOffer.value ? jobOfferStatusConfig[currentJobOffer.value.status] : null,
 );
+
+// Autres offres publiées/actives/non expirées de la même organisation, offre courante exclue.
+const otherOrganizationJobOffers = computed(() => {
+  if (!currentJobOffer.value) return [];
+  return organizationJobOffers.value
+    .filter(
+      (job) =>
+        job.id !== currentJobOffer.value?.id &&
+        job.status === JobOfferStatus.Published &&
+        job.isActive &&
+        !job.isExpired,
+    )
+    .slice(0, MAX_OTHER_ORGANIZATION_JOB_OFFERS);
+});
 
 const formattedDescription = computed(() => {
   if (!currentJobOffer.value?.description) return '';
@@ -254,11 +319,17 @@ const formattedBenefits = computed(() => {
 // Methods
 const loadJobOffer = async () => {
   const jobId = route.params.id as string;
-  await jobOfferStore.fetchJobOfferById(jobId);
+  hasApplied.value = false;
+  const loaded = await jobOfferStore.fetchJobOfferById(jobId);
 
   // Check if user has already applied
   if (isAuthenticated.value) {
     hasApplied.value = await applicationStore.checkIfApplied(jobId);
+  }
+
+  // Charge les autres offres de l'organisation (bloc "Autres offres de cette entreprise")
+  if (loaded && currentJobOffer.value?.organizationId) {
+    await jobOfferStore.fetchJobOffersByOrganization(currentJobOffer.value.organizationId);
   }
 };
 
@@ -293,29 +364,48 @@ const formatSalary = (amount: number): string => {
   return new Intl.NumberFormat('fr-FR').format(amount);
 };
 
-const formatDate = (dateString: string): string => {
-  return date.formatDate(new Date(dateString), 'DD MMMM YYYY', {
-    months: [
-      'janvier',
-      'février',
-      'mars',
-      'avril',
-      'mai',
-      'juin',
-      'juillet',
-      'août',
-      'septembre',
-      'octobre',
-      'novembre',
-      'décembre',
-    ],
-  });
+const shareJob = async () => {
+  const shareUrl = window.location.href;
+
+  if (navigator.share) {
+    const shareData: ShareData = { url: shareUrl };
+    if (currentJobOffer.value) {
+      shareData.title = currentJobOffer.value.title;
+      shareData.text = `${currentJobOffer.value.title} chez ${currentJobOffer.value.organizationName}`;
+    }
+
+    try {
+      await navigator.share(shareData);
+    } catch {
+      // Partage annulé par l'utilisateur ou échec silencieux : rien à notifier.
+    }
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    notification.showSuccessNotification("Lien de l'offre copié dans le presse-papiers");
+  } catch {
+    notification.showErrorNotification("Impossible de copier le lien de l'offre");
+  }
 };
 
 // Lifecycle
 onMounted(async () => {
   await loadJobOffer();
 });
+
+// Recharge l'offre lorsque l'utilisateur navigue depuis cette même page vers une autre offre
+// (ex. clic sur "Autres offres de cette entreprise") : le composant est réutilisé par Vue Router
+// tant que la route correspond au même composant, donc onMounted ne se redéclenche pas seul.
+watch(
+  () => route.params.id,
+  async (newId, oldId) => {
+    if (!newId || newId === oldId) return;
+    await loadJobOffer();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+);
 </script>
 
 <style lang="scss" scoped>
@@ -352,6 +442,18 @@ onMounted(async () => {
 .application-card {
   border: 2px solid var(--q-primary);
   border-radius: 12px;
+}
+
+// Sticky sidebar (CTA + Informations + partage), à partir du breakpoint desktop Quasar
+// ($breakpoint-md-min = 1024px, cf. col-md-* utilisés sur ces colonnes) uniquement : en dessous,
+// la colonne reste en flux normal (empilée), comme sur mobile/tablette.
+.sidebar-sticky {
+  @media (min-width: 1024px) {
+    position: sticky;
+    // Header fixe (AppHeader, 64px sur desktop) + marge de confort pour ne pas coller au header.
+    top: 80px;
+    align-self: flex-start;
+  }
 }
 
 .info-item {
