@@ -42,7 +42,6 @@ export const useExperienceStore = defineStore('experience', () => {
 
       if (response?.isSuccess) {
         experiences.value = response.data!;
-        notification.showSuccessNotification('Expériences chargée avec succès');
         return true;
       } else {
         setError(response?.message || 'Erreur lors du chargement des expériences');
@@ -72,7 +71,6 @@ export const useExperienceStore = defineStore('experience', () => {
       const experience = await experienceService.getExperienceById(id);
       if (experience?.isSuccess) {
         currentExperience.value = experience.data!;
-        notification.showSuccessNotification('Expérience chargée avec succès');
         return true;
       } else {
         setError(experience?.message || "Erreur lors du chargement de l'expérience");

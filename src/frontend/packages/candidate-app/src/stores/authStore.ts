@@ -29,6 +29,10 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const isInitialized = ref(false);
+  // Activation stricte : positionnés lorsqu'une tentative de connexion est refusée parce que
+  // l'email n'a pas encore été confirmé, pour piloter le bandeau/bouton de renvoi de LoginPage.vue.
+  const requiresEmailConfirmation = ref(false);
+  const unconfirmedEmail = ref<string | null>(null);
 
   // Getters
   const isAuthenticated = computed(() => !!user.value && !!token.value);
@@ -80,12 +84,17 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       setLoading(true);
       clearError();
+      requiresEmailConfirmation.value = false;
 
       const response = await authService.login(loginDto);
       if (response?.isSuccess) {
         setAuth(response);
         return true;
       } else {
+        if (response?.isSuccess === false && response?.data?.requiresEmailConfirmation === true) {
+          requiresEmailConfirmation.value = true;
+          unconfirmedEmail.value = loginDto.email;
+        }
         const messages = extractApiErrorMessages(response);
         setError(messages.length > 0 ? messages.join(' ') : 'Erreur lors de la connexion');
         return false;
@@ -96,6 +105,17 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Resend the account activation email. Always resolves to whether the HTTP call itself
+   * succeeded - the backend is enumeration-safe and always returns `isSuccess: true`, so this
+   * cannot distinguish an existing account from a non-existent one (by design, see
+   * candidate-account-activation-email.md).
+   */
+  const resendConfirmationEmail = async (email: string): Promise<boolean> => {
+    const response = await authService.resendConfirmation({ email });
+    return response?.isSuccess ?? false;
   };
 
   const registerCandidate = async (
@@ -200,6 +220,8 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading: isLoading,
     error: error,
     isInitialized: isInitialized,
+    requiresEmailConfirmation,
+    unconfirmedEmail,
 
     // Getters
     isAuthenticated,
@@ -215,6 +237,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     registerCandidate,
     analyzeResume,
+    resendConfirmationEmail,
     logout,
     initialize,
     loadCurrentUser,

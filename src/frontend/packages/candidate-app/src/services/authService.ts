@@ -8,6 +8,8 @@ import type {
   AuthResult,
   Training,
   Experience,
+  ConfirmEmailDto,
+  ResendConfirmationDto,
 } from '../models/auth';
 import axios from 'axios';
 import { ResponseResult } from 'src/models';
@@ -24,6 +26,22 @@ export class AuthService extends BaseClient {
 
   async login(loginDto: LoginDto): Promise<AuthResult | null> {
     return this.post<AuthResult>('/login', loginDto, 'Erreur lors de la connexion');
+  }
+
+  async confirmEmail(dto: ConfirmEmailDto): Promise<AuthResult | null> {
+    return this.post<AuthResult>(
+      '/confirm-email',
+      dto,
+      "Erreur lors de la confirmation de l'email",
+    );
+  }
+
+  async resendConfirmation(dto: ResendConfirmationDto): Promise<AuthResult | null> {
+    return this.post<AuthResult>(
+      '/resend-confirmation',
+      dto,
+      "Erreur lors du renvoi de l'email de confirmation",
+    );
   }
 
   async registerCandidate(

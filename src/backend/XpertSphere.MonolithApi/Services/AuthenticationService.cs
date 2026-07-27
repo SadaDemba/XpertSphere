@@ -38,13 +38,19 @@ public class AuthenticationService : IAuthenticationService
     private readonly IValidator<ConfirmEmailDto> _confirmEmailValidator;
     private readonly IValidator<ForgotPasswordDto> _forgotPasswordValidator;
     private readonly IValidator<AdminResetPasswordDto> _adminResetPasswordValidator;
+    private readonly IValidator<ResendConfirmationDto> _resendConfirmationValidator;
     private readonly IWebHostEnvironment _environment;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserService _userService;
     private readonly ITrainingService _trainingService;
     private readonly IExperienceService _experienceService;
     private readonly IResumeService _resumeService;
+    private readonly IEmailNotificationService _emailNotificationService;
+    private readonly FrontendSettings _frontendSettings;
     private readonly XpertSphereDbContext _context;
+
+    private const string ResendConfirmationGenericMessage =
+        "Si un compte existe pour cet email et n'est pas encore confirmé, un nouvel email d'activation vient d'être envoyé.";
 
     // Check if Entra ID should be used (from environment variable)
     private bool ShouldUseEntraId =>
@@ -65,12 +71,15 @@ public class AuthenticationService : IAuthenticationService
         IValidator<ConfirmEmailDto> confirmEmailValidator,
         IValidator<ForgotPasswordDto> forgotPasswordValidator,
         IValidator<AdminResetPasswordDto> adminResetPasswordValidator,
+        IValidator<ResendConfirmationDto> resendConfirmationValidator,
         IWebHostEnvironment environment,
         IHttpContextAccessor httpContextAccessor,
         IUserService userService,
         IResumeService resumeService,
         ITrainingService trainingService,
         IExperienceService experienceService,
+        IEmailNotificationService emailNotificationService,
+        IOptions<FrontendSettings> frontendSettings,
         XpertSphereDbContext context)
     {
         _userManager = userManager;
@@ -86,12 +95,15 @@ public class AuthenticationService : IAuthenticationService
         _confirmEmailValidator = confirmEmailValidator;
         _forgotPasswordValidator = forgotPasswordValidator;
         _adminResetPasswordValidator = adminResetPasswordValidator;
+        _resendConfirmationValidator = resendConfirmationValidator;
         _environment = environment;
         _httpContextAccessor = httpContextAccessor;
         _userService = userService;
         _resumeService = resumeService;
         _trainingService = trainingService;
         _experienceService = experienceService;
+        _emailNotificationService = emailNotificationService;
+        _frontendSettings = frontendSettings.Value;
         _context = context;
     }
 
@@ -324,9 +336,23 @@ public class AuthenticationService : IAuthenticationService
                 _logger.LogInformation("Candidate {Email} registered successfully with complete profile",
                     registerDto.Email);
 
-                // Generate email confirmation token
+                // Generate email confirmation token and send the activation email. This happens
+                // *after* the commit above on purpose: the send must never be able to roll back an
+                // account that was already created successfully (see
+                // candidate-account-activation-email.md, §11 - no rollback policy). A failed send
+                // is logged server-side only; the candidate can always recover via
+                // POST /api/auth/resend-confirmation.
                 var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                user.EmailConfirmationToken = emailConfirmationToken;
+                var activationLink = BuildActivationLink(user.Email!, emailConfirmationToken);
+
+                var emailSent = await _emailNotificationService.SendAccountActivationEmailAsync(user.Email!, activationLink);
+                if (!emailSent)
+                {
+                    _logger.LogWarning(
+                        "Account activation email could not be sent to {Email}; account was created successfully but the candidate did not receive an activation link and must use the resend-confirmation endpoint.",
+                        user.Email);
+                }
+
                 var authResponseDto = _mapper.Map<AuthResponseDto>(user);
 
                 return AuthResult.SuccessWithUser(authResponseDto,
@@ -452,7 +478,10 @@ public class AuthenticationService : IAuthenticationService
             if (result.IsNotAllowed)
             {
                 _logger.LogWarning("Login not allowed for user: {Email}", loginDto.Email);
-                return AuthResult.Failure("Connexion non autorisée. Veuillez confirmer votre adresse email");
+                var authResponseDto = _mapper.Map<AuthResponseDto>(user);
+                return AuthResult.Failure(
+                    "Votre compte n'est pas encore activé. Veuillez consulter l'email de confirmation envoyé lors de votre inscription, ou demandez un nouvel envoi.",
+                    data: authResponseDto);
             }
 
             // Increment failed login attempts
@@ -575,6 +604,63 @@ public class AuthenticationService : IAuthenticationService
             _logger.LogError(ex, "Error occurred during email confirmation for {Email}", confirmEmailDto.Email);
             return AuthResult.Failure("Une erreur est survenue lors de la confirmation de l'email");
         }
+    }
+
+    public async Task<AuthResult> ResendConfirmationEmailAsync(ResendConfirmationDto dto)
+    {
+        try
+        {
+            var validationResult = await _resendConfirmationValidator.ValidateAsync(dto);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                return AuthResult.ValidationError(errors);
+            }
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null || user.EmailConfirmed)
+            {
+                // Ne jamais révéler si le compte existe ou est déjà confirmé (enumeration-safety,
+                // même principe que ForgotPasswordAsync ci-dessous).
+                return AuthResult.Success(ResendConfirmationGenericMessage);
+            }
+
+            // Cooldown applicatif par email : protection additionnelle contre le bombardement
+            // d'une boîte mail via plusieurs IP différentes, en complément du rate limiting par IP
+            // au niveau du endpoint. Le résultat du cooldown n'est jamais révélé au client - même
+            // message générique dans tous les cas.
+            if (!ResendConfirmationCooldown.TryStart(user.Email!, TimeSpan.FromSeconds(60)))
+            {
+                return AuthResult.Success(ResendConfirmationGenericMessage);
+            }
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var activationLink = BuildActivationLink(user.Email!, token);
+            var sent = await _emailNotificationService.SendAccountActivationEmailAsync(user.Email!, activationLink);
+            if (!sent)
+            {
+                _logger.LogError("Failed to resend account activation email to {Email}", user.Email);
+            }
+
+            return AuthResult.Success(ResendConfirmationGenericMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while resending confirmation email for {Email}", dto.Email);
+            // Même message générique en cas d'exception inattendue - ne jamais révéler
+            // d'information par une différence de message (enumeration-safety).
+            return AuthResult.Success(ResendConfirmationGenericMessage);
+        }
+    }
+
+    /// <summary>
+    /// Construit le lien absolu d'activation de compte vers candidate-app, partagé entre
+    /// <see cref="RegisterCandidateAsync"/> et <see cref="ResendConfirmationEmailAsync"/>.
+    /// </summary>
+    private string BuildActivationLink(string email, string token)
+    {
+        return $"{_frontendSettings.CandidateAppBaseUrl.TrimEnd('/')}/confirm-email" +
+               $"?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
     }
 
     public async Task<AuthResult> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto)

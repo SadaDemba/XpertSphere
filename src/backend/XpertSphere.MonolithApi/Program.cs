@@ -1,5 +1,8 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using DotNetEnv;
+using Microsoft.AspNetCore.RateLimiting;
+using XpertSphere.MonolithApi.Config;
 using XpertSphere.MonolithApi.Extensions;
 using XpertSphere.MonolithApi.Extensions.DependencyInjections;
 using XpertSphere.MonolithApi.Interfaces;
@@ -49,6 +52,44 @@ if (!builder.Environment.IsDevelopment())
 builder.Services.AddDatabase(builder.Configuration, builder.Environment);
 builder.Services.AddSecurity(builder.Configuration, builder.Environment, useEntraId);
 builder.Services.AddBlobStorage(builder.Configuration);
+
+// Frontend URLs (used to build absolute links sent by email, e.g. account activation)
+builder.Services.Configure<FrontendSettings>(builder.Configuration.GetSection("Frontend"));
+
+// HTTP client towards XpertSphere.CommunicationService (POST /api/emails/send)
+builder.Services.AddHttpClient<IEmailNotificationService, EmailNotificationService>((sp, client) =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var baseUrl = configuration["CommunicationService:BaseUrl"];
+    if (!string.IsNullOrWhiteSpace(baseUrl))
+    {
+        client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+    }
+
+    var apiKey = configuration["CommunicationService:ApiKey"];
+    if (!string.IsNullOrWhiteSpace(apiKey))
+    {
+        client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+    }
+
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+
+// Rate limiting: POST /api/auth/resend-confirmation, protection anti-bombardement par IP
+// (complémentaire au cooldown par email, voir Utils/ResendConfirmationCooldown.cs)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("resend-confirmation", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(15),
+                QueueLimit = 0
+            }));
+});
 
 // AutoMapper Configuration
 builder.Services.AddAutoMapperConfiguration();
@@ -112,6 +153,8 @@ if (!app.Environment.IsDevelopment() && useEntraId)
 }
 
 app.UseAuthorization();
+
+app.UseRateLimiter();
 
 // Application Pipeline
 app.MapControllers();

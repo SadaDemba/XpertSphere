@@ -73,12 +73,17 @@ services:
       Admin__Password: ${ADMIN_PASSWORD}
       Jwt__Key: ${JWT_KEY}
       CORS__ALLOWED_ORIGINS: "http://localhost:${CANDIDATE_APP_PORT:-3000},http://localhost:${RECRUITER_APP_PORT:-3001}"
+      CommunicationService__BaseUrl: "http://communication-service:8080"
+      CommunicationService__ApiKey: ${COMMUNICATION_API_KEY}
+      Frontend__CandidateAppBaseUrl: "http://localhost:${CANDIDATE_APP_PORT:-3000}"
     ports:
       - "${API_PORT:-5050}:8080"
     depends_on:
       sqlserver:
         condition: service_healthy
       azurite:
+        condition: service_started
+      communication-service:
         condition: service_started
     networks:
       - xpertsphere-network

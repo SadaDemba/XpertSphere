@@ -67,14 +67,25 @@ public static class SecurityExtensions
 
     private static void ConfigureSignInOptions(IdentityOptions options, IWebHostEnvironment environment)
     {
-        //Dismiss until confirmation process is added
-        options.SignIn.RequireConfirmedEmail = false;
+        // Activation stricte : un candidat (ou utilisateur créé en mode JWT local) ne peut plus se
+        // connecter tant qu'il n'a pas confirmé son email (voir
+        // candidate-account-activation-email.md). RequireConfirmedAccount reste false : ce produit
+        // n'utilise pas la confirmation téléphone, RequireConfirmedEmail suffit.
+        options.SignIn.RequireConfirmedEmail = true;
         options.SignIn.RequireConfirmedAccount = false;
     }
 
     private static void ConfigureTokenOptions(IdentityOptions options)
     {
-        options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
+        // Correctif bug de configuration (voir candidate-account-activation-email.md, Constat
+        // point 2) : DefaultEmailProvider (EmailTokenProvider<TUser>, TOTP) génère un code à
+        // fenêtre de validité de l'ordre de quelques minutes, indépendante de
+        // DataProtectionTokenProviderOptions.TokenLifespan (1 jour, configuré plus bas dans ce
+        // fichier). DefaultProvider (DataProtectorTokenProvider) est déjà enregistré par
+        // .AddDefaultTokenProviders() et respecte bien cette durée de vie configurée.
+        options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultProvider;
+        // Inchangé, hors périmètre de ce ticket (ForgotPasswordAsync ne déclenche aujourd'hui
+        // aucun envoi d'email non plus).
         options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
     }
 
