@@ -71,6 +71,25 @@
               {{ error }}
             </q-banner>
 
+            <q-banner
+              v-if="requiresEmailConfirmation"
+              class="text-white bg-warning q-mb-md rounded-borders"
+            >
+              <template #avatar>
+                <q-icon name="mail" />
+              </template>
+              Votre compte n'est pas encore activé.
+              <template #action>
+                <q-btn
+                  flat
+                  color="white"
+                  no-caps
+                  label="Renvoyer l'email d'activation"
+                  @click="handleResend"
+                />
+              </template>
+            </q-banner>
+
             <q-btn
               type="submit"
               color="primary"
@@ -104,15 +123,20 @@ import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '../stores/authStore';
+import { useNotification } from '../composables/notification';
 import AppLogo from '../components/AppLogo.vue';
 import type { LoginDto } from '../models/auth';
 
 // Router
 const router = useRouter();
 
+// Composables
+const { showSuccessNotification } = useNotification();
+
 // Store
 const authStore = useAuthStore();
-const { isLoading, error, hasError } = storeToRefs(authStore);
+const { isLoading, error, hasError, requiresEmailConfirmation, unconfirmedEmail } =
+  storeToRefs(authStore);
 
 // State
 const showPassword = ref(false);
@@ -130,6 +154,7 @@ const validateEmail = (email: string) => {
 
 const handleLogin = async () => {
   authStore.clearError();
+  requiresEmailConfirmation.value = false;
 
   const success = await authStore.login(loginForm);
   if (success) {
@@ -137,6 +162,14 @@ const handleLogin = async () => {
     const redirect = (router.currentRoute.value.query.redirect as string) || '/';
     router.push(redirect);
   }
+};
+
+const handleResend = async () => {
+  if (!unconfirmedEmail.value) return;
+  await authStore.resendConfirmationEmail(unconfirmedEmail.value);
+  showSuccessNotification(
+    "Si un compte existe pour cet email et n'est pas encore confirmé, un nouvel email d'activation vient d'être envoyé.",
+  );
 };
 
 const goToRegister = () => {

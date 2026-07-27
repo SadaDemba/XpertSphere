@@ -40,6 +40,13 @@ public interface IAuthenticationService
     Task<AuthResult> ConfirmEmailAsync(ConfirmEmailDto confirmEmailDto);
 
     /// <summary>
+    /// Resend the account activation email for an existing, not-yet-confirmed account.
+    /// Always returns success (enumeration-safe): never reveals whether the account exists,
+    /// is already confirmed, or is within its resend cooldown window.
+    /// </summary>
+    Task<AuthResult> ResendConfirmationEmailAsync(ResendConfirmationDto dto);
+
+    /// <summary>
     /// Initiate password reset process by sending reset email
     /// </summary>
     Task<AuthResult> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto);

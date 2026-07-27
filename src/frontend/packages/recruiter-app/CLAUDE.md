@@ -29,7 +29,12 @@ hybride JWT / Microsoft Entra ID (MSAL).
 - Spécifications fonctionnelles (une par fonctionnalité) : voir
   `.claude/specifications/`. Actuellement : `remove-fixed-footer-backoffice.md`
   (suppression complète du footer fixe du back-office, déplacement du numéro
-  de version dans le menu compte utilisateur).
+  de version dans le menu compte utilisateur) et
+  `fix-experience-fields-candidate-detail-page.md` (l'interface `Experience`/le
+  template `CandidateDetailPage.vue` utilisaient des noms de champs sans
+  rapport avec le DTO backend réel ; documente aussi, pour mémoire seulement,
+  11 composants `.vue` orphelins au même type d'incohérence, jamais montés par
+  aucune page, volontairement non supprimés).
 - La consultation/téléchargement sécurisée du CV (fiche candidat, candidatures)
   est pilotée par une spécification backend qui impacte directement ce
   package : voir
@@ -46,6 +51,64 @@ hybride JWT / Microsoft Entra ID (MSAL).
   directement ce package : voir
   `src/backend/XpertSphere.MonolithApi/.claude/specifications/configurable-salary-currency.md`,
   section « Coordination frontend — recruiter-app ».
+- Les correctifs de `ProfilePage.vue` (mise à jour de profil et déconnexion qui
+  n'appelaient jamais l'API réelle tout en affichant un toast de succès) sont
+  pilotés par `.claude/specifications/fix-profile-page-update-and-logout.md`.
+- 4 bugs sur la gestion des offres d'emploi (liste `/jobs` et fiche détail
+  `/jobs/:id`) — actions "Dupliquer"/"Voir les candidatures" inertes depuis la
+  liste, suppression sans confirmation sur la fiche détail, champs de date
+  vides en édition, suffixe `€` en dur ignorant la devise de l'organisation —
+  sont pilotés par `.claude/specifications/fix-job-offer-list-detail-actions.md`.
+  Inclut également un filtrage réel de `ApplicationsPage.vue` par offre
+  d'origine (`?jobId=`), aujourd'hui ignoré malgré un plumbing déjà présent
+  côté modèle/backend.
+- La correction de la condition de course sur `userStore.users` dans le
+  dialogue d'assignation d'une candidature (`ApplicationAssign.vue`), qui
+  pouvait mélanger les listes « Manager » et « Évaluateur technique », est
+  pilotée par
+  `.claude/specifications/fix-application-assign-race-condition.md`.
+- Le câblage réel de `ForgotPasswordPage.vue` (mot de passe oublié) sur
+  l'endpoint backend `POST /api/auth/forgot-password`, aujourd'hui purement
+  factice (`setTimeout`/`console.log`), est piloté par
+  `.claude/specifications/wire-forgot-password-page.md` — inclut une
+  dépendance backend connue (aucun email n'est réellement envoyé aujourd'hui
+  par `ForgotPasswordAsync`, ticket backend séparé recommandé).
+- Le câblage d'une nouvelle action "Voir les utilisateurs" dans le menu de
+  `RolesPage.vue` (le dialog associé existait déjà mais n'était jamais
+  déclenché) et la correction d'un champ de colonne incorrect (`userName` →
+  `userFullName` dans `userRoleColumns`) sont pilotés par une spécification
+  backend qui impacte directement ce package : voir
+  `src/backend/XpertSphere.MonolithApi/.claude/specifications/role-detail-scope-fix-users-dialog-wiring.md`.
+- La suppression pure de la page publique « Créer un compte »
+  (`RegisterPage.vue`, entièrement factice — aucun appel API réel —, route
+  `/auth/register`, lien depuis `LoginPage.vue` et entrée correspondante
+  dans `authGuard.ts`) est pilotée par
+  `.claude/specifications/remove-public-recruiter-registration.md` —
+  documente aussi en bonus, sans le traiter, l'endpoint backend orphelin
+  `POST /auth/register` jamais appelé par aucun frontend du monorepo.
+- L'alignement des règles de mot de passe sur les 3 formulaires de ce
+  package (`UsersPage.vue` : création d'utilisateur et dialog de
+  réinitialisation ; `ProfilePage.vue` : changement de mot de passe) sur la
+  politique réelle du backend (majuscule, minuscule, chiffre, caractère
+  spécial, longueur minimale 8) est pilotée par une spécification backend qui
+  impacte directement ce package : voir
+  `src/backend/XpertSphere.MonolithApi/.claude/specifications/localize-identity-error-messages.md`,
+  section « Coordination frontend — alignement des règles de mot de passe ».
+  Signale aussi, sans le traiter, un bug de câblage préexistant sur
+  `ProfilePage.vue` (`changePassword` poste un payload `ChangePasswordDto`
+  vers l'endpoint `/reset-password`, qui attend en réalité un
+  `ResetPasswordDto`).
+- Le formulaire de création d'utilisateur (`UsersPage.vue`, `POST /api/Users`,
+  `CreateUserDto` côté backend) bénéficie lui aussi d'une traduction des
+  messages de validation (`DataAnnotations`), pilotée par la même
+  spécification backend ci-dessus. Limite de rendu documentée là-bas, à
+  connaître si ce fichier est retouché : `userStore.createUser`
+  (`src/stores/userStore.ts`) ne lit que `response?.message` en cas
+  d'échec et n'a pas d'équivalent à `extractApiErrorMessages`
+  (`candidate-app/src/utils/apiErrors.ts`) — un échec de validation de champ
+  affichera donc un message générique français, pas le détail du champ en
+  cause, tant que cette normalisation n'est pas ajoutée à ce package (hors
+  périmètre de la spécification citée).
 
 ## Commandes
 

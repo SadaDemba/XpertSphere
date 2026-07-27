@@ -45,14 +45,15 @@ public class AuthResult : ServiceResult<AuthResponseDto>
         };
     }
 
-    public static AuthResult Failure(string message, List<string>? errors = null, int statusCode = 400)
+    public static AuthResult Failure(string message, List<string>? errors = null, int statusCode = 400, AuthResponseDto? data = null)
     {
         return new AuthResult
         {
             IsSuccess = false,
             Message = message,
             Errors = errors ?? [message],
-            StatusCode = statusCode
+            StatusCode = statusCode,
+            Data = data
         };
     }
 
