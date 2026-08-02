@@ -18,11 +18,6 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresGuest: true },
       },
       {
-        path: 'register',
-        component: () => import('pages/auth/RegisterPage.vue'),
-        meta: { requiresGuest: true },
-      },
-      {
         path: 'forgot-password',
         component: () => import('pages/auth/ForgotPasswordPage.vue'),
         meta: { requiresGuest: true },

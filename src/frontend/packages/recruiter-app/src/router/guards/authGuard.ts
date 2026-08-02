@@ -12,7 +12,7 @@ export async function authGuard(
 ) {
   const authStore = useAuthStore();
   // Allow access to login and other auth pages
-  const publicPages = ['/auth/login', '/auth/register', '/auth/forgot-password'];
+  const publicPages = ['/auth/login', '/auth/forgot-password'];
   const isPublicPage = publicPages.includes(to.path);
 
   if (isPublicPage) {

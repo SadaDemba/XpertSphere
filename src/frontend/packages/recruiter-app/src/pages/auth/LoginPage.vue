@@ -104,15 +104,6 @@
               </q-btn>
             </q-form>
           </q-card-section>
-
-          <q-separator class="q-my-md" />
-
-          <q-card-section class="text-center">
-            <p class="text-body2 text-grey-7 q-mb-sm">Pas encore de compte ?</p>
-            <router-link to="/auth/register" class="register-link" aria-label="Créer un compte">
-              Créer un compte
-            </router-link>
-          </q-card-section>
         </q-card>
       </div>
     </div>
@@ -218,16 +209,6 @@ async function handleLogin() {
   margin-top: 20px;
   height: 48px;
   font-weight: 600;
-}
-
-.register-link {
-  color: var(--q-primary);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.register-link:hover {
-  text-decoration: underline;
 }
 
 @media (max-width: 599px) {
