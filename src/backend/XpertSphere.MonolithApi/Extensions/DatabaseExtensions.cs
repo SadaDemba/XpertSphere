@@ -126,6 +126,23 @@ public static partial class DatabaseExtensions
     {
         await SeedXpertSphereOrganizationAsync(context, configuration);
         await SeedDefaultRolesAsync(context);
+
+        // Persist here: SeedPlatformSuperAdminAsync below looks up the XpertSphere organization
+        // and the PlatformSuperAdmin role via LINQ queries (context.Organizations/Roles
+        // .FirstOrDefaultAsync(...)), which do not see entities merely Added-but-not-yet-saved on
+        // the change tracker. Without this intermediate save, on a completely fresh database (the
+        // very first application startup ever) both lookups return null and PlatformSuperAdmin
+        // creation is silently skipped ("XpertSphere organization not found. Cannot create
+        // PlatformSuperAdmin" in the logs) - the app then "self-heals" on its next restart, once
+        // the final SaveChangesAsync of a prior run has actually persisted the organization/roles.
+        // Found while building the WebApplicationFactory-based integration harness for
+        // localize-identity-error-messages.md (critères d'acceptation 3/4/5/9): a fresh
+        // in-memory database exercises exactly this first-run path on every test run. Pre-existing
+        // bug, unrelated to Identity error localization; fixed here as a minimal, backward
+        // compatible change (idempotent on subsequent runs where the organization/roles already
+        // exist).
+        await context.SaveChangesAsync();
+
         await SeedPlatformSuperAdminAsync(context, userManager, configuration);
 
         // Demo dataset (demo organizations/users/job offers/candidates/applications) is only
