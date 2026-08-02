@@ -37,6 +37,32 @@ class Training:
 
 
 @dataclass
+class Address:
+    """Structured postal address"""
+
+    street_number: Optional[str] = None
+    street: Optional[str] = None
+    city: Optional[str] = None
+    postal_code: Optional[str] = None
+    region: Optional[str] = None
+    country: Optional[str] = None
+
+    def __post_init__(self):
+        """Trim string parts after initialization"""
+        for attr in (
+            "street_number",
+            "street",
+            "city",
+            "postal_code",
+            "region",
+            "country",
+        ):
+            value = getattr(self, attr)
+            if isinstance(value, str):
+                setattr(self, attr, value.strip())
+
+
+@dataclass
 class CVModel:
     """Complete CV model"""
 
@@ -45,7 +71,7 @@ class CVModel:
     email: Optional[str] = None
     phone_number: Optional[str] = None
     profession: Optional[str] = None
-    address: Optional[str] = None
+    address: Optional[Address] = None
     languages: List[str] = field(default_factory=list)
     trainings: List[Training] = field(default_factory=list)
     skills: List[str] = field(default_factory=list)

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 import json
 from app.domain.interfaces import TextAnalyzer
-from app.domain.models import CVModel, Experience, Training
+from app.domain.models import CVModel, Experience, Training, Address
 from app.core import AnalysisError
 import logging
 
@@ -78,6 +78,27 @@ class BaseAnalyzer(TextAnalyzer, ABC):
             Training(**training) for training in parsed_data["trainings"]
         ]
 
+        # Transform the address into a structured Address object.
+        # Tolerant to the legacy flat-string format (kept in `street`) and to
+        # unknown keys the LLM might add.
+        address_data = parsed_data.get("address")
+        if isinstance(address_data, dict):
+            allowed = {
+                "street_number",
+                "street",
+                "city",
+                "postal_code",
+                "region",
+                "country",
+            }
+            parsed_data["address"] = Address(
+                **{k: v for k, v in address_data.items() if k in allowed}
+            )
+        elif isinstance(address_data, str) and address_data.strip():
+            parsed_data["address"] = Address(street=address_data)
+        else:
+            parsed_data["address"] = None
+
         return CVModel(**parsed_data)
 
     def _create_prompt(self, text: str) -> str:
@@ -101,6 +122,7 @@ class BaseAnalyzer(TextAnalyzer, ABC):
             4. If information is not present, use an empty string or empty array.
             5. NORMALIZE every date, keeping the finest granularity available in the CV: "DD/MM/YYYY - DD/MM/YYYY" when the day is given, "MM/YYYY - MM/YYYY" when only month/year, "YYYY - YYYY" when only the year (parts zero-padded, " - " between start and end). Use "... - en cours" when the period is still ongoing ("depuis", "present", "aujourd'hui", "en cours"). Convert any original notation (e.g. "sept. 2024", "09.2024", "12 mars 2022") to this numeric format.
             6. For skills, group by logical categories.
+            7. ADDRESS: split the address into its parts (street_number, street, city, postal_code, region, country). INFER the country from the postal code and city when it is not explicitly written (e.g. a 5-digit postal code with a French city => "France"; "Dakar" => "Sénégal"). Do NOT guess the region: leave it empty unless it is explicitly written in the CV. Leave any part empty when it cannot be determined.
 
             CV to analyze:
             {text}
@@ -112,7 +134,14 @@ class BaseAnalyzer(TextAnalyzer, ABC):
                 "email": "email address",
                 "phone_number": "phone number",
                 "profession": "main professional title",
-                "address": "complete address",
+                "address": {{
+                    "street_number": "street/building number only (e.g.: 12), empty if absent",
+                    "street": "street name / road (without the number)",
+                    "city": "city / town",
+                    "postal_code": "postal / ZIP code",
+                    "region": "state / region ONLY if explicitly written in the CV, otherwise empty",
+                    "country": "country name, inferred from postal code + city when not explicitly written"
+                }},
                 "languages": ["language1 (level)", "language2 (level)"],
                 "trainings": [{{
                     "school": "institution name",
@@ -141,4 +170,5 @@ class BaseAnalyzer(TextAnalyzer, ABC):
             - EXPERIENCE (alternance): "Ingénieur Études & Développement en alternance chez Expertime, sept. 2024 - oct. 2025" -> experiences, title "Ingénieur Études & Développement (Alternance)", date "09/2024 - 10/2025"
             - EXPERIENCE (stage): "Développeur full-stack (Stage) chez Dynamiqs, oct. 2022 - oct. 2023" -> experiences, date "10/2022 - 10/2023"
             - SKILL: "C#, Python, Docker" -> skills
+            - ADDRESS: "44360, Vigneux de Bretagne, Nantes" -> {{"street_number": "", "street": "", "city": "Vigneux-de-Bretagne", "postal_code": "44360", "region": "", "country": "France"}}
             """
