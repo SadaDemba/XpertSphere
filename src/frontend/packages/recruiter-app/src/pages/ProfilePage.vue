@@ -319,8 +319,7 @@
                   outlined
                   :rules="[
                     (val) => !!val || 'Le nouveau mot de passe est requis',
-                    (val) =>
-                      val.length >= 8 || 'Le mot de passe doit contenir au moins 8 caractères',
+                    ...passwordComplexityRules,
                   ]"
                 />
 
@@ -498,11 +497,13 @@ import { settings } from 'src/settings';
 import { authService } from '../services/authService';
 import type { ChangePasswordDto } from '../models/auth';
 import type { UpdateUserDto } from '../models/user';
+import { usePasswordComplexityRules } from 'src/composables/passwordRules';
 
 const $q = useQuasar();
 const router = useRouter();
 const authStore = useAuthStore();
 const userStore = useUserStore();
+const passwordComplexityRules = usePasswordComplexityRules();
 
 const loading = ref(false);
 const loadingPassword = ref(false);
