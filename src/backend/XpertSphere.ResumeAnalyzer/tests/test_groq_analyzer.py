@@ -29,7 +29,14 @@ class TestGroqAnalyzer:
             "email": "john.doe@example.com",
             "phone_number": "+1234567890",
             "profession": "Software Engineer",
-            "address": "123 Main St",
+            "address": {
+                "street_number": "123",
+                "street": "Main St",
+                "city": "Springfield",
+                "postal_code": "12345",
+                "region": "",
+                "country": "USA"
+            },
             "languages": ["English"],
             "skills": ["Python"],
             "experiences": [{
@@ -56,6 +63,11 @@ class TestGroqAnalyzer:
         assert result.email == "john.doe@example.com"
         assert len(result.experiences) == 1
         assert len(result.trainings) == 1
+        # Address is parsed into a structured object
+        assert result.address is not None
+        assert result.address.city == "Springfield"
+        assert result.address.postal_code == "12345"
+        assert result.address.country == "USA"
 
     @pytest.mark.asyncio
     async def test_analyze_api_error(self, groq_analyzer):

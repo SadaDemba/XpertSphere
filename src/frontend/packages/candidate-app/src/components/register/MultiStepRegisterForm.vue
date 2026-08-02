@@ -549,7 +549,7 @@ const formData = reactive<RegisterCandidateDto>({
   city: '',
   postalCode: '',
   region: '',
-  country: 'France',
+  country: 'Sénégal',
   addressLine2: '',
 
   // Professional
@@ -777,11 +777,17 @@ const fillFromCVAnalysis = (analysis: ResumeAnalysisResponse) => {
   if (data.email) formData.email = data.email;
   if (data.phone_number) formData.phoneNumber = data.phone_number;
 
-  // Address info (if available)
+  // Address info (if available) — the analyzer returns a structured object,
+  // each part mapped to its dedicated form field. The country is inferred by
+  // the analyzer; the region stays empty unless explicit in the CV.
   if (data.address) {
-    // Try to parse address if it's a string
-    // For now, just put it in the street field
-    formData.street = data.address;
+    const a = data.address;
+    if (a.street_number) formData.streetNumber = a.street_number;
+    if (a.street) formData.street = a.street;
+    if (a.city) formData.city = a.city;
+    if (a.postal_code) formData.postalCode = a.postal_code;
+    if (a.region) formData.region = a.region;
+    if (a.country) formData.country = a.country;
   }
 
   // Skills - join array into text with line breaks for better readability
