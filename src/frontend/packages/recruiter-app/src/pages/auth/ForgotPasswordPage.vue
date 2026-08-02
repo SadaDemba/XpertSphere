@@ -58,11 +58,13 @@
                 Vous n'avez pas reçu l'email ? Vérifiez vos spams ou
                 <button
                   class="resend-link"
-                  :disabled="resendCooldown > 0"
+                  :disabled="resendCooldown > 0 || isResending"
                   aria-label="Renvoyer l'email de réinitialisation"
                   @click="resendEmail"
                 >
-                  renvoyer{{ resendCooldown > 0 ? ` (${resendCooldown}s)` : '' }}
+                  renvoyer{{
+                    resendCooldown > 0 ? ` (${resendCooldown}s)` : isResending ? '...' : ''
+                  }}
                 </button>
               </p>
             </div>
@@ -85,42 +87,77 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue';
 import AppLogo from '../../components/AppLogo.vue';
+import { authService } from '../../services/authService';
+import { useNotification } from '../../composables/notification';
+
+// Note (limite backend connue, voir .claude/specifications/wire-forgot-password-page.md) :
+// ForgotPasswordAsync génère un token mais n'envoie aujourd'hui aucun email réel côté
+// backend — un ticket backend séparé est recommandé pour l'envoi effectif de l'email.
+// Le message générique ci-dessous est volontairement identique que le compte existe ou
+// non côté backend (la réponse n'est pas enumeration-safe : ne jamais afficher/logger
+// `result.message`/`result.data` renvoyés par l'API).
+
+const { showErrorNotification } = useNotification();
+
+const GENERIC_ERROR_MESSAGE = 'Une erreur est survenue. Veuillez réessayer.';
 
 const isLoading = ref(false);
+const isResending = ref(false);
 const emailSent = ref(false);
 const email = ref('');
 const resendCooldown = ref(0);
 let cooldownInterval: NodeJS.Timeout | null = null;
 
+/**
+ * Calls the real password reset endpoint and reports success/failure.
+ * Never reads/logs `result.message` or `result.data` (enumeration-safety, UI-side only).
+ */
+async function requestPasswordResetAndNotify(): Promise<boolean> {
+  try {
+    const result = await authService.requestPasswordReset(email.value);
+
+    if (result?.isSuccess) {
+      return true;
+    }
+
+    if (result?.statusCode === 422 && result.errors?.length) {
+      showErrorNotification(result.errors.join(' '));
+    } else {
+      showErrorNotification(GENERIC_ERROR_MESSAGE);
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Password reset request failed:', error);
+    showErrorNotification(GENERIC_ERROR_MESSAGE);
+    return false;
+  }
+}
+
 async function handleForgotPassword() {
   isLoading.value = true;
   try {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    console.log('Password reset requested for:', email.value);
-
-    emailSent.value = true;
-  } catch (error) {
-    console.error('Password reset failed:', error);
+    const success = await requestPasswordResetAndNotify();
+    if (success) {
+      emailSent.value = true;
+      startResendCooldown();
+    }
   } finally {
     isLoading.value = false;
   }
 }
 
 async function resendEmail() {
-  if (resendCooldown.value > 0) return;
+  if (resendCooldown.value > 0 || isResending.value) return;
 
-  isLoading.value = true;
+  isResending.value = true;
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    console.log('Resending password reset email to:', email.value);
-
-    startResendCooldown();
-  } catch (error) {
-    console.error('Resend failed:', error);
+    const success = await requestPasswordResetAndNotify();
+    if (success) {
+      startResendCooldown();
+    }
   } finally {
-    isLoading.value = false;
+    isResending.value = false;
   }
 }
 

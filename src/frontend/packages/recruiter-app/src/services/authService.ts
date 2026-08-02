@@ -107,8 +107,10 @@ class AuthService extends BaseClient {
   /**
    * Request password reset (JWT mode only)
    */
-  public async requestPasswordReset(email: string): Promise<ResponseResult<boolean> | null> {
-    return this.post('/forgot-password', { email });
+  public async requestPasswordReset(
+    email: string,
+  ): Promise<ResponseResult<AuthResponseDto> | null> {
+    return this.post<ResponseResult<AuthResponseDto>>('/forgot-password', { email });
   }
 
   /**
