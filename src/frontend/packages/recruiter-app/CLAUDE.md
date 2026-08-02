@@ -98,6 +98,24 @@ hybride JWT / Microsoft Entra ID (MSAL).
   `ProfilePage.vue` (`changePassword` poste un payload `ChangePasswordDto`
   vers l'endpoint `/reset-password`, qui attend en réalité un
   `ResetPasswordDto`).
+- Six correctifs UX/visuels indépendants et à faible risque, identifiés par
+  un audit avant une démo, sont pilotés par
+  `.claude/specifications/ux-polish-pre-demo.md` : bannière d'erreur
+  manquante sur `ApplicationsPage.vue` (absente alors que `applicationStore`
+  expose déjà `hasError`/`errorMessage`/`clearError`), recherche non
+  harmonisée entre les champs de `JobFilters.vue` (Titre sans debounce,
+  Localisation seulement sur `Entrée`), masquage des pages « à venir » du
+  menu principal (Tableau de bord, Entretiens, Rapports) avec en complément
+  une redirection de la route racine `/` vers `/jobs` (le logo de l'en-tête
+  y pointe, indépendamment du menu), double pagination sur
+  `CandidatesPage.vue` (pied de page intégré du `q-table` + `q-pagination`
+  externe redondant), `console.log` résiduel dans
+  `ApplicationDetailPage.vue`, et harmonisation à +1 an des deux valeurs de
+  repli d'expiration de rôle dans `UsersPage.vue` (correctif volontairement
+  minimal — documente sans le traiter le fait que le hint « rôle permanent »
+  du même champ reste inexact, le backend traitant `ExpiresAt == null` comme
+  réellement permanent alors que le frontend ne transmet jamais cette
+  valeur).
 - Le formulaire de création d'utilisateur (`UsersPage.vue`, `POST /api/Users`,
   `CreateUserDto` côté backend) bénéficie lui aussi d'une traduction des
   messages de validation (`DataAnnotations`), pilotée par la même
