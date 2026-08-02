@@ -101,6 +101,25 @@ const { showErrorNotification } = useNotification();
 
 const GENERIC_ERROR_MESSAGE = 'Une erreur est survenue. Veuillez réessayer.';
 
+/**
+ * Minimal local shape covering the two error response bodies `POST /auth/forgot-password`
+ * can actually return for an invalid email:
+ * - ASP.NET Core `[ApiController]` automatic model validation (DataAnnotations on
+ *   `ForgotPasswordDto`) short-circuits the action and returns HTTP 400 with a standard
+ *   `ValidationProblemDetails` body: `errors` is a `Record<string, string[]>`.
+ * - A `ServiceResult`-shaped body (HTTP 422), as would be produced by
+ *   `AuthenticationService.ForgotPasswordAsync`/FluentValidation if it were ever reached:
+ *   `errors` is a flat `string[]`.
+ * `ResponseResult<T>.errors` is statically typed `string[]`, which does not reflect the
+ * `ValidationProblemDetails` case actually returned by the backend today — hence this
+ * separate, deliberately loose local type instead of trusting `ResponseResult` here.
+ */
+type ForgotPasswordErrorPayload = {
+  status?: number;
+  statusCode?: number;
+  errors?: string[] | Record<string, string[]>;
+};
+
 const isLoading = ref(false);
 const isResending = ref(false);
 const emailSent = ref(false);
@@ -120,8 +139,21 @@ async function requestPasswordResetAndNotify(): Promise<boolean> {
       return true;
     }
 
-    if (result?.statusCode === 422 && result.errors?.length) {
-      showErrorNotification(result.errors.join(' '));
+    // `result` may actually be a raw `ValidationProblemDetails` body (see type above),
+    // not a `ResponseResult` — cast through `unknown` rather than trusting the static type.
+    const errorPayload = result as unknown as ForgotPasswordErrorPayload | null;
+    const errors = errorPayload?.errors;
+
+    if (Array.isArray(errors) && errors.length > 0) {
+      // ServiceResult shape (statusCode 422): errors is already a flat string[].
+      showErrorNotification(errors.join(' '));
+    } else if (errors && typeof errors === 'object') {
+      // ValidationProblemDetails shape (status 400): errors is Record<string, string[]>.
+      const messages = Object.values(errors)
+        .flat()
+        .filter((message): message is string => typeof message === 'string');
+
+      showErrorNotification(messages.length > 0 ? messages.join(' ') : GENERIC_ERROR_MESSAGE);
     } else {
       showErrorNotification(GENERIC_ERROR_MESSAGE);
     }
