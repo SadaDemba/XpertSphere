@@ -356,7 +356,7 @@ public class AuthenticationServiceTests : IDisposable
 
         var identityErrors = new List<IdentityError>
         {
-            new() { Code = "InvalidToken", Description = "Invalid token" }
+            new() { Code = "InvalidToken", Description = "Jeton invalide." }
         };
 
         _mockUserManager.Setup(x => x.ConfirmEmailAsync(user, confirmEmailDto.Token))
@@ -370,7 +370,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("Échec de la confirmation de l'email : Invalid token");
+        result.Errors.Should().Contain("Échec de la confirmation de l'email : Jeton invalide.");
     }
 
     [Fact]

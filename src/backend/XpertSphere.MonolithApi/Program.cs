@@ -1,6 +1,8 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using DotNetEnv;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.RateLimiting;
 using XpertSphere.MonolithApi.Config;
 using XpertSphere.MonolithApi.Extensions;
@@ -137,6 +139,17 @@ app.MapHealthChecks("/health");
 // Security Pipeline
 app.UseHttpsRedirection();
 app.UseCookiePolicy();
+
+// Localisation : culture unique fr-FR (formats de date/nombre ; ne traduit pas à elle seule les
+// messages natifs IdentityErrorDescriber, voir Utils/FrenchIdentityErrorDescriber.cs et
+// .claude/specifications/localize-identity-error-messages.md, §6).
+var supportedCultures = new[] { new CultureInfo("fr-FR") };
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("fr-FR"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+});
 
 // Use CORS only in Development
 if (app.Environment.IsDevelopment())
