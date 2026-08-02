@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -6,7 +7,10 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using XpertSphere.MonolithApi.Data;
+using XpertSphere.MonolithApi.Models;
+using XpertSphere.MonolithApi.Utils;
 
 namespace XpertSphere.MonolithApi.Tests.Integration;
 
@@ -59,17 +63,15 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             {
                 ["Jwt:Key"] = "integration-tests-signing-key-at-least-256-bits-long-0123456789",
                 ["Admin:Email"] = SeededAdminEmail,
-                ["Admin:Password"] = SeededAdminPassword,
-                // SeedPlatformSuperAdminAsync looks up the seeded organization by comparing
-                // Organization.Name to the hardcoded Utils.Constants.XPERTSPHERE ("XPERTSPHERE",
-                // all caps), while appsettings.json's Seeding:Organization:Name is "XpertSphere"
-                // (mixed case). This comparison relies on SQL Server's default case-insensitive
-                // collation in real deployments; the EF Core InMemory provider used by this
-                // harness performs ordinal (case-sensitive) comparisons, so the two would never
-                // match without this override. Not a production bug - a provider-behavior
-                // difference specific to this test harness - so fixed here at the configuration
-                // level rather than in DatabaseExtensions.cs.
-                ["Seeding:Organization:Name"] = "XPERTSPHERE"
+                ["Admin:Password"] = SeededAdminPassword
+                // Seeding:Organization:Name is deliberately left at its appsettings.json default
+                // ("XpertSphere") rather than overridden here, so that this harness stays
+                // production-faithful on a security-relevant value: SecurityExtensions.cs policies
+                // (CanCreateUsers, OrganizationIsolation, CanResetPasswords, ...) compare an
+                // "OrganizationName" claim against the literal "XpertSphere" with ordinal,
+                // case-sensitive C# `==`. See EnsureSeededAdminExistsAsync below for why
+                // SeedPlatformSuperAdminAsync itself still needs a helping hand under this
+                // specific combination of provider and organization name casing.
             });
         });
 
@@ -97,5 +99,76 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 options.ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
             });
         });
+    }
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        var host = base.CreateHost(builder);
+
+        // DatabaseExtensions.SeedPlatformSuperAdminAsync (run as part of the real startup
+        // sequence above) looks up the just-seeded XpertSphere organization via
+        // context.Organizations.FirstOrDefaultAsync(o => o.Name == Constants.XPERTSPHERE)
+        // ("XPERTSPHERE", all caps) while the organization's actual Name is "XpertSphere" (mixed
+        // case, from Seeding:Organization:Name - deliberately left at its production value, see
+        // ConfigureWebHost above). That comparison matches under SQL Server's default
+        // case-insensitive collation in real deployments, but never matches under the EF Core
+        // InMemory provider's ordinal comparison, so the built-in seeding silently skips creating
+        // the PlatformSuperAdmin account here. Rather than change the organization's name (which
+        // would make this harness diverge from production on a claim value used by
+        // ordinal-comparison authorization policies in SecurityExtensions.cs), seed the same
+        // account directly against the already-persisted, production-faithful "XpertSphere"
+        // organization.
+        using var scope = host.Services.CreateScope();
+        EnsureSeededAdminExistsAsync(scope.ServiceProvider).GetAwaiter().GetResult();
+
+        return host;
+    }
+
+    private static async Task EnsureSeededAdminExistsAsync(IServiceProvider services)
+    {
+        var userManager = services.GetRequiredService<UserManager<User>>();
+        if (await userManager.FindByEmailAsync(SeededAdminEmail) != null)
+        {
+            // Already created by the real startup seeding (e.g. organization name casing
+            // happened to match) - nothing to do.
+            return;
+        }
+
+        var context = services.GetRequiredService<XpertSphereDbContext>();
+        var organization = await context.Organizations.FirstAsync(o => o.Name == "XpertSphere");
+        var superAdminRole = await context.Roles.FirstAsync(r => r.Name == Roles.PlatformSuperAdmin.Name);
+
+        var admin = new User
+        {
+            Id = Guid.NewGuid(),
+            FirstName = "Super",
+            LastName = "Admin",
+            Email = SeededAdminEmail,
+            UserName = SeededAdminEmail,
+            EmailConfirmed = true,
+            OrganizationId = organization.Id,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            ConsentGivenAt = DateTime.UtcNow
+        };
+
+        var createResult = await userManager.CreateAsync(admin, SeededAdminPassword);
+        if (!createResult.Succeeded)
+        {
+            throw new InvalidOperationException(
+                "Failed to seed the integration test PlatformSuperAdmin account: " +
+                string.Join(", ", createResult.Errors.Select(e => e.Description)));
+        }
+
+        context.UserRoles.Add(new UserRole
+        {
+            Id = Guid.NewGuid(),
+            UserId = admin.Id,
+            RoleId = superAdminRole.Id,
+            IsActive = true,
+            AssignedAt = DateTime.UtcNow
+        });
+
+        await context.SaveChangesAsync();
     }
 }
