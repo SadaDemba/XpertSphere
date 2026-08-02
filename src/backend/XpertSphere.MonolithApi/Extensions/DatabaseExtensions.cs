@@ -56,8 +56,21 @@ public static partial class DatabaseExtensions
 
         try
         {
-            // Apply pending migrations
-            await context.Database.MigrateAsync();
+            // Apply pending migrations. Real deployments always use the SQL Server (relational)
+            // provider configured in AddDatabase above, so this branch is unchanged for them.
+            // The EnsureCreatedAsync fallback only exists so that the WebApplicationFactory-based
+            // integration harness (XpertSphere.MonolithApi.Tests/Integration/**) can swap in the
+            // EF Core InMemory provider, which does not support migrations - see
+            // .claude/specifications/localize-identity-error-messages.md, critères d'acceptation
+            // 3/4/5/9.
+            if (context.Database.IsRelational())
+            {
+                await context.Database.MigrateAsync();
+            }
+            else
+            {
+                await context.Database.EnsureCreatedAsync();
+            }
 
             // Seed initial data if needed
             await SeedDatabaseAsync(context, userManager, configuration, app.Environment);
