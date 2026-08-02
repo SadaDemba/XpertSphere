@@ -11,12 +11,12 @@ export interface Training {
 
 export interface Experience {
   id?: string;
-  position: string;
+  title: string;
   company: string;
-  startDate: string;
-  endDate?: string;
+  location?: string;
+  date: string;
+  isCurrent: boolean;
   description?: string;
-  technologies?: string[];
 }
 
 export interface UserSearchResultDto {
