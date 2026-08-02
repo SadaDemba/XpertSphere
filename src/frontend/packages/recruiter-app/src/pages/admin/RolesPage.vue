@@ -76,6 +76,13 @@
                       <q-item-section>Modifier</q-item-section>
                     </q-item>
 
+                    <q-item v-close-popup clickable @click="viewRoleUsers(props.row)">
+                      <q-item-section avatar>
+                        <q-icon name="group" color="primary" />
+                      </q-item-section>
+                      <q-item-section>Voir les utilisateurs</q-item-section>
+                    </q-item>
+
                     <q-item v-close-popup clickable @click="confirmToggleStatus(props.row)">
                       <q-item-section avatar>
                         <q-icon
@@ -325,7 +332,12 @@ const columns: Ref<QTableColumn<any>[]> = ref([
 ]);
 
 const userRoleColumns: Ref<QTableColumn<any>[]> = ref([
-  { name: 'userName', field: 'userName', label: 'Utilisateur', ...dataTable.defaultConfig.value },
+  {
+    name: 'userFullName',
+    field: 'userFullName',
+    label: 'Utilisateur',
+    ...dataTable.defaultConfig.value,
+  },
   { name: 'userEmail', field: 'userEmail', label: 'Email', ...dataTable.defaultConfig.value },
   {
     name: 'isActive',
@@ -418,6 +430,12 @@ const editRole = (role: RoleDto) => {
     isActive: role.isActive,
   });
   showCreateDialog.value = true;
+};
+
+const viewRoleUsers = async (role: RoleDto) => {
+  selectedRole.value = role;
+  showUserRolesDialog.value = true;
+  await userRoleStore.fetchRoleUsers(role.id);
 };
 
 const saveRole = async () => {
