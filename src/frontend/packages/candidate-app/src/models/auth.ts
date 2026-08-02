@@ -191,7 +191,14 @@ export interface ResumeAnalysisResponse {
     email?: string;
     phone_number?: string;
     profession?: string;
-    address?: string;
+    address?: {
+      street_number?: string;
+      street?: string;
+      city?: string;
+      postal_code?: string;
+      region?: string;
+      country?: string;
+    };
     languages?: string[];
     trainings?: Training[];
     skills?: string[];
