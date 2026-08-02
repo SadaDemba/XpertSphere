@@ -581,10 +581,11 @@ const formData = reactive<RegisterCandidateDto>({
 // Validation rules
 const passwordRules = [
   (val: string) => !!val || 'Mot de passe requis',
-  (val: string) => val.length >= 6 || 'Au moins 6 caractères',
+  (val: string) => val.length >= 8 || 'Au moins 8 caractères',
   (val: string) => /[A-Z]/.test(val) || 'Au moins une majuscule',
   (val: string) => /[a-z]/.test(val) || 'Au moins une minuscule',
   (val: string) => /[0-9]/.test(val) || 'Au moins un chiffre',
+  (val: string) => /[^a-zA-Z0-9]/.test(val) || 'Au moins un caractère spécial',
 ];
 
 const validateEmail = (email: string) => {
