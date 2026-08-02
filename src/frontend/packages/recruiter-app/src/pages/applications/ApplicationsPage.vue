@@ -401,7 +401,7 @@ const resolveFilteredJobOfferTitle = async () => {
   if (!jobOfferIdFilter.value) return;
 
   try {
-    const jobOffer = await jobOfferStore.fetchJobOfferById(jobOfferIdFilter.value);
+    const jobOffer = await jobOfferStore.fetchJobOfferById(jobOfferIdFilter.value, false);
     filteredJobOfferTitle.value = jobOffer?.title ?? null;
   } catch {
     // Offre supprimée entre-temps, erreur réseau… on retombe sur le libellé générique

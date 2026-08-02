@@ -90,7 +90,10 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
   /**
    * Retrieve all job offers with pagination and filter
    */
-  const fetchPaginatedJobOffers = async (filter: JobOfferFilterDto = {}) => {
+  const fetchPaginatedJobOffers = async (
+    filter: JobOfferFilterDto = {},
+    notifyOnSuccess: boolean = true,
+  ) => {
     try {
       setLoading(true);
       clearError();
@@ -112,7 +115,9 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
         hasPrevious.value = response.pagination.hasPrevious;
         hasNext.value = response.pagination.hasNext;
 
-        notification.showSuccessNotification('Offres chargées avec succès');
+        if (notifyOnSuccess) {
+          notification.showSuccessNotification('Offres chargées avec succès');
+        }
       } else {
         setError('Erreur lors du chargement des offres');
         notification.showErrorNotification('Erreur lors du chargement des offres');
@@ -130,14 +135,14 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
   /**
    * Récupère une offre d'emploi par ID
    */
-  const fetchJobOfferById = async (id: string) => {
+  const fetchJobOfferById = async (id: string, notifyOnError: boolean = true) => {
     try {
       setLoading(true);
       clearError();
       const response = await jobOfferService.getJobOfferById(id);
       if (response?.isSuccess) {
         currentJobOffer.value = convertJobOffer(response.data!);
-      } else {
+      } else if (notifyOnError) {
         setError(response?.message || "Erreur lors du chargement de l'offre");
         notification.showErrorNotification(
           response?.message || "Erreur lors du chargement de l'offre",
@@ -145,10 +150,12 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       }
       return response?.data;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Erreur lors du chargement des offres');
-      notification.showErrorNotification(
-        error instanceof Error ? error.message : 'Erreur lors du chargement des offres',
-      );
+      if (notifyOnError) {
+        setError(error instanceof Error ? error.message : 'Erreur lors du chargement des offres');
+        notification.showErrorNotification(
+          error instanceof Error ? error.message : 'Erreur lors du chargement des offres',
+        );
+      }
       return null;
     } finally {
       setLoading(false);

@@ -117,7 +117,7 @@ async function duplicateJob(job: JobOffer) {
 
   const result = await jobOfferStore.createJobOffer(duplicated as CreateJobOfferDto);
   if (result) {
-    await loadJobs();
+    await jobOfferStore.fetchPaginatedJobOffers(filters.value, false);
   }
 }
 
