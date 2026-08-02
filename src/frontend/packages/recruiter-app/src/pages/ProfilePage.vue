@@ -22,8 +22,8 @@
             <div class="col">
               <h4 class="text-h4 q-my-none">{{ displayName }}</h4>
               <p class="text-h6 text-grey-7 q-my-sm">{{ user?.email }}</p>
-              <p v-if="profileForm.title" class="text-subtitle1 text-grey-8 q-my-sm">
-                {{ profileForm.title }}
+              <p v-if="profileForm.department" class="text-subtitle1 text-grey-8 q-my-sm">
+                {{ profileForm.department }}
               </p>
 
               <div class="q-mt-md">
@@ -126,8 +126,8 @@
                     <div class="info-group">
                       <q-icon name="work" color="primary" size="sm" class="q-mr-sm" />
                       <div>
-                        <div class="text-caption text-grey-7">Titre/Poste</div>
-                        <div class="text-body1">{{ profileForm.title || '-' }}</div>
+                        <div class="text-caption text-grey-7">Département</div>
+                        <div class="text-body1">{{ profileForm.department || '-' }}</div>
                       </div>
                     </div>
                   </div>
@@ -164,7 +164,7 @@
 
                   <q-input v-model="profileForm.phone" label="Téléphone" outlined />
 
-                  <q-input v-model="profileForm.title" label="Titre/Poste" outlined />
+                  <q-input v-model="profileForm.department" label="Département" outlined />
 
                   <div class="row justify-end q-mt-lg">
                     <q-btn
@@ -492,14 +492,17 @@
 import { ref, onMounted, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
+import { useUserStore } from '../stores/userStore';
 import { useQuasar } from 'quasar';
 import { settings } from 'src/settings';
 import { authService } from '../services/authService';
 import type { ChangePasswordDto } from '../models/auth';
+import type { UpdateUserDto } from '../models/user';
 
 const $q = useQuasar();
 const router = useRouter();
 const authStore = useAuthStore();
+const userStore = useUserStore();
 
 const loading = ref(false);
 const loadingPassword = ref(false);
@@ -529,7 +532,7 @@ const profileForm = reactive({
   lastName: '',
   email: '',
   phone: '',
-  title: '',
+  department: '',
   address: {
     street: '',
     complement: '',
@@ -552,6 +555,7 @@ const loadUserProfile = () => {
       lastName: user.value.lastName || '',
       email: user.value.email || '',
       phone: user.value.phoneNumber || '',
+      department: user.value.department || '',
       roles: user.value.roles || [],
       address: {
         street: user.value.address?.streetName || '',
@@ -574,25 +578,43 @@ const toggleEdit = () => {
 };
 
 const updateProfile = async () => {
+  if (!user.value) {
+    return;
+  }
+
   try {
     loading.value = true;
 
-    // TODO: Implémenter l'appel API pour mettre à jour le profil
-    // await authStore.updateProfile(profileForm);
+    const payload: UpdateUserDto = {
+      firstName: profileForm.firstName,
+      lastName: profileForm.lastName,
+      phoneNumber: profileForm.phone,
+      department: profileForm.department,
+      address: {
+        // On reprend explicitement la valeur actuelle : ce champ est absent du
+        // formulaire, mais le mapping backend (CreateMap<Address, AddressDto>) écrase
+        // sans condition de null, donc l'omettre viderait ce champ en base à chaque
+        // sauvegarde.
+        ...(user.value?.address?.streetNumber !== undefined
+          ? { streetNumber: user.value.address.streetNumber }
+          : {}),
+        streetName: profileForm.address.street,
+        addressLine2: profileForm.address.complement,
+        city: profileForm.address.city,
+        postalCode: profileForm.address.postalCode,
+        region: profileForm.address.region,
+        country: profileForm.address.country,
+      },
+    };
 
-    $q.notify({
-      type: 'positive',
-      message: 'Profil mis à jour avec succès',
-    });
+    const response = await userStore.updateUser(user.value.id, payload);
 
-    // Exit edit mode after successful update
-    isEditing.value = false;
-  } catch (error: any) {
-    console.log(error.message);
-    $q.notify({
-      type: 'negative',
-      message: 'Erreur lors de la mise à jour du profil',
-    });
+    if (response?.isSuccess) {
+      await authStore.loadCurrentUser();
+      loadUserProfile();
+      isEditing.value = false;
+    }
+    // Pas de $q.notify ici : userStore.updateUser notifie déjà (succès et échec).
   } finally {
     loading.value = false;
   }
@@ -647,7 +669,7 @@ const confirmLogout = () => {
 const logout = async () => {
   try {
     loadingLogout.value = true;
-    // await authStore.logoutUser();
+    await authStore.logout();
 
     $q.notify({
       type: 'positive',
@@ -655,12 +677,6 @@ const logout = async () => {
     });
 
     router.push('/auth/login');
-  } catch (error: any) {
-    console.log(error.message);
-    $q.notify({
-      type: 'negative',
-      message: 'Erreur lors de la déconnexion',
-    });
   } finally {
     loadingLogout.value = false;
     showLogoutDialog.value = false;
