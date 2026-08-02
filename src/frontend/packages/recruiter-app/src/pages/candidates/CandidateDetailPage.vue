@@ -426,7 +426,7 @@
               <div class="q-gutter-md">
                 <q-card
                   v-for="(experience, index) in candidate.experiences"
-                  :key="experience.id || experience.position"
+                  :key="experience.id ?? index"
                   class="experience-item"
                   flat
                   bordered
@@ -441,32 +441,30 @@
                         ></div>
                       </div>
                       <div class="col">
-                        <div class="text-h6 text-secondary q-mb-xs">{{ experience.position }}</div>
+                        <div class="text-h6 text-secondary q-mb-xs">{{ experience.title }}</div>
                         <div class="text-subtitle1 text-weight-medium q-mb-xs">
                           {{ experience.company }}
                         </div>
                         <div class="text-caption text-grey-6 q-mb-sm">
                           <q-icon name="event" size="xs" class="q-mr-xs" />
-                          {{ formatDate(experience.startDate) }} -
-                          {{ experience.endDate ? formatDate(experience.endDate) : 'En cours' }}
+                          {{ experience.date }}
+                          <q-chip
+                            v-if="experience.isCurrent"
+                            dense
+                            size="sm"
+                            color="secondary"
+                            text-color="white"
+                            class="q-ml-xs"
+                          >
+                            En cours
+                          </q-chip>
                         </div>
                         <div v-if="experience.description" class="text-body2 q-mb-sm">
                           {{ experience.description }}
                         </div>
-                        <div v-if="experience.technologies && experience.technologies.length > 0">
-                          <div class="text-caption text-weight-medium q-mb-xs">
-                            Technologies utilisées :
-                          </div>
-                          <q-chip
-                            v-for="tech in experience.technologies"
-                            :key="tech"
-                            color="accent"
-                            text-color="white"
-                            size="sm"
-                            class="q-mr-xs q-mb-xs"
-                          >
-                            {{ tech }}
-                          </q-chip>
+                        <div v-if="experience.location" class="text-caption text-grey-6">
+                          <q-icon name="location_on" size="xs" class="q-mr-xs" />
+                          {{ experience.location }}
                         </div>
                       </div>
                     </div>
