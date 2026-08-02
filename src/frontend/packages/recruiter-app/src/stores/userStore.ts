@@ -206,7 +206,7 @@ export const useUserStore = defineStore('user', () => {
         notification.showSuccessNotification('Succès de la mise à jour');
       } else {
         setError(response?.message || "Erreur lors de la mise à jour de l'utilisateur");
-        notification.showSuccessNotification(
+        notification.showErrorNotification(
           response?.message || "Erreur lors de la mise à jour de l'utilisateur",
         );
       }
