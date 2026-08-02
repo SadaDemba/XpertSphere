@@ -276,10 +276,9 @@
               <div class="info-content q-pa-md">
                 <div class="info-group q-mb-md">
                   <div class="text-caption text-grey-7">Date de publication</div>
-                  <div v-if="!editMode" class="text-subtitle2">
+                  <div class="text-subtitle2">
                     {{ formatDate(jobOffer.publishedAt) }}
                   </div>
-                  <q-input v-else v-model="editedJob.publishedAt" type="date" dense outlined />
                 </div>
 
                 <div class="info-group">
@@ -363,6 +362,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { date } from 'quasar';
 import { useJobOfferStore } from 'src/stores/jobOfferStore';
 import { useNotification } from 'src/composables/notification';
+import { useDialog } from 'src/composables/dialog';
 import { SanitizerService } from 'src/services/sanitizer';
 import type { JobOfferDto, CreateJobOfferDto } from '../../models/job';
 import { jobStatusConfig } from '../../models/job';
@@ -372,6 +372,7 @@ import { workModeLabels } from '../../enums/WorkMode';
 const route = useRoute();
 const router = useRouter();
 const notification = useNotification();
+const dialog = useDialog();
 const jobStore = useJobOfferStore();
 
 const jobOffer = ref<JobOfferDto | null>(null);
@@ -436,6 +437,14 @@ const formatSalary = (min?: number, max?: number, currency?: string) => {
 const toggleEditMode = () => {
   if (!editMode.value && jobOffer.value) {
     Object.assign(editedJob, jobOffer.value);
+    // <input type="date"> exige strictement le format YYYY-MM-DD : la valeur ISO
+    // retournée par le backend (ex. "2026-07-25T00:00:00") est silencieusement
+    // rejetée par le navigateur sans cette conversion (voir bug 3 de la spec).
+    if (editedJob.expiresAt) {
+      editedJob.expiresAt = date.formatDate(editedJob.expiresAt, 'YYYY-MM-DD');
+    } else {
+      delete editedJob.expiresAt;
+    }
   }
   editMode.value = !editMode.value;
 };
@@ -481,9 +490,18 @@ const duplicateJob = async () => {
 const confirmDelete = async () => {
   if (!jobOffer.value) return;
 
-  await jobStore.deleteJobOffer(jobOffer.value.id);
-  notification.showSuccessNotification('Offre supprimée avec succès');
-  router.push('/jobs');
+  try {
+    await dialog.confirmDelete(jobOffer.value.title, 'offre');
+  } catch {
+    // Annulé par l'utilisateur — ne rien faire
+    return;
+  }
+
+  const success = await jobStore.deleteJobOffer(jobOffer.value.id);
+  if (success) {
+    notification.showSuccessNotification('Offre supprimée avec succès');
+    router.push('/jobs');
+  }
 };
 
 onMounted(async () => {

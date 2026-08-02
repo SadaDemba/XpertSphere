@@ -60,14 +60,16 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useJobOfferStore } from '../../stores/jobOfferStore';
+import { useDialog } from 'src/composables/dialog';
 import JobFilters from '../../components/jobs/JobFilters.vue';
 import JobList from '../../components/jobs/JobList.vue';
 import JobDialog from '../../components/jobs/JobDialog.vue';
-import type { JobOffer, JobOfferFilter } from '../../models/job';
+import type { JobOffer, JobOfferFilter, CreateJobOfferDto } from '../../models/job';
 import { JobOfferStatus } from '../../enums';
 
 const router = useRouter();
 const jobOfferStore = useJobOfferStore();
+const dialog = useDialog();
 
 const showJobDialog = ref(false);
 const selectedJob = ref<JobOffer | null>(null);
@@ -98,19 +100,29 @@ function editJob(job: JobOffer) {
 }
 
 async function deleteJob(job: JobOffer) {
-  if (confirm(`Êtes-vous sûr de vouloir supprimer "${job.title}" ?`)) {
+  try {
+    await dialog.confirmDelete(job.title, 'offre');
     await jobOfferStore.deleteJobOffer(job.id);
+  } catch {
+    // Annulé par l'utilisateur — ne rien faire
   }
 }
 
-function duplicateJob(job: JobOffer) {
-  console.log('Duplicate job:', job.id);
-  // TODO: Implémenter la duplication
+async function duplicateJob(job: JobOffer) {
+  const duplicated: Partial<JobOffer> = {
+    ...job,
+    title: `${job.title} (Copie)`,
+  };
+  delete duplicated.id;
+
+  const result = await jobOfferStore.createJobOffer(duplicated as CreateJobOfferDto);
+  if (result) {
+    await loadJobs();
+  }
 }
 
 function viewApplications(job: JobOffer) {
-  console.log('View applications for job:', job.id);
-  // TODO: Naviguer vers les candidatures
+  router.push(`/applications?jobId=${job.id}`);
 }
 
 function handleSearch() {
