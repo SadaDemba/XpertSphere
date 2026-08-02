@@ -4,9 +4,13 @@ namespace XpertSphere.MonolithApi.DTOs.Auth;
 
 public record LoginDto
 {
-    [Required] [EmailAddress] public required string Email { get; init; }
+    [Required(ErrorMessage = "L'email est obligatoire")]
+    [EmailAddress(ErrorMessage = "Format d'email invalide")]
+    public required string Email { get; init; }
 
-    [Required] [MinLength(6)] public required string Password { get; init; }
+    [Required(ErrorMessage = "Le mot de passe est obligatoire")]
+    [MinLength(6, ErrorMessage = "Le mot de passe doit contenir au moins 6 caractères")]
+    public required string Password { get; init; }
 
     public bool RememberMe { get; init; } = false;
 

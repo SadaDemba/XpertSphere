@@ -4,5 +4,6 @@ namespace XpertSphere.MonolithApi.DTOs.Auth;
 
 public record LinkAccountDto
 {
-    [Required] public required string EntraIdToken { get; init; }
+    [Required(ErrorMessage = "Le jeton Entra ID est obligatoire")]
+    public required string EntraIdToken { get; init; }
 }
