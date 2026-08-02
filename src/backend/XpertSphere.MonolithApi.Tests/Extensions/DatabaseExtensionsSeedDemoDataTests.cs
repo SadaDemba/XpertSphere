@@ -301,6 +301,45 @@ public class DatabaseExtensionsSeedDemoDataTests : IDisposable
     }
 
     [Fact]
+    public async Task SeedDemoDataAsync_MigrationBackfilledCandidate_GetsCorrectCurrencyNotTheBackfilledOne()
+    {
+        // Regression guard for the spec's central DesiredSalary/DesiredSalaryCurrency edge case
+        // (§"Cas particulier DesiredSalary/DesiredSalaryCurrency"): a candidate already backfilled
+        // by configurable-salary-currency.md's migration has DesiredSalary == null but
+        // DesiredSalaryCurrency == Currency.XOF (the migration's default for every pre-existing
+        // candidate). A *separate* guard on DesiredSalaryCurrency would see it as already
+        // non-null and never let it become the seed's EUR for a France-domiciled candidate --
+        // this must not happen: both fields are governed by the single guard on DesiredSalary.
+        var seed = DatabaseExtensions.DemoCandidates[2]; // Léa Dupont: seed currency is EUR
+
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            FirstName = seed.FirstName,
+            LastName = seed.LastName,
+            Email = seed.Email,
+            UserName = seed.Email,
+            EmailConfirmed = true,
+            OrganizationId = null,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            ConsentGivenAt = DateTime.UtcNow,
+            DesiredSalary = null,
+            DesiredSalaryCurrency = Currency.XOF // migration backfill default, never touched by it
+        };
+        _usersByEmail[seed.Email] = user;
+
+        await DatabaseExtensions.SeedDemoDataAsync(_context, _mockUserManager.Object);
+        await _context.SaveChangesAsync();
+
+        var candidate = _usersByEmail[seed.Email];
+        candidate.DesiredSalary.Should().Be(seed.DesiredSalary);
+        candidate.DesiredSalaryCurrency.Should().Be(Currency.EUR,
+            "the single guard on DesiredSalary must also reassign DesiredSalaryCurrency, " +
+            "overwriting the migration's XOF backfill default with the seed's correct EUR");
+    }
+
+    [Fact]
     public async Task SeedDemoDataAsync_NeverTouchesCvPath()
     {
         // AC5: CvPath stays null for all 4 candidates after this correctif (upload of CV is
