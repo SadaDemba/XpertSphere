@@ -182,9 +182,9 @@ const loadManagers = async () => {
       pageSize: 100,
     };
 
-    await userStore.fetchPaginatedUsers(filter);
+    const results = await userStore.searchUsers(filter);
 
-    managerOptions.value = userStore.users.map((user) => ({
+    managerOptions.value = results.map((user) => ({
       id: user.id,
       name: user.fullName || `${user.firstName} ${user.lastName}`,
       email: user.email,
@@ -208,9 +208,9 @@ const loadEvaluators = async () => {
       pageSize: 100,
     };
 
-    await userStore.fetchPaginatedUsers(filter);
+    const results = await userStore.searchUsers(filter);
 
-    evaluatorOptions.value = userStore.users.map((user) => ({
+    evaluatorOptions.value = results.map((user) => ({
       id: user.id,
       name: user.fullName || `${user.firstName} ${user.lastName}`,
       email: user.email,

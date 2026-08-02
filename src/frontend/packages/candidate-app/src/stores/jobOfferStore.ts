@@ -10,6 +10,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
   // State
   const jobOffers = ref<JobOfferDto[]>([]);
   const currentJobOffer = ref<JobOfferDto | null>(null);
+  const organizationJobOffers = ref<JobOfferDto[]>([]);
   const paginationInfo = ref<Pagination>({
     currentPage: 1,
     pageSize: 10,
@@ -71,11 +72,10 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
         jobOffers.value = response.data!;
         paginationInfo.value = response.pagination;
         currentFilter.value = searchFilter;
-        notification.showSuccessNotification("Offres d'emploies chargées avec succès");
         return true;
       } else {
         setError(response?.message || 'Erreur lors de la chargement des offres');
-        notification.showSuccessNotification(
+        notification.showErrorNotification(
           response?.message || 'Erreur lors du chargement des offres',
         );
         return false;
@@ -99,7 +99,6 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       const jobOffer = await jobOfferService.getJobOfferById(id);
       if (jobOffer?.isSuccess) {
         currentJobOffer.value = jobOffer.data!;
-        notification.showSuccessNotification('Offre récupérée avec succès');
         return true;
       } else {
         setError(jobOffer?.message || "Erreur lors du chargement de l'offre");
@@ -115,6 +114,23 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       return false;
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchJobOffersByOrganization = async (organizationId: string): Promise<boolean> => {
+    // Chargement en arrière-plan (bloc "Autres offres de cette entreprise") :
+    // volontairement silencieux, sans notification de succès/erreur (cf. prune-non-actionable-notifications.md).
+    try {
+      const response = await jobOfferService.getJobOffersByOrganization(organizationId);
+      if (response?.isSuccess) {
+        organizationJobOffers.value = response.data ?? [];
+        return true;
+      }
+      organizationJobOffers.value = [];
+      return false;
+    } catch {
+      organizationJobOffers.value = [];
+      return false;
     }
   };
 
@@ -143,6 +159,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
 
   const clearCurrentJobOffer = () => {
     currentJobOffer.value = null;
+    organizationJobOffers.value = [];
   };
 
   const resetFilters = () => {
@@ -157,6 +174,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     // State
     jobOffers: jobOffers,
     currentJobOffer: currentJobOffer,
+    organizationJobOffers: organizationJobOffers,
     paginationInfo: paginationInfo,
     isLoading: isLoading,
     error: error,
@@ -171,6 +189,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     clearError,
     fetchJobOffers,
     fetchJobOfferById,
+    fetchJobOffersByOrganization,
     searchJobOffers,
     filterJobOffers,
     loadPage,

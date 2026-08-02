@@ -57,7 +57,6 @@ export const useApplicationStore = defineStore('application', () => {
       const result = await applicationService.getMyApplications();
       if (result?.isSuccess) {
         applications.value = result.data!;
-        notification.showSuccessNotification('Candidatures récupérées avec succès');
       } else {
         applications.value = [];
         setError('Aucune réponse du serveur');
@@ -83,7 +82,6 @@ export const useApplicationStore = defineStore('application', () => {
       const application = await applicationService.getApplicationById(id);
       if (application?.isSuccess) {
         currentApplication.value = application.data!;
-        notification.showSuccessNotification('Candidature récupérée avec succès');
       } else {
         setError(application?.message || 'Candidature non trouvée');
         notification.showErrorNotification(application?.message || 'Candidature non trouvée');
