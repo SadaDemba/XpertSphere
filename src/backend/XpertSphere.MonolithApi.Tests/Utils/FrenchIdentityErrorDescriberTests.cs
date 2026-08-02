@@ -1,6 +1,7 @@
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -131,5 +132,33 @@ public class FrenchIdentityErrorDescriberTests
         result.Succeeded.Should().BeFalse();
         result.Errors.Should().ContainSingle(e =>
             e.Description == "Le mot de passe doit contenir au moins un caractère spécial (non alphanumérique).");
+    }
+
+    [Fact]
+    public void AddErrorDescriber_ShouldFlowThroughToPasswordValidator_ViaDependencyInjection()
+    {
+        // PasswordValidator<TUser>.Describer vient de son propre paramètre de constructeur
+        // (optionnel, résolu par le conteneur DI), pas de UserManager.ErrorDescriber (vérifié par
+        // décompilation de Microsoft.Extensions.Identity.Core 9.0.7 : le constructeur fait
+        // `Describer = errors ?? new IdentityErrorDescriber();`). Ce test reproduit donc le
+        // graphe DI réel (même mécanisme que AddIdentity<...>().AddErrorDescriber<...>() dans
+        // SecurityExtensions.AddSecurity) pour prouver que .AddErrorDescriber<FrenchIdentityErrorDescriber>()
+        // atteint bien PasswordValidator via injection, et pas seulement UserManager.
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton(new Mock<IUserStore<IdentityUser>>().Object);
+        services.AddIdentityCore<IdentityUser>()
+            .AddErrorDescriber<FrenchIdentityErrorDescriber>();
+
+        using var provider = services.BuildServiceProvider();
+
+        var passwordValidator = provider.GetServices<IPasswordValidator<IdentityUser>>()
+            .OfType<PasswordValidator<IdentityUser>>()
+            .Should().ContainSingle().Subject;
+
+        passwordValidator.Describer.Should().BeOfType<FrenchIdentityErrorDescriber>();
+
+        var userManager = provider.GetRequiredService<UserManager<IdentityUser>>();
+        userManager.ErrorDescriber.Should().BeOfType<FrenchIdentityErrorDescriber>();
     }
 }
