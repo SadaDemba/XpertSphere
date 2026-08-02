@@ -77,6 +77,20 @@ export const useUserStore = defineStore('user', () => {
     }
   };
 
+  /**
+   * Recherche des utilisateurs sans muter l'état partagé du store (users,
+   * pagination, loading, error) ni déclencher de notification. Contrairement
+   * à `fetchPaginatedUsers`, le résultat est retourné directement à
+   * l'appelant : à utiliser lorsque plusieurs recherches concurrentes sont
+   * susceptibles d'être en vol en même temps (ex. peuplement silencieux
+   * d'options de sélection), afin qu'aucun appel ne puisse écraser le
+   * résultat d'un autre.
+   */
+  const searchUsers = async (filter: UserFilterDto = {}): Promise<UserSearchResultDto[]> => {
+    const response = await service.getPaginatedUsers(filter);
+    return response?.isSuccess ? response.data : [];
+  };
+
   const fetchUserById = async (id: string) => {
     try {
       setLoading(true);
@@ -412,6 +426,7 @@ export const useUserStore = defineStore('user', () => {
 
     clearError,
     fetchPaginatedUsers,
+    searchUsers,
     fetchUserById,
     fetchUserProfile,
     createUser,
