@@ -178,4 +178,102 @@ public class DatabaseExtensionsDemoDataTests
 
         organizationsCovered.Should().HaveCount(3);
     }
+
+    // -----------------------------------------------------------------
+    // Candidate profile enrichment (specification `enrich-seed-candidate-profiles.md`)
+    // -----------------------------------------------------------------
+
+    [Fact]
+    public void DemoCandidates_EachHasExactlyTwoExperiencesAndOneTraining_WithExactlyOneCurrentExperience()
+    {
+        foreach (var candidate in DatabaseExtensions.DemoCandidates)
+        {
+            candidate.Experiences.Should().HaveCount(2,
+                $"candidate '{candidate.Email}' must have exactly 2 demo experiences");
+            candidate.Trainings.Should().HaveCount(1,
+                $"candidate '{candidate.Email}' must have exactly 1 demo training");
+            candidate.Experiences.Count(e => e.IsCurrent).Should().Be(1,
+                $"candidate '{candidate.Email}' must have exactly one current experience");
+        }
+    }
+
+    [Fact]
+    public void DemoCandidates_ExperienceAndTrainingFieldsRespectModelLengthConstraints()
+    {
+        foreach (var candidate in DatabaseExtensions.DemoCandidates)
+        {
+            foreach (var experience in candidate.Experiences)
+            {
+                experience.Title.Length.Should().BeLessThanOrEqualTo(100);
+                experience.Company.Length.Should().BeLessThanOrEqualTo(100);
+                experience.Location.Length.Should().BeLessThanOrEqualTo(100);
+                experience.Date.Length.Should().BeLessThanOrEqualTo(40);
+            }
+
+            foreach (var training in candidate.Trainings)
+            {
+                training.School.Length.Should().BeLessThanOrEqualTo(100);
+                training.Period.Length.Should().BeLessThanOrEqualTo(40);
+                training.Field.Length.Should().BeLessThanOrEqualTo(150);
+                training.Level.Length.Should().BeLessThanOrEqualTo(60);
+            }
+        }
+    }
+
+    [Fact]
+    public void DemoCandidates_DesiredSalaryCurrencyMatchesAddressCountry()
+    {
+        // Deliberate deviation from configurable-salary-currency.md's XOF-for-everyone backfill:
+        // XOF for candidates domiciled in Sénégal, EUR for candidates domiciled in France.
+        foreach (var candidate in DatabaseExtensions.DemoCandidates)
+        {
+            if (candidate.Address.Country == "Sénégal")
+            {
+                candidate.DesiredSalaryCurrency.Should().Be(Currency.XOF,
+                    $"candidate '{candidate.Email}' is domiciled in Sénégal");
+            }
+            else if (candidate.Address.Country == "France")
+            {
+                candidate.DesiredSalaryCurrency.Should().Be(Currency.EUR,
+                    $"candidate '{candidate.Email}' is domiciled in France");
+            }
+        }
+    }
+
+    [Fact]
+    public void DemoCandidates_ExperienceCompaniesNeverMatchAnyDemoOrganizationName()
+    {
+        // Narrative consistency (specification §Expériences et formation): a candidate must never
+        // have already worked at one of the 3 demo client organizations he/she applies to.
+        var organizationNames = DatabaseExtensions.DemoOrganizations
+            .Select(o => o.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var candidate in DatabaseExtensions.DemoCandidates)
+        {
+            foreach (var experience in candidate.Experiences)
+            {
+                organizationNames.Should().NotContain(experience.Company,
+                    $"candidate '{candidate.Email}' experience at '{experience.Company}' must not collide with a demo client organization");
+            }
+        }
+    }
+
+    [Fact]
+    public void DemoCandidates_ScalarFieldsAreNeverEmpty()
+    {
+        foreach (var candidate in DatabaseExtensions.DemoCandidates)
+        {
+            candidate.PhoneNumber.Should().NotBeNullOrWhiteSpace();
+            candidate.LinkedInProfile.Should().NotBeNullOrWhiteSpace();
+            candidate.Skills.Should().NotBeNullOrWhiteSpace();
+            candidate.YearsOfExperience.Should().BePositive();
+            candidate.DesiredSalary.Should().BePositive();
+            candidate.AvailabilityInDays.Should().BePositive();
+            candidate.Address.StreetName.Should().NotBeNullOrWhiteSpace();
+            candidate.Address.City.Should().NotBeNullOrWhiteSpace();
+            candidate.Address.PostalCode.Should().NotBeNullOrWhiteSpace();
+            candidate.Address.Country.Should().NotBeNullOrWhiteSpace();
+        }
+    }
 }
