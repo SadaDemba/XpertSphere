@@ -7,6 +7,20 @@
       </div>
     </div>
 
+    <!-- Filtre par offre d'origine -->
+    <q-banner v-if="jobOfferIdFilter" class="bg-blue-1 text-blue-10 q-mb-md">
+      <template #avatar>
+        <q-icon name="filter_alt" color="blue-10" />
+      </template>
+      <span v-if="filteredJobOfferTitle">
+        Candidatures filtrées pour l'offre « {{ filteredJobOfferTitle }} »
+      </span>
+      <span v-else>Candidatures filtrées pour une offre spécifique</span>
+      <template #action>
+        <q-btn flat label="Retirer le filtre" icon="close" @click="clearJobOfferFilter" />
+      </template>
+    </q-banner>
+
     <q-card>
       <q-card-section>
         <div class="row q-gutter-md q-mb-md">
@@ -215,10 +229,11 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import type { QTableProps } from 'quasar';
 import { date } from 'quasar';
 import { useApplicationStore } from 'src/stores/applicationStore';
+import { useJobOfferStore } from 'src/stores/jobOfferStore';
 import { useDataTable } from 'src/composables/datatable';
 import { applicationStatusConfig } from 'src/models/application';
 import type { ApplicationDto, ApplicationFilterDto } from 'src/models/application';
@@ -228,8 +243,10 @@ import ApplicationStatusUpdate from 'src/components/applications/ApplicationStat
 import ApplicationAssign from 'src/components/applications/ApplicationAssign.vue';
 import ApplicationHistory from 'src/components/applications/ApplicationHistory.vue';
 
+const route = useRoute();
 const router = useRouter();
 const applicationStore = useApplicationStore();
+const jobOfferStore = useJobOfferStore();
 const dataTable = useDataTable();
 
 const applications = computed(() => applicationStore.applications || []);
@@ -240,6 +257,11 @@ const selectedApplication = ref<ApplicationDto | null>(null);
 const showStatusDialog = ref(false);
 const showAssignDialog = ref(false);
 const showHistoryDialog = ref(false);
+
+// Filtre par offre d'origine (arrivée depuis "Voir les candidatures" sur /jobs ou /jobs/:id,
+// ou navigation directe vers /applications?jobId=<id>).
+const jobOfferIdFilter = ref<string | null>((route.query.jobId as string) ?? null);
+const filteredJobOfferTitle = ref<string | null>(null);
 
 const activeOptions = [
   { label: 'Toutes', value: null },
@@ -330,6 +352,7 @@ const onTableRequest = async (props: any) => {
     sortBy: sortBy || 'appliedAt',
     sortDesc: descending,
     organizationId: '',
+    ...(jobOfferIdFilter.value ? { jobOfferId: jobOfferIdFilter.value } : {}),
   };
 
   await applicationStore.fetchPaginatedApplications(filter);
@@ -374,7 +397,28 @@ const viewHistory = async (application: ApplicationDto) => {
   showHistoryDialog.value = true;
 };
 
+const resolveFilteredJobOfferTitle = async () => {
+  if (!jobOfferIdFilter.value) return;
+
+  try {
+    const jobOffer = await jobOfferStore.fetchJobOfferById(jobOfferIdFilter.value);
+    filteredJobOfferTitle.value = jobOffer?.title ?? null;
+  } catch {
+    // Offre supprimée entre-temps, erreur réseau… on retombe sur le libellé générique
+    // de la bannière plutôt que de bloquer l'affichage de la liste déjà filtrée côté serveur.
+    filteredJobOfferTitle.value = null;
+  }
+};
+
+const clearJobOfferFilter = () => {
+  jobOfferIdFilter.value = null;
+  filteredJobOfferTitle.value = null;
+  router.replace({ query: {} });
+  refreshData();
+};
+
 onMounted(() => {
+  void resolveFilteredJobOfferTitle();
   refreshData();
 });
 </script>

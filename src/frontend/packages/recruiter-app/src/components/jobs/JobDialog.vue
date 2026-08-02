@@ -77,7 +77,6 @@
                 outlined
                 type="number"
                 label="Salaire minimum"
-                suffix="€"
                 aria-label="Salaire minimum"
               />
             </div>
@@ -87,7 +86,6 @@
                 outlined
                 type="number"
                 label="Salaire maximum"
-                suffix="€"
                 aria-label="Salaire maximum"
               />
             </div>
