@@ -27,7 +27,8 @@ public static class SecurityExtensions
                 ConfigureTokenOptions(options);
             })
             .AddEntityFrameworkStores<XpertSphereDbContext>()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddErrorDescriber<FrenchIdentityErrorDescriber>();
 
         // Configure Authentication (JWT + Entra ID)
         services.AddMultiModeAuthentication(configuration, environment, useEntraId);

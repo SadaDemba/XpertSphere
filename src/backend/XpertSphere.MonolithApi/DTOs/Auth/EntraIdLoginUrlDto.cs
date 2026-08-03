@@ -4,7 +4,8 @@ namespace XpertSphere.MonolithApi.DTOs.Auth;
 
 public record EntraIdLoginUrlDto
 {
-    [EmailAddress] public string? Email { get; init; }
+    [EmailAddress(ErrorMessage = "Format d'email invalide")]
+    public string? Email { get; init; }
 
     public string? ReturnUrl { get; init; } = "/dashboard";
 

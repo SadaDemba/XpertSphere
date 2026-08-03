@@ -4,7 +4,10 @@ namespace XpertSphere.MonolithApi.DTOs.Auth;
 
 public record RefreshTokenDto
 {
-    [Required] [EmailAddress] public required string Email { get; init; }
+    [Required(ErrorMessage = "L'email est obligatoire")]
+    [EmailAddress(ErrorMessage = "Format d'email invalide")]
+    public required string Email { get; init; }
 
-    [Required] public required string RefreshToken { get; init; }
+    [Required(ErrorMessage = "Le jeton de rafraîchissement est obligatoire")]
+    public required string RefreshToken { get; init; }
 }

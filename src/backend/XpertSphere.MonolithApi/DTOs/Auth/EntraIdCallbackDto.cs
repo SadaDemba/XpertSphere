@@ -4,9 +4,11 @@ namespace XpertSphere.MonolithApi.DTOs.Auth;
 
 public record EntraIdCallbackDto
 {
-    [Required] public required string Code { get; init; }
+    [Required(ErrorMessage = "Le code est obligatoire")]
+    public required string Code { get; init; }
 
-    [Required] public required string State { get; init; }
+    [Required(ErrorMessage = "Le paramètre state est obligatoire")]
+    public required string State { get; init; }
 
     public string? Error { get; init; }
 

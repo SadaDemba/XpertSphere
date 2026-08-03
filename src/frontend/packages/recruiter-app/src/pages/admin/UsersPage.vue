@@ -275,10 +275,7 @@
               label="Mot de passe *"
               type="password"
               outlined
-              :rules="[
-                (val) => !!val || 'Le mot de passe est requis',
-                (val) => val.length >= 8 || 'Minimum 8 caractères',
-              ]"
+              :rules="[(val) => !!val || 'Le mot de passe est requis', ...passwordComplexityRules]"
             />
 
             <q-toggle
@@ -428,10 +425,7 @@
               label="Nouveau mot de passe *"
               type="password"
               outlined
-              :rules="[
-                (val) => !!val || 'Le mot de passe est requis',
-                (val) => val.length >= 8 || 'Minimum 8 caractères',
-              ]"
+              :rules="[(val) => !!val || 'Le mot de passe est requis', ...passwordComplexityRules]"
             />
 
             <q-input
@@ -483,6 +477,7 @@ import { authService } from '../../services/authService';
 import { useDataTable } from 'src/composables/datatable';
 import { useNotification } from 'src/composables/notification';
 import { useDialog } from 'src/composables/dialog';
+import { usePasswordComplexityRules } from 'src/composables/passwordRules';
 
 const userStore = useUserStore();
 const userRoleStore = useUserRoleStore();
@@ -492,6 +487,7 @@ const authStore = useAuthStore();
 const dataTable = useDataTable();
 const notification = useNotification();
 const dialog = useDialog();
+const passwordComplexityRules = usePasswordComplexityRules();
 
 const showCreateDialog = ref(false);
 const showUserRolesDialog = ref(false);

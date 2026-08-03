@@ -7,19 +7,28 @@ namespace XpertSphere.MonolithApi.DTOs.Auth;
 
 public record RegisterCandidateDto
 {
-    [Required] [EmailAddress] public required string Email { get; init; }
+    [Required(ErrorMessage = "L'email est obligatoire")]
+    [EmailAddress(ErrorMessage = "Format d'email invalide")]
+    public required string Email { get; init; }
 
-    [Required] [MinLength(6)] public required string Password { get; init; }
+    [Required(ErrorMessage = "Le mot de passe est obligatoire")]
+    [MinLength(6, ErrorMessage = "Le mot de passe doit contenir au moins 6 caractères")]
+    public required string Password { get; init; }
 
-    [Required]
-    [Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
+    [Required(ErrorMessage = "La confirmation du mot de passe est obligatoire")]
+    [Compare(nameof(Password), ErrorMessage = "Les mots de passe ne correspondent pas")]
     public required string ConfirmPassword { get; init; }
 
-    [Required] [MaxLength(100)] public required string FirstName { get; init; }
+    [Required(ErrorMessage = "Le prénom est obligatoire")]
+    [MaxLength(100, ErrorMessage = "Le prénom ne peut pas dépasser 100 caractères")]
+    public required string FirstName { get; init; }
 
-    [Required] [MaxLength(100)] public required string LastName { get; init; }
+    [Required(ErrorMessage = "Le nom est obligatoire")]
+    [MaxLength(100, ErrorMessage = "Le nom ne peut pas dépasser 100 caractères")]
+    public required string LastName { get; init; }
 
-    [Phone] public string? PhoneNumber { get; init; }
+    [Phone(ErrorMessage = "Format de numéro de téléphone invalide")]
+    public string? PhoneNumber { get; init; }
 
     // Address Information (matching Address model)
     public string? StreetNumber { get; init; }
@@ -49,9 +58,11 @@ public record RegisterCandidateDto
     public string TimeZone { get; init; } = "UTC";
 
     // Legal
-    [Required] public bool AcceptTerms { get; init; } = false;
+    [Required(ErrorMessage = "Vous devez accepter les conditions d'utilisation")]
+    public bool AcceptTerms { get; init; } = false;
 
-    [Required] public bool AcceptPrivacyPolicy { get; init; } = false;
+    [Required(ErrorMessage = "Vous devez accepter la politique de confidentialité")]
+    public bool AcceptPrivacyPolicy { get; init; } = false;
 
     public DateTime? ConsentGivenAt { get; init; }
 
