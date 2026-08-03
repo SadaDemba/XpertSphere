@@ -58,10 +58,8 @@ public record RegisterCandidateDto
     public string TimeZone { get; init; } = "UTC";
 
     // Legal
-    [Required(ErrorMessage = "Vous devez accepter les conditions d'utilisation")]
     public bool AcceptTerms { get; init; } = false;
 
-    [Required(ErrorMessage = "Vous devez accepter la politique de confidentialité")]
     public bool AcceptPrivacyPolicy { get; init; } = false;
 
     public DateTime? ConsentGivenAt { get; init; }
