@@ -452,16 +452,24 @@
           </div>
 
           <div class="q-mt-lg">
-            <q-checkbox
-              v-model="formData.acceptTerms"
-              label="J'accepte les conditions d'utilisation"
-              :rules="[(val: any) => val || 'Vous devez accepter les conditions']"
-            />
-            <q-checkbox
-              v-model="formData.acceptPrivacyPolicy"
-              label="J'accepte la politique de confidentialité"
-              :rules="[(val: any) => val || 'Vous devez accepter la politique']"
-            />
+            <q-checkbox v-model="formData.acceptTerms">
+              <span>
+                J'accepte les
+                <router-link to="/terms" target="_blank" rel="noopener noreferrer" @click.stop>
+                  conditions d'utilisation
+                </router-link>
+                (nouvel onglet)
+              </span>
+            </q-checkbox>
+            <q-checkbox v-model="formData.acceptPrivacyPolicy">
+              <span>
+                J'accepte la
+                <router-link to="/privacy" target="_blank" rel="noopener noreferrer" @click.stop>
+                  politique de confidentialité
+                </router-link>
+                (nouvel onglet)
+              </span>
+            </q-checkbox>
           </div>
         </div>
       </q-step>

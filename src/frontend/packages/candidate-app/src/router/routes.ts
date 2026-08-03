@@ -27,6 +27,16 @@ const routes: RouteRecordRaw[] = [
         name: 'ConfirmEmail',
       },
       {
+        path: 'terms',
+        component: () => import('pages/TermsOfServicePage.vue'),
+        name: 'Terms',
+      },
+      {
+        path: 'privacy',
+        component: () => import('pages/PrivacyPolicyPage.vue'),
+        name: 'PrivacyPolicy',
+      },
+      {
         path: 'jobs/:id',
         component: () => import('pages/JobDetailsPage.vue'),
         name: 'JobDetails',
