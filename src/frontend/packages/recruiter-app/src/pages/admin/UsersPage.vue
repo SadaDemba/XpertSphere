@@ -862,7 +862,7 @@ const assignRole = async () => {
     assignData.expiresAt = assignRoleForm.expiresAt;
   } else {
     const nextYear = new Date();
-    nextYear.setFullYear(nextYear.getFullYear() + 5);
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
     assignData.expiresAt = nextYear.toISOString().split('T')[0]!;
   }
 
