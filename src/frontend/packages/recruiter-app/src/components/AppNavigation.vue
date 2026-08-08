@@ -139,14 +139,12 @@ const filteredAdminItems = computed(() => {
   return [];
 });
 
+// Tableau de bord, Entretiens et Rapports sont volontairement retirés du menu :
+// ce sont de simples pages d'attente ("bientôt disponible"), voir
+// ux-polish-pre-demo.md point 3. Leurs routes restent enregistrées
+// (accès direct par URL toujours possible), seul le point d'entrée depuis
+// le menu disparaît.
 const navigationItems = [
-  {
-    name: 'dashboard',
-    title: 'Tableau de bord',
-    icon: 'dashboard',
-    route: '/',
-    description: 'Voir la vue d’ensemble et les statistiques du recrutement',
-  },
   {
     name: 'jobs',
     title: 'Offres d’emploi',
@@ -167,20 +165,6 @@ const navigationItems = [
     icon: 'assignment',
     route: '/applications',
     description: 'Examiner et traiter les candidatures',
-  },
-  {
-    name: 'interviews',
-    title: 'Entretiens',
-    icon: 'event',
-    route: '/interviews',
-    description: 'Planifier et gérer les entretiens',
-  },
-  {
-    name: 'reports',
-    title: 'Rapports',
-    icon: 'analytics',
-    route: '/reports',
-    description: 'Voir les analyses et rapports de recrutement',
   },
 ];
 

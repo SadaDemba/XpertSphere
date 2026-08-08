@@ -33,9 +33,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: '',
-        component: () => import('pages/DashboardPage.vue'),
-        meta: { title: 'Tableau de bord' },
-        beforeEnter: organizationRoleGuard,
+        redirect: '/jobs',
       },
       {
         path: 'jobs',
