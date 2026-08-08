@@ -461,7 +461,6 @@ const goBack = () => {
 };
 
 const viewCandidate = () => {
-  console.log('', application.value);
   if (application.value) {
     router.push(`/candidates/${application.value.candidateId}`);
   }
