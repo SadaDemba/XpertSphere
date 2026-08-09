@@ -247,6 +247,11 @@ function clearAllFilters() {
   delete localFilters.value.workMode;
   delete localFilters.value.contractType;
   delete localFilters.value.status;
+  // Emission explicite et synchrone : le watcher deep sur localFilters (flush "pre")
+  // ne propagerait update:filters qu'après ce tick, donc après le "clear" ci-dessous.
+  // Le parent (JobsPage.vue) lancerait alors sa recherche avec des filtres pas encore
+  // à jour (workMode/contractType/status). On force la mise à jour du parent avant.
+  emit('update:filters', { ...localFilters.value });
   emit('clear');
   void nextTick(() => {
     suppressFieldWatchers = false;
