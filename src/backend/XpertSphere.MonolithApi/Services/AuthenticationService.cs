@@ -659,7 +659,11 @@ public class AuthenticationService : IAuthenticationService
     /// </summary>
     private string BuildActivationLink(string email, string token)
     {
-        return $"{_frontendSettings.CandidateAppBaseUrl.TrimEnd('/')}/confirm-email" +
+        // The candidate-app runs Vue Router in HASH mode (quasar.config.ts ->
+        // vueRouterMode: 'hash'), so the route lives under "/#/confirm-email".
+        // Without the "/#/" the browser lands on the base URL and the SPA falls
+        // back to the default route (job listings), never reaching the page.
+        return $"{_frontendSettings.CandidateAppBaseUrl.TrimEnd('/')}/#/confirm-email" +
                $"?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
     }
 
