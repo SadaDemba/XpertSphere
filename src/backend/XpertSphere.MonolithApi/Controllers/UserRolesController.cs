@@ -34,7 +34,7 @@ public class UserRolesController : ControllerBase
     /// Get all users for a specific role
     /// </summary>
     [HttpGet("role/{roleId:guid}")]
-    [Authorize(Policy = "RequirePlatformRole")]
+    [Authorize(Policy = "RequirePlatformOrOrganizationAdminRole")]
     public async Task<ActionResult<IEnumerable<UserRoleDto>>> GetRoleUsers(Guid roleId)
     {
         var result = await _userRoleService.GetRoleUsersAsync(roleId);

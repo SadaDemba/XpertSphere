@@ -105,9 +105,7 @@ public class RoleService : IRoleService
     {
         try
         {
-            var role = await _context.Roles
-                .Include(r => r.UserRoles)
-                .Include(r => r.RolePermissions)
+            var role = await BuildScopedRoleDetailQuery()
                 .Where(r => r.Id == id)
                 .FirstOrDefaultAsync();
 
@@ -130,9 +128,7 @@ public class RoleService : IRoleService
     {
         try
         {
-            var role = await _context.Roles
-                .Include(r => r.UserRoles)
-                .Include(r => r.RolePermissions)
+            var role = await BuildScopedRoleDetailQuery()
                 .Where(r => r.Name == name)
                 .FirstOrDefaultAsync();
 
@@ -213,7 +209,10 @@ public class RoleService : IRoleService
 
             _logger.LogInformation("Updated role with ID {RoleId}", id);
 
-            var roleDto = _mapper.Map<RoleDto>(role);
+            var reloadedRole = await BuildScopedRoleDetailQuery()
+                .Where(r => r.Id == id)
+                .FirstOrDefaultAsync();
+            var roleDto = _mapper.Map<RoleDto>(reloadedRole ?? role);
             return ServiceResult<RoleDto>.Success(roleDto, "Rôle mis à jour avec succès");
         }
         catch (Exception ex)
@@ -354,6 +353,31 @@ public class RoleService : IRoleService
             _logger.LogError(ex, "Error checking if role can be deleted with ID {RoleId}", id);
             return ServiceResult<bool>.InternalError("Une erreur est survenue lors de la vérification de la suppressibilité du rôle");
         }
+    }
+
+    private IQueryable<Role> BuildScopedRoleDetailQuery()
+    {
+        var isAuthenticated = _currentUserService.User?.Identity?.IsAuthenticated == true;
+        var isPlatformUser = isAuthenticated &&
+            (_currentUserService.User!.IsInRole(Roles.PlatformSuperAdmin.Name) ||
+             _currentUserService.User.IsInRole(Roles.PlatformAdmin.Name));
+        var isOrgAdmin = isAuthenticated && _currentUserService.User!.IsInRole(Roles.OrganizationAdmin.Name);
+        var isManager = isAuthenticated && _currentUserService.User!.IsInRole(Roles.Manager.Name);
+
+        var shouldScopeUserRolesToOrganization =
+            (isOrgAdmin || isManager) && !isPlatformUser && _currentUserService.OrganizationId.HasValue;
+
+        return shouldScopeUserRolesToOrganization
+            ? _context.Roles
+                .AsNoTracking()
+                .Include(r => r.UserRoles.Where(ur => ur.User.OrganizationId == _currentUserService.OrganizationId!.Value))
+                .ThenInclude(ur => ur.User)
+                .Include(r => r.RolePermissions)
+            : _context.Roles
+                .AsNoTracking()
+                .Include(r => r.UserRoles)
+                .ThenInclude(ur => ur.User)
+                .Include(r => r.RolePermissions);
     }
 
     private IQueryable<Role> BuildRoleQuery(RoleFilterDto filter)

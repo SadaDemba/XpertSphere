@@ -487,6 +487,12 @@ public static class SecurityExtensions
             options.AddPolicy("RequirePlatformRole", policy =>
                 policy.RequireRole(Roles.PlatformRoles));
 
+            options.AddPolicy("RequirePlatformOrOrganizationAdminRole", policy =>
+                policy.RequireRole(
+                    Roles.PlatformSuperAdmin.Name,
+                    Roles.PlatformAdmin.Name,
+                    Roles.OrganizationAdmin.Name));
+
             options.AddPolicy("RequirePlatformSuperAdminRole", policy =>
                 policy.RequireRole(Roles.PlatformSuperAdmin.Name));
 
