@@ -106,9 +106,15 @@ services:
     container_name: xpertsphere-communication-service
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      Smtp__Host: smtp4dev
-      Smtp__Port: "25"
-      Smtp__EnableSsl: "false"
+      # SMTP defaults target the local smtp4dev catcher. Override the COMM_SMTP_*
+      # variables in the (gitignored) root .env to send through a real relay
+      # (e.g. Brevo) without editing this file.
+      Smtp__Host: ${COMM_SMTP_HOST:-smtp4dev}
+      Smtp__Port: ${COMM_SMTP_PORT:-25}
+      Smtp__EnableSsl: ${COMM_SMTP_ENABLE_SSL:-false}
+      Smtp__Username: ${COMM_SMTP_USERNAME:-}
+      Smtp__Password: ${COMM_SMTP_PASSWORD:-}
+      Smtp__From: ${COMM_SMTP_FROM:-no-reply@xpertsphere.local}
       ApiKey: ${COMMUNICATION_API_KEY}
     ports:
       - "${COMMUNICATION_API_PORT:-5051}:8080"

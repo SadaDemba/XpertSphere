@@ -127,6 +127,17 @@ hybride JWT / Microsoft Entra ID (MSAL).
   affichera donc un message générique français, pas le détail du champ en
   cause, tant que cette normalisation n'est pas ajoutée à ce package (hors
   périmètre de la spécification citée).
+- L'activation par invitation des comptes utilisateurs internes (retrait du
+  champ mot de passe du formulaire de création `UsersPage.vue`, nouvelle page
+  `/auth/accept-invitation` de définition de mot de passe avec durcissement
+  anti-scanner, ajout de cette route à la liste blanche en dur de
+  `authGuard.ts`) est pilotée par une spécification backend qui impacte
+  directement ce package : voir
+  `src/backend/XpertSphere.MonolithApi/.claude/specifications/internal-user-account-invitation.md`,
+  section « Coordination frontend — recruiter-app ». Documente au passage que
+  `authGuard.ts` n'utilise pas `route.meta.requiresAuth` mais une liste
+  blanche `publicPages` en dur — toute nouvelle route publique doit y être
+  ajoutée explicitement, y compris celle-ci.
 
 ## Commandes
 

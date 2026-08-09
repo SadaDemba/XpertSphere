@@ -6,6 +6,21 @@ import type { User } from '../models/auth';
 import { useNotification } from 'src/composables/notification';
 import { useAuthStore } from './authStore';
 
+/**
+ * Merge an updated user coming from an API response onto the existing user
+ * WITHOUT dropping the fields that update endpoints omit from their payload
+ * (skills / experiences / trainings / address). Replacing the whole user with
+ * such a partial response is what made those sections vanish until a reload.
+ */
+const mergeUserPreservingCollections = (existing: User, incoming: User): User => ({
+  ...existing,
+  ...incoming,
+  skills: incoming.skills ?? existing.skills,
+  experiences: incoming.experiences ?? existing.experiences,
+  trainings: incoming.trainings ?? existing.trainings,
+  address: incoming.address ?? existing.address,
+});
+
 export const useUserStore = defineStore('user', () => {
   // State
   const currentUser = ref<User | null>(null);
@@ -43,13 +58,14 @@ export const useUserStore = defineStore('user', () => {
       const response = await userService.updateUserSkills(userId, skillsDto);
 
       if (response?.isSuccess) {
-        // Update current user if it's the same user
+        // Update current user if it's the same user (preserve collections the
+        // update response omits, so other profile sections don't disappear).
         if (currentUser.value && currentUser.value.id === userId) {
-          currentUser.value = response.data!;
+          currentUser.value = mergeUserPreservingCollections(currentUser.value, response.data!);
         }
         // Update auth store if it's the same user
         if (authStore.user && authStore.user.id === userId) {
-          authStore.setUser(response.data!);
+          authStore.setUser(mergeUserPreservingCollections(authStore.user, response.data!));
         }
         notification.showSuccessNotification('Compétences mises à jour avec succès');
         return true;
@@ -84,13 +100,14 @@ export const useUserStore = defineStore('user', () => {
       const response = await userService.updateUserProfile(userId, profileDto);
 
       if (response?.isSuccess) {
-        // Update current user if it's the same user
+        // Update current user if it's the same user (preserve collections the
+        // update response omits, so other profile sections don't disappear).
         if (currentUser.value && currentUser.value.id === userId) {
-          currentUser.value = response.data!;
+          currentUser.value = mergeUserPreservingCollections(currentUser.value, response.data!);
         }
         // Update auth store if it's the same user
         if (authStore.user && authStore.user.id === userId) {
-          authStore.setUser(response.data!);
+          authStore.setUser(mergeUserPreservingCollections(authStore.user, response.data!));
         }
         notification.showSuccessNotification('Profil mis à jour avec succès');
         return true;

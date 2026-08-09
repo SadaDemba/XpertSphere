@@ -317,6 +317,12 @@ public static partial class DatabaseExtensions
 
             candidatesByEmail[seed.Email] = user;
 
+            // Profile enrichment (specification `enrich-seed-candidate-profiles.md`): scalar
+            // fields, address, experiences/trainings and profile completion, all "fill only if
+            // empty" so a manual edit made from candidate-app between two API restarts is never
+            // silently overwritten by this seed.
+            await EnrichDemoCandidateProfileAsync(context, user, seed);
+
             var existingUserRole = await context.UserRoles
                 .FirstOrDefaultAsync(ur => ur.UserId == user.Id && ur.RoleId == candidateRole.Id);
 
@@ -336,6 +342,163 @@ public static partial class DatabaseExtensions
         }
 
         return candidatesByEmail;
+    }
+
+    // ---------------------------------------------------------------------
+    // Step 4b: Candidate profile enrichment (scalars, address, experiences/trainings, profile
+    // completion) -- specification `enrich-seed-candidate-profiles.md`. CvPath is intentionally
+    // never read nor written here (out of scope, non-negotiable per the specification).
+    // ---------------------------------------------------------------------
+
+    private static async Task EnrichDemoCandidateProfileAsync(
+        XpertSphereDbContext context,
+        User user,
+        DemoCandidateSeed seed)
+    {
+        // Loaded explicitly against the database (not `user.Experiences`/`user.Trainings`, which
+        // userManager.FindByEmailAsync never populates): needed both to decide whether to seed
+        // new entries below (no natural uniqueness key on Experience/Training, "all or nothing"
+        // per candidate) and because CalculateProfileCompletion() further down reads the
+        // in-memory navigation collections directly, never the database itself.
+        var existingExperiences = await context.Experiences
+            .Where(e => e.UserId == user.Id)
+            .ToListAsync();
+        var existingTrainings = await context.Trainings
+            .Where(t => t.UserId == user.Id)
+            .ToListAsync();
+
+        // Scalar fields: "fill only if empty" -- never overwrite a value already set by this
+        // seed on a previous boot, or edited afterward by the user via candidate-app
+        // (EditProfileDialog.vue). See specification §Décision de conception centrale.
+        if (string.IsNullOrEmpty(user.PhoneNumber))
+        {
+            user.PhoneNumber = seed.PhoneNumber;
+        }
+
+        if (string.IsNullOrEmpty(user.LinkedInProfile))
+        {
+            user.LinkedInProfile = seed.LinkedInProfile;
+        }
+
+        if (string.IsNullOrEmpty(user.Skills))
+        {
+            user.Skills = seed.Skills;
+        }
+
+        if (!user.YearsOfExperience.HasValue)
+        {
+            user.YearsOfExperience = seed.YearsOfExperience;
+        }
+
+        // Single guard on DesiredSalary only, deliberately never a separate guard on
+        // DesiredSalaryCurrency: `configurable-salary-currency.md` already backfilled
+        // DesiredSalaryCurrency = XOF for every pre-existing candidate without ever touching
+        // DesiredSalary. A guard on DesiredSalaryCurrency alone would leave that backfilled XOF
+        // in place for Léa Dupont/Maxime Renard and never let it become EUR here. See
+        // specification, "Cas particulier DesiredSalary/DesiredSalaryCurrency".
+        if (!user.DesiredSalary.HasValue)
+        {
+            user.DesiredSalary = seed.DesiredSalary;
+            user.DesiredSalaryCurrency = seed.DesiredSalaryCurrency;
+        }
+
+        // Figée au premier renseignement: computed from "now" only the first time the field is
+        // set, never recalculated on subsequent boots.
+        if (!user.Availability.HasValue)
+        {
+            user.Availability = DateTime.UtcNow.AddDays(seed.AvailabilityInDays);
+        }
+
+        if (user.Address.IsEmpty)
+        {
+            user.Address = new Address
+            {
+                StreetNumber = seed.Address.StreetNumber,
+                StreetName = seed.Address.StreetName,
+                City = seed.Address.City,
+                PostalCode = seed.Address.PostalCode,
+                Country = seed.Address.Country
+            };
+        }
+
+        // Experiences/Trainings: "all or nothing" per candidate -- add the full demo set only if
+        // the candidate has no existing row at all, never a partial complement/duplicate. New
+        // entities are added both to `context.Experiences`/`context.Trainings` and to the
+        // `user.Experiences`/`user.Trainings` navigation collection (same tracked instance in
+        // both places, so still a single insert): CalculateProfileCompletion() below only reads
+        // the in-memory navigation collection, never the database.
+        if (existingExperiences.Count == 0)
+        {
+            foreach (var experienceSeed in seed.Experiences)
+            {
+                var experience = new Experience
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    Title = experienceSeed.Title,
+                    Company = experienceSeed.Company,
+                    Location = experienceSeed.Location,
+                    Date = experienceSeed.Date,
+                    IsCurrent = experienceSeed.IsCurrent,
+                    Description = experienceSeed.Description,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                context.Experiences.Add(experience);
+                user.Experiences.Add(experience);
+            }
+
+            Console.WriteLine($"Demo experiences seeded for candidate '{user.Email}'");
+        }
+        else
+        {
+            foreach (var experience in existingExperiences)
+            {
+                if (!user.Experiences.Contains(experience))
+                {
+                    user.Experiences.Add(experience);
+                }
+            }
+        }
+
+        if (existingTrainings.Count == 0)
+        {
+            foreach (var trainingSeed in seed.Trainings)
+            {
+                var training = new Training
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    School = trainingSeed.School,
+                    Field = trainingSeed.Field,
+                    Level = trainingSeed.Level,
+                    Period = trainingSeed.Period,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                context.Trainings.Add(training);
+                user.Trainings.Add(training);
+            }
+
+            Console.WriteLine($"Demo training seeded for candidate '{user.Email}'");
+        }
+        else
+        {
+            foreach (var training in existingTrainings)
+            {
+                if (!user.Trainings.Contains(training))
+                {
+                    user.Trainings.Add(training);
+                }
+            }
+        }
+
+        // Not persisted via an explicit userManager.UpdateAsync/context.Update call: `user` is
+        // already tracked by the same DbContext instance as `userManager` (both resolved from
+        // the same scope, Identity registered via AddEntityFrameworkStores<XpertSphereDbContext>),
+        // whether it was just created via CreateAsync or retrieved via FindByEmailAsync. The
+        // trailing context.SaveChangesAsync() in SeedDatabaseAsync flushes all of the above.
+        user.CalculateProfileCompletion();
     }
 
     // ---------------------------------------------------------------------
@@ -714,14 +877,176 @@ public static partial class DatabaseExtensions
     // Data: Candidates (4 total, not tied to any single organization)
     // ---------------------------------------------------------------------
 
-    internal sealed record DemoCandidateSeed(string FirstName, string LastName, string Email);
+    internal sealed record DemoCandidateAddressSeed(
+        string StreetNumber,
+        string StreetName,
+        string City,
+        string PostalCode,
+        string Country);
+
+    internal sealed record DemoCandidateExperienceSeed(
+        string Title,
+        string Company,
+        string Location,
+        string Date,
+        bool IsCurrent,
+        string Description);
+
+    internal sealed record DemoCandidateTrainingSeed(
+        string School,
+        string Field,
+        string Level,
+        string Period);
+
+    internal sealed record DemoCandidateSeed(
+        string FirstName,
+        string LastName,
+        string Email,
+        string PhoneNumber,
+        string LinkedInProfile,
+        string Skills,
+        int YearsOfExperience,
+        decimal DesiredSalary,
+        Currency DesiredSalaryCurrency,
+        // Number of days added to DateTime.UtcNow the first time Availability is set on this
+        // candidate. Deliberately not a precomputed DateTime in this static array: keeping
+        // ambient time out of the static initializer keeps DatabaseExtensionsDemoDataTests (pure
+        // dataset invariant assertions on this very array) independent of "now".
+        int AvailabilityInDays,
+        DemoCandidateAddressSeed Address,
+        DemoCandidateExperienceSeed[] Experiences,
+        DemoCandidateTrainingSeed[] Trainings);
 
     internal static readonly DemoCandidateSeed[] DemoCandidates =
     [
-        new DemoCandidateSeed("Aïssatou", "Ba", "aissatou.ba@candidat-demo.fr"),
-        new DemoCandidateSeed("Ousmane", "Kane", "ousmane.kane@candidat-demo.fr"),
-        new DemoCandidateSeed("Léa", "Dupont", "lea.dupont@candidat-demo.fr"),
-        new DemoCandidateSeed("Maxime", "Renard", "maxime.renard@candidat-demo.fr")
+        new DemoCandidateSeed(
+            "Aïssatou", "Ba", "aissatou.ba@candidat-demo.fr",
+            "+221771234501",
+            "https://www.linkedin.com/in/aissatou-ba-demo",
+            "Analyse financière, Relation client, Excel, Power BI, Anglais professionnel",
+            5,
+            6500000m, Currency.XOF,
+            30,
+            new DemoCandidateAddressSeed("15", "Rue de Fann", "Dakar", "10700", "Sénégal"),
+            [
+                new DemoCandidateExperienceSeed(
+                    "Chargée de clientèle particuliers",
+                    "Banque Atlantique Sénégal",
+                    "Dakar",
+                    "09/2019 - 08/2022",
+                    false,
+                    "Conseil et accompagnement d'une clientèle de particuliers dans leurs projets de crédit et d'épargne. Analyse des dossiers de financement, présentation des offres bancaires et suivi de la relation client sur un portefeuille de plus de 300 clients."),
+                new DemoCandidateExperienceSeed(
+                    "Analyste crédit junior",
+                    "Société Générale Sénégal",
+                    "Dakar",
+                    "09/2022 - Présent",
+                    true,
+                    "Étude et instruction des dossiers de crédit à la consommation et immobilier, évaluation du risque client et rédaction des recommandations de financement pour le comité de crédit.")
+            ],
+            [
+                new DemoCandidateTrainingSeed(
+                    "Université Cheikh Anta Diop de Dakar (UCAD)",
+                    "Finance et Contrôle de Gestion",
+                    "Master / Bac+5",
+                    "09/2015 - 06/2019")
+            ]),
+        new DemoCandidateSeed(
+            "Ousmane", "Kane", "ousmane.kane@candidat-demo.fr",
+            "+221771234502",
+            "https://www.linkedin.com/in/ousmane-kane-demo",
+            "C#, .NET, Power Apps, Power Automate, SQL Server, JavaScript",
+            4,
+            6800000m, Currency.XOF,
+            15,
+            new DemoCandidateAddressSeed("7", "Avenue Cheikh Anta Diop", "Dakar", "10700", "Sénégal"),
+            [
+                new DemoCandidateExperienceSeed(
+                    "Développeur back-end .NET",
+                    "Sonatel",
+                    "Dakar",
+                    "10/2020 - 12/2022",
+                    false,
+                    "Développement et maintenance d'API internes en C#/.NET pour les systèmes de facturation. Participation aux revues de code et à la mise en place de tests unitaires automatisés."),
+                new DemoCandidateExperienceSeed(
+                    "Développeur Power Platform freelance",
+                    "Indépendant",
+                    "Dakar",
+                    "01/2023 - Présent",
+                    true,
+                    "Conception d'applications métier avec Power Apps et automatisation de processus avec Power Automate pour des PME locales, de la prise de besoin jusqu'à la mise en production.")
+            ],
+            [
+                new DemoCandidateTrainingSeed(
+                    "École Supérieure Polytechnique de Dakar (ESP)",
+                    "Génie Logiciel",
+                    "Ingénieur / Bac+5",
+                    "09/2016 - 07/2020")
+            ]),
+        new DemoCandidateSeed(
+            "Léa", "Dupont", "lea.dupont@candidat-demo.fr",
+            "+33612345601",
+            "https://www.linkedin.com/in/lea-dupont-demo",
+            "Management d'équipe, Gestion de projet, Transformation digitale, Prince2, Excel",
+            8,
+            48000m, Currency.EUR,
+            45,
+            new DemoCandidateAddressSeed("23", "Rue de la République", "Lyon", "69002", "France"),
+            [
+                new DemoCandidateExperienceSeed(
+                    "Responsable d'agence bancaire",
+                    "Société Générale",
+                    "Nantes",
+                    "03/2016 - 05/2021",
+                    false,
+                    "Management d'une équipe de 6 conseillers, pilotage de l'activité commerciale de l'agence et développement du portefeuille clients particuliers et professionnels."),
+                new DemoCandidateExperienceSeed(
+                    "Cheffe de projet transformation digitale",
+                    "Sopra Steria",
+                    "Lyon",
+                    "06/2021 - Présent",
+                    true,
+                    "Pilotage de projets de transformation digitale pour des clients du secteur bancaire : cadrage, coordination des équipes techniques et fonctionnelles, suivi budgétaire et accompagnement du changement.")
+            ],
+            [
+                new DemoCandidateTrainingSeed(
+                    "Audencia Business School",
+                    "Management et Stratégie d'Entreprise",
+                    "Master / Bac+5",
+                    "09/2011 - 06/2016")
+            ]),
+        new DemoCandidateSeed(
+            "Maxime", "Renard", "maxime.renard@candidat-demo.fr",
+            "+33612345602",
+            "https://www.linkedin.com/in/maxime-renard-demo",
+            "Assurance, Gestion de patrimoine, Power BI, Excel avancé, Relation client",
+            6,
+            42000m, Currency.EUR,
+            20,
+            new DemoCandidateAddressSeed("5", "La Canebière", "Marseille", "13001", "France"),
+            [
+                new DemoCandidateExperienceSeed(
+                    "Courtier en assurance",
+                    "AXA France",
+                    "Lyon",
+                    "09/2017 - 08/2021",
+                    false,
+                    "Développement d'un portefeuille de clients particuliers et professionnels, conseil en assurance habitation, auto et santé, et négociation des contrats auprès des compagnies partenaires."),
+                new DemoCandidateExperienceSeed(
+                    "Consultant en gestion de patrimoine",
+                    "Groupe Premium Courtage",
+                    "Marseille",
+                    "09/2021 - Présent",
+                    true,
+                    "Réalisation de bilans patrimoniaux complets et proposition de stratégies d'investissement adaptées aux objectifs des clients (assurance-vie, immobilier, défiscalisation).")
+            ],
+            [
+                new DemoCandidateTrainingSeed(
+                    "Université Paris-Dauphine",
+                    "Gestion de Patrimoine et Finance",
+                    "Master / Bac+5",
+                    "09/2013 - 06/2017")
+            ])
     ];
 
     // ---------------------------------------------------------------------

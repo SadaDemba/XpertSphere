@@ -530,11 +530,13 @@ import { useQuasar } from 'quasar';
 import { useAuthStore } from '../stores/authStore';
 import { useApplicationStore } from '../stores/applicationStore';
 import { useExperienceStore } from '../stores/experienceStore';
+import { useTrainingStore } from '../stores/trainingStore';
 import { useUserStore } from '../stores/userStore';
 import { ApplicationStatus, Currency } from '../enums';
 import { formatDateWithoutTime } from 'src/helpers/DateHelper';
 import type { Experience, Training, User } from '../models/auth';
 import type { CreateExperienceDto } from '../models/experience';
+import type { CreateTrainingDto } from '../models/training';
 import { useNotification } from 'src/composables/notification';
 import EditProfileDialog from '../components/EditProfileDialog.vue';
 import { userService } from '../services/userService';
@@ -544,6 +546,7 @@ const $q = useQuasar();
 const authStore = useAuthStore();
 const applicationStore = useApplicationStore();
 const experienceStore = useExperienceStore();
+const trainingStore = useTrainingStore();
 const userStore = useUserStore();
 const notification = useNotification();
 const user = computed(() => authStore.user);
@@ -802,13 +805,22 @@ const removeTraining = (index: number) => {
 const saveTrainings = async () => {
   if (!user.value?.id) return;
 
-  // For now, we'll need to create a training service similar to experience service
-  // Since it's not implemented yet, we'll just update locally
-  if (user.value) {
-    user.value.trainings = editableTrainings.value;
+  const trainingDtos: CreateTrainingDto[] = editableTrainings.value.map((training) => ({
+    userId: user.value!.id,
+    school: training.school,
+    level: training.level,
+    period: training.period,
+    field: training.field,
+  }));
+
+  const success = await trainingStore.replaceUserTrainings(user.value.id, trainingDtos);
+  if (success) {
+    // Update user trainings in auth store
+    if (user.value) {
+      user.value.trainings = editableTrainings.value;
+    }
+    isEditingTrainings.value = false;
   }
-  isEditingTrainings.value = false;
-  notification.showSuccessNotification('Formations mises à jour avec succès');
 };
 
 // Skills editing methods
@@ -824,14 +836,6 @@ const cancelEditingSkills = () => {
 
 const saveSkills = async () => {
   if (!user.value?.id) return;
-
-  // Show confirmation dialog
-  const confirmed = await notification.showConfirmDialog(
-    'Confirmer la modification',
-    'Êtes-vous sûr de vouloir modifier vos compétences ?',
-  );
-
-  if (!confirmed) return;
 
   const success = await userStore.updateUserSkills(user.value.id, {
     skills: editableSkills.value,

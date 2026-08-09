@@ -11,7 +11,7 @@ Stack technique en bref : .NET 9, ASP.NET Core Web API (`Microsoft.NET.Sdk.Web`)
 ## Documentation
 
 - Architecture, structure détaillée, conventions de code et points d'attention *à charger que si nécessaire (lazy-loading)* : voir [`.claude/docs/architecture.md`](.claude/docs/architecture.md). 
-- Spécifications fonctionnelles *à charger que si nécessaire (lazy-loading)* (une par fonctionnalité) : voir [`.claude/specifications/`](.claude/specifications/). Actuellement : `email-sending-foundation.md` (ticket A du système d'envoi de mail générique — envoi d'email templatisé synchrone, service rendu réellement exécutable, catcher SMTP local en Development, Brevo en Staging).
+- Spécifications fonctionnelles *à charger que si nécessaire (lazy-loading)* (une par fonctionnalité) : voir [`.claude/specifications/`](.claude/specifications/). Actuellement : `email-sending-foundation.md` (ticket A du système d'envoi de mail générique — envoi d'email templatisé synchrone, service rendu réellement exécutable, catcher SMTP local en Development, Brevo en Staging). Une spécification pilotée côté `XpertSphere.MonolithApi` impacte aussi directement ce service : `src/backend/XpertSphere.MonolithApi/.claude/specifications/internal-user-account-invitation.md`, section « Coordination CommunicationService » — nouveau `TemplateType.AccountInvitation` et son entrée dans le dictionnaire statique de `Services/TemplateService.cs` (email d'invitation des comptes internes, à la différence du ticket A qui n'avait nécessité aucun changement ici).
 
 ## Commandes de build / run / test
 

@@ -490,6 +490,244 @@ public class RoleServiceTests : IDisposable
         roleDto.UsersCount.Should().Be(0);
     }
 
+    [Fact]
+    public async Task GetRoleByIdAsync_AsOrganizationAdmin_ShouldScopeUsersCountToOrganization()
+    {
+        // Arrange
+        var organizationAId = Guid.NewGuid();
+        var organizationBId = Guid.NewGuid();
+
+        var role = new Role
+        {
+            Id = Guid.NewGuid(),
+            Name = "Organization.Recruiter",
+            DisplayName = "Recruiter",
+            IsActive = true
+        };
+
+        var userInOrgA = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-detail-a@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgA",
+            IsActive = true,
+            OrganizationId = organizationAId
+        };
+
+        var userInOrgB = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-detail-b@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgB",
+            IsActive = true,
+            OrganizationId = organizationBId
+        };
+
+        _context.Roles.Add(role);
+        _context.Users.AddRange(userInOrgA, userInOrgB);
+        _context.UserRoles.AddRange(
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgA.Id, RoleId = role.Id, IsActive = true },
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgB.Id, RoleId = role.Id, IsActive = true }
+        );
+        await _context.SaveChangesAsync();
+
+        _mockCurrentUserService.Setup(x => x.User)
+            .Returns(CreateClaimsPrincipal(Roles.OrganizationAdmin.Name));
+        _mockCurrentUserService.Setup(x => x.OrganizationId).Returns(organizationAId);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var roleService = CreateRoleService(mapper);
+
+        // Act
+        var result = await roleService.GetRoleByIdAsync(role.Id);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.UsersCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetRoleByIdAsync_AsPlatformAdmin_ShouldCountAllOrganizations()
+    {
+        // Arrange
+        var organizationAId = Guid.NewGuid();
+        var organizationBId = Guid.NewGuid();
+
+        var role = new Role
+        {
+            Id = Guid.NewGuid(),
+            Name = "Organization.Recruiter",
+            DisplayName = "Recruiter",
+            IsActive = true
+        };
+
+        var userInOrgA = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-detail-a2@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgA",
+            IsActive = true,
+            OrganizationId = organizationAId
+        };
+
+        var userInOrgB = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-detail-b2@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgB",
+            IsActive = true,
+            OrganizationId = organizationBId
+        };
+
+        _context.Roles.Add(role);
+        _context.Users.AddRange(userInOrgA, userInOrgB);
+        _context.UserRoles.AddRange(
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgA.Id, RoleId = role.Id, IsActive = true },
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgB.Id, RoleId = role.Id, IsActive = true }
+        );
+        await _context.SaveChangesAsync();
+
+        _mockCurrentUserService.Setup(x => x.User)
+            .Returns(CreateClaimsPrincipal(Roles.PlatformAdmin.Name));
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var roleService = CreateRoleService(mapper);
+
+        // Act
+        var result = await roleService.GetRoleByIdAsync(role.Id);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.UsersCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task GetRoleByNameAsync_AsOrganizationAdmin_ShouldScopeUsersCountToOrganization()
+    {
+        // Arrange
+        var organizationAId = Guid.NewGuid();
+        var organizationBId = Guid.NewGuid();
+
+        var role = new Role
+        {
+            Id = Guid.NewGuid(),
+            Name = "Organization.RecruiterByName",
+            DisplayName = "Recruiter",
+            IsActive = true
+        };
+
+        var userInOrgA = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-detail-name-a@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgA",
+            IsActive = true,
+            OrganizationId = organizationAId
+        };
+
+        var userInOrgB = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "recruiter-detail-name-b@example.com",
+            FirstName = "Recruiter",
+            LastName = "OrgB",
+            IsActive = true,
+            OrganizationId = organizationBId
+        };
+
+        _context.Roles.Add(role);
+        _context.Users.AddRange(userInOrgA, userInOrgB);
+        _context.UserRoles.AddRange(
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgA.Id, RoleId = role.Id, IsActive = true },
+            new UserRole { Id = Guid.NewGuid(), UserId = userInOrgB.Id, RoleId = role.Id, IsActive = true }
+        );
+        await _context.SaveChangesAsync();
+
+        _mockCurrentUserService.Setup(x => x.User)
+            .Returns(CreateClaimsPrincipal(Roles.OrganizationAdmin.Name));
+        _mockCurrentUserService.Setup(x => x.OrganizationId).Returns(organizationAId);
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var roleService = CreateRoleService(mapper);
+
+        // Act
+        var result = await roleService.GetRoleByNameAsync("Organization.RecruiterByName");
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.UsersCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task UpdateRoleAsync_WithExistingActiveUsers_ShouldReturnRealUsersCount()
+    {
+        // Arrange
+        var roleId = Guid.NewGuid();
+        var role = new Role
+        {
+            Id = roleId,
+            Name = "RoleWithUsers",
+            DisplayName = "Role With Users",
+            IsActive = true
+        };
+
+        var user1 = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "update-role-user-1@example.com",
+            FirstName = "User",
+            LastName = "One",
+            IsActive = true
+        };
+
+        var user2 = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "update-role-user-2@example.com",
+            FirstName = "User",
+            LastName = "Two",
+            IsActive = true
+        };
+
+        _context.Roles.Add(role);
+        _context.Users.AddRange(user1, user2);
+        _context.UserRoles.AddRange(
+            new UserRole { Id = Guid.NewGuid(), UserId = user1.Id, RoleId = roleId, IsActive = true },
+            new UserRole { Id = Guid.NewGuid(), UserId = user2.Id, RoleId = roleId, IsActive = true }
+        );
+        await _context.SaveChangesAsync();
+
+        var updateRoleDto = new UpdateRoleDto
+        {
+            DisplayName = "Role With Users Updated",
+            IsActive = true
+        };
+
+        _mockUpdateRoleValidator.Setup(x => x.ValidateAsync(updateRoleDto, default))
+            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+        // Endpoint réservé à un PlatformSuperAdmin en pratique (policy `RequirePlatformSuperAdminRole`),
+        // donc pas de scoping applicable ; comportement identique quel que soit le rôle de l'appelant.
+        _mockCurrentUserService.Setup(x => x.User)
+            .Returns(CreateClaimsPrincipal(Roles.PlatformSuperAdmin.Name));
+
+        var mapper = AutoMapperHelper.CreateMapper();
+        var roleService = CreateRoleService(mapper);
+
+        // Act
+        var result = await roleService.UpdateRoleAsync(roleId, updateRoleDto);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.UsersCount.Should().Be(2);
+        result.Data.DisplayName.Should().Be("Role With Users Updated");
+    }
+
     private static ClaimsPrincipal CreateClaimsPrincipal(string roleName)
     {
         var identity = new ClaimsIdentity(
