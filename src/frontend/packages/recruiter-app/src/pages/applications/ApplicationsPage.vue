@@ -66,6 +66,17 @@
           <q-btn flat icon="refresh" :loading="applicationStore.isLoading" @click="refreshData" />
         </div>
 
+        <q-banner v-if="applicationStore.hasError" class="bg-negative text-white q-mb-md">
+          <template #avatar>
+            <q-icon name="error" />
+          </template>
+          {{ applicationStore.errorMessage }}
+          <template #action>
+            <q-btn flat label="Réessayer" @click="refreshData" />
+            <q-btn flat icon="close" @click="applicationStore.clearError" />
+          </template>
+        </q-banner>
+
         <q-table
           v-model:pagination="pagination"
           :rows="applications"

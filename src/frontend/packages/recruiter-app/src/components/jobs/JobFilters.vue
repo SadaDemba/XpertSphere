@@ -10,7 +10,7 @@
             clearable
             aria-label="Rechercher parmi les offres d'emploi"
             class="search-input"
-            @keydown.enter="emitSearch"
+            @keydown.enter="handleSearchFieldEnter"
           >
             <template #prepend>
               <q-icon name="search" color="grey-7" />
@@ -37,7 +37,7 @@
             clearable
             aria-label="Filtrer par localisation"
             class="filter-input"
-            @keydown.enter="emitSearch"
+            @keydown.enter="handleSearchFieldEnter"
           >
             <template #prepend>
               <q-icon name="place" size="sm" color="grey-7" />
@@ -123,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
+import { ref, watch, nextTick, onBeforeUnmount } from 'vue';
 import type { JobOfferFilter } from '../../models/job';
 import { WorkMode, ContractType } from '../../enums';
 import { JobOfferStatus, getJobOfferStatusName } from '../../enums';
@@ -170,18 +170,65 @@ watch(
   { deep: true },
 );
 
-watch(
-  () => localFilters.value.title,
-  async (newTitle) => {
-    if (newTitle && newTitle.length >= 3) {
-      await nextTick();
-      emitSearch();
-    } else if (!newTitle || newTitle.length === 0) {
-      await nextTick();
-      emitSearch();
-    }
-  },
-);
+// Debounce local (400ms) partagé par les champs "Titre" et "Localisation" :
+// aucune dépendance de debounce n'est disponible dans ce package pour un
+// q-input texte libre (voir spec ux-polish-pre-demo.md, point 2).
+const SEARCH_DEBOUNCE_MS = 400;
+const SEARCH_MIN_LENGTH = 3;
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+// Le clic sur "Effacer tous les filtres" vide title/location directement (au lieu
+// de passer par une saisie utilisateur) : sans ce garde, les watchers ci-dessous
+// déclencheraient chacun leur propre recherche immédiate, en plus de celle déjà
+// émise par clearAllFilters (double/triple appel réseau redondant).
+let suppressFieldWatchers = false;
+
+function clearSearchDebounce() {
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = null;
+  }
+}
+
+async function triggerImmediateSearch() {
+  clearSearchDebounce();
+  await nextTick();
+  emitSearch();
+}
+
+function scheduleDebouncedSearch() {
+  clearSearchDebounce();
+  searchDebounceTimer = setTimeout(() => {
+    searchDebounceTimer = null;
+    emitSearch();
+  }, SEARCH_DEBOUNCE_MS);
+}
+
+function handleSearchFieldChange(newValue: string | null | undefined) {
+  if (suppressFieldWatchers) return;
+
+  const length = newValue?.length ?? 0;
+  if (length === 0) {
+    void triggerImmediateSearch();
+  } else if (length >= SEARCH_MIN_LENGTH) {
+    scheduleDebouncedSearch();
+  } else {
+    // 1 ou 2 caractères : pas de recherche automatique, on annule un
+    // debounce précédemment programmé pour ne pas déclencher un appel
+    // réseau avec une valeur désormais obsolète.
+    clearSearchDebounce();
+  }
+}
+
+function handleSearchFieldEnter() {
+  void triggerImmediateSearch();
+}
+
+watch(() => localFilters.value.title, handleSearchFieldChange);
+watch(() => localFilters.value.location, handleSearchFieldChange);
+
+onBeforeUnmount(() => {
+  clearSearchDebounce();
+});
 
 function emitSearch() {
   emit('search');
@@ -193,12 +240,22 @@ async function handleFilterChange() {
 }
 
 function clearAllFilters() {
+  suppressFieldWatchers = true;
+  clearSearchDebounce();
   localFilters.value.title = '';
   localFilters.value.location = '';
   delete localFilters.value.workMode;
   delete localFilters.value.contractType;
   delete localFilters.value.status;
+  // Emission explicite et synchrone : le watcher deep sur localFilters (flush "pre")
+  // ne propagerait update:filters qu'après ce tick, donc après le "clear" ci-dessous.
+  // Le parent (JobsPage.vue) lancerait alors sa recherche avec des filtres pas encore
+  // à jour (workMode/contractType/status). On force la mise à jour du parent avant.
+  emit('update:filters', { ...localFilters.value });
   emit('clear');
+  void nextTick(() => {
+    suppressFieldWatchers = false;
+  });
 }
 </script>
 

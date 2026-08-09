@@ -50,7 +50,7 @@ interface Props {
   modelValue: boolean;
   candidateId: string;
   candidateName: string;
-  cvUrl?: string;
+  cvUrl?: string | undefined;
 }
 
 const props = defineProps<Props>();

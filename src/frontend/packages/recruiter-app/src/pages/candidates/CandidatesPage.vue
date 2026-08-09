@@ -120,18 +120,6 @@
             </q-td>
           </template>
         </q-table>
-
-        <!-- Pagination -->
-        <div v-if="userStore.totalPages > 1" class="row justify-center q-mt-md">
-          <q-pagination
-            v-model="pagination.page"
-            :max="userStore.totalPages || 1"
-            :max-pages="6"
-            direction-links
-            :boundary-numbers="false"
-            @update:model-value="onPageChange"
-          />
-        </div>
       </q-card-section>
     </q-card>
   </q-page>
@@ -296,11 +284,6 @@ function onSearch() {
 }
 
 function refreshData() {
-  loadCandidates();
-}
-
-function onPageChange(newPage: number) {
-  pagination.value.page = newPage;
   loadCandidates();
 }
 
