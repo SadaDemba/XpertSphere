@@ -7,18 +7,18 @@ import { useNotification } from 'src/composables/notification';
 import { useAuthStore } from './authStore';
 
 /**
- * Merge an updated user coming from an API response onto the existing user
- * WITHOUT dropping the fields that update endpoints omit from their payload
- * (skills / experiences / trainings / address). Replacing the whole user with
- * such a partial response is what made those sections vanish until a reload.
+ * Merge a profile-update response onto the existing user while FORCE-KEEPING the
+ * collections it does not reliably return. These endpoints can send back empty
+ * arrays (not just null/undefined) for experiences/trainings and an empty string
+ * for skills, so a nullish fallback (`??`) is NOT enough — the sections would
+ * still be wiped. Scalar fields and address come from the response.
  */
-const mergeUserPreservingCollections = (existing: User, incoming: User): User => ({
+const preserveUserCollections = (existing: User, incoming: User): User => ({
   ...existing,
   ...incoming,
-  skills: incoming.skills ?? existing.skills,
-  experiences: incoming.experiences ?? existing.experiences,
-  trainings: incoming.trainings ?? existing.trainings,
-  address: incoming.address ?? existing.address,
+  skills: existing.skills,
+  experiences: existing.experiences,
+  trainings: existing.trainings,
 });
 
 export const useUserStore = defineStore('user', () => {
@@ -58,14 +58,15 @@ export const useUserStore = defineStore('user', () => {
       const response = await userService.updateUserSkills(userId, skillsDto);
 
       if (response?.isSuccess) {
-        // Update current user if it's the same user (preserve collections the
-        // update response omits, so other profile sections don't disappear).
+        // A skills update only changes skills — patch that single field and keep
+        // everything else from the in-memory user. The update response does NOT
+        // reliably return experiences/trainings/address, so trusting it would
+        // wipe those sections until a reload.
         if (currentUser.value && currentUser.value.id === userId) {
-          currentUser.value = mergeUserPreservingCollections(currentUser.value, response.data!);
+          currentUser.value = { ...currentUser.value, skills: skillsDto.skills };
         }
-        // Update auth store if it's the same user
         if (authStore.user && authStore.user.id === userId) {
-          authStore.setUser(mergeUserPreservingCollections(authStore.user, response.data!));
+          authStore.setUser({ ...authStore.user, skills: skillsDto.skills });
         }
         notification.showSuccessNotification('Compétences mises à jour avec succès');
         return true;
@@ -100,14 +101,14 @@ export const useUserStore = defineStore('user', () => {
       const response = await userService.updateUserProfile(userId, profileDto);
 
       if (response?.isSuccess) {
-        // Update current user if it's the same user (preserve collections the
-        // update response omits, so other profile sections don't disappear).
+        // Keep experiences/trainings/skills (the profile-update response does not
+        // reliably return them, and may send empty arrays); scalar fields and
+        // address come from the response.
         if (currentUser.value && currentUser.value.id === userId) {
-          currentUser.value = mergeUserPreservingCollections(currentUser.value, response.data!);
+          currentUser.value = preserveUserCollections(currentUser.value, response.data!);
         }
-        // Update auth store if it's the same user
         if (authStore.user && authStore.user.id === userId) {
-          authStore.setUser(mergeUserPreservingCollections(authStore.user, response.data!));
+          authStore.setUser(preserveUserCollections(authStore.user, response.data!));
         }
         notification.showSuccessNotification('Profil mis à jour avec succès');
         return true;
