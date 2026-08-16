@@ -137,6 +137,7 @@ import { useUserStore } from 'src/stores/userStore';
 import { useAuthStore } from 'src/stores/authStore';
 import type { ApplicationDto, AssignUserDto } from 'src/models/application';
 import type { UserFilterDto } from 'src/models/user';
+import { AssignmentType } from 'src/enums';
 
 interface Props {
   modelValue: boolean;
@@ -231,6 +232,7 @@ const assignManager = async () => {
     const assignDto: AssignUserDto = {
       applicationId: props.application.id,
       userId: selectedManager.value,
+      assignmentType: AssignmentType.Manager,
     };
 
     const result = await applicationStore.assignUser(assignDto);
@@ -253,6 +255,7 @@ const assignEvaluator = async () => {
     const assignDto: AssignUserDto = {
       applicationId: props.application.id,
       userId: selectedEvaluator.value,
+      assignmentType: AssignmentType.TechnicalEvaluator,
     };
 
     const result = await applicationStore.assignUser(assignDto);
@@ -274,6 +277,7 @@ const unassignManager = async () => {
     const unassignDto: AssignUserDto = {
       applicationId: props.application.id,
       userId: props.application.assignedManagerId,
+      assignmentType: AssignmentType.Manager,
     };
 
     const result = await applicationStore.unassignUser(unassignDto);
@@ -292,6 +296,7 @@ const unassignEvaluator = async () => {
     const unassignDto: AssignUserDto = {
       applicationId: props.application.id,
       userId: props.application.assignedTechnicalEvaluatorId,
+      assignmentType: AssignmentType.TechnicalEvaluator,
     };
 
     const result = await applicationStore.unassignUser(unassignDto);

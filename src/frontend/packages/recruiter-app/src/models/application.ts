@@ -1,4 +1,4 @@
-import { ApplicationStatus, ApplicationSource } from '../enums';
+import { ApplicationStatus, ApplicationSource, AssignmentType } from '../enums';
 
 export interface Application {
   id: string;
@@ -178,6 +178,7 @@ export interface ApplicationFilterDto {
 export interface AssignUserDto {
   applicationId: string;
   userId: string;
+  assignmentType: AssignmentType;
 }
 
 export interface ApplicationStatusHistoryDto {
