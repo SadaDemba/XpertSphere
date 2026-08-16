@@ -62,7 +62,7 @@ export interface JobOfferFilterDto extends Filter {
   status?: string;
   salaryMin?: number;
   salaryMax?: number;
-  organizationId?: string;
+  organizationId?: string | undefined;
   createdByUserId?: string;
   isActive?: boolean;
   isExpired?: boolean;

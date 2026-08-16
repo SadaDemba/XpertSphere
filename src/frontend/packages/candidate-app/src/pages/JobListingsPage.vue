@@ -39,7 +39,7 @@
       <!-- Advanced Filters -->
       <q-slide-transition>
         <div v-show="showFilters" class="filters-panel q-mt-md q-pa-md bg-grey-1 rounded-borders">
-          <div class="row q-gutter-md">
+          <div class="row q-col-gutter-md">
             <div class="col-12 col-md-3">
               <q-select
                 v-model="filters.location"
@@ -76,7 +76,22 @@
               />
             </div>
 
-            <div class="col-12 col-md-3 flex items-end">
+            <div class="col-12 col-md-3">
+              <q-select
+                v-model="filters.companyId"
+                filled
+                label="Entreprise"
+                :options="companyFilterOptions"
+                :disable="companyFilterOptions.length === 0"
+                clearable
+                emit-value
+                map-options
+              />
+            </div>
+          </div>
+
+          <div class="row q-mt-md">
+            <div class="col-12 flex justify-end">
               <q-btn color="primary" label="Appliquer" class="q-mr-sm" @click="handleFilter" />
               <q-btn flat label="Réinitialiser" @click="resetFilters" />
             </div>
@@ -167,8 +182,15 @@ const router = useRouter();
 const jobOfferStore = useJobOfferStore();
 const applicationStore = useApplicationStore();
 const authStore = useAuthStore();
-const { jobOffers, paginationInfo, isLoading, error, hasError, hasJobOffers } =
-  storeToRefs(jobOfferStore);
+const {
+  jobOffers,
+  paginationInfo,
+  isLoading,
+  error,
+  hasError,
+  hasJobOffers,
+  companyFilterOptions,
+} = storeToRefs(jobOfferStore);
 const { applications } = storeToRefs(applicationStore);
 const { isAuthenticated } = storeToRefs(authStore);
 
@@ -183,6 +205,7 @@ const filters = ref({
   location: null as string | null,
   workMode: null as string | null,
   contractType: null as string | null,
+  companyId: null as string | null,
 });
 
 // Computed
@@ -249,6 +272,7 @@ const handleFilter = async () => {
     location: filters.value.location || undefined,
     workMode: filters.value.workMode || undefined,
     contractType: filters.value.contractType || undefined,
+    organizationId: filters.value.companyId || undefined,
   };
   console.log('Handle filters', filters.value);
 
@@ -261,6 +285,7 @@ const resetFilters = async () => {
     location: null,
     workMode: null,
     contractType: null,
+    companyId: null,
   };
   currentPage.value = 1;
   jobOfferStore.resetFilters();
@@ -306,7 +331,7 @@ watch(
 
 // Lifecycle
 onMounted(async () => {
-  await loadJobOffers();
+  await Promise.all([loadJobOffers(), jobOfferStore.fetchCompanyFilterOptions()]);
 
   if (isAuthenticated.value) {
     await applicationStore.fetchMyApplications();
