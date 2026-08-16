@@ -119,31 +119,9 @@
                       :key="historyItem.id"
                       :color="getTimelineColor(historyItem.status)"
                       :icon="getTimelineIcon(historyItem.status)"
-                      :title="historyItem.statusDisplayName"
+                      :title="getApplicationStatusName(historyItem.status)"
                       :subtitle="formatDate(historyItem.updatedAt)"
-                    >
-                      <div v-if="historyItem.comment" class="timeline-comment q-mt-sm">
-                        <p class="text-body2 q-mb-none">{{ historyItem.comment }}</p>
-                      </div>
-
-                      <div v-if="historyItem.hasRating" class="timeline-rating q-mt-sm">
-                        <div class="row items-center">
-                          <q-rating
-                            v-model="historyItem.rating!"
-                            readonly
-                            size="18px"
-                            color="amber"
-                          />
-                          <span class="q-ml-sm text-caption">{{
-                            historyItem.ratingDescription
-                          }}</span>
-                        </div>
-                      </div>
-
-                      <div class="timeline-author text-caption text-grey-6 q-mt-sm">
-                        Par {{ historyItem.updatedByUserName }}
-                      </div>
-                    </q-timeline-entry>
+                    />
                   </q-timeline>
                 </q-card-section>
               </q-card>
@@ -333,7 +311,7 @@ import { storeToRefs } from 'pinia';
 import { useApplicationStore } from '../stores/applicationStore';
 import { useNotification } from '../composables/notification';
 import { applicationStatusConfig } from '../models/application';
-import { ApplicationStatus } from '../enums';
+import { ApplicationStatus, getApplicationStatusName } from '../enums';
 import EditApplicationDialog from '../components/EditApplicationDialog.vue';
 
 // Composables
@@ -529,18 +507,6 @@ onMounted(async () => {
   padding: 16px;
   border-radius: 8px;
   border-left: 4px solid var(--q-primary);
-}
-
-.timeline-comment {
-  background: #f8f9fa;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border-left: 3px solid #e0e0e0;
-}
-
-.timeline-rating,
-.timeline-author {
-  margin-left: 16px;
 }
 
 .actions-card {

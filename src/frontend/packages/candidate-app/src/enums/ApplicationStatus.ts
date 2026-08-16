@@ -60,3 +60,9 @@ export function mapToString(status: ApplicationStatus): string {
       return 'Unknown';
   }
 }
+
+// Libellé français affiché au candidat (réutilise les libellés de `statusOptions`),
+// à privilégier plutôt que le `statusDisplayName` renvoyé en anglais par le backend.
+export function getApplicationStatusName(status: ApplicationStatus): string {
+  return statusOptions.find((option) => option.value === status)?.label ?? 'Statut inconnu';
+}
