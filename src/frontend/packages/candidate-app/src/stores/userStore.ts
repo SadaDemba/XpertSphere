@@ -16,9 +16,12 @@ import { useAuthStore } from './authStore';
 const preserveUserCollections = (existing: User, incoming: User): User => ({
   ...existing,
   ...incoming,
-  skills: existing.skills,
-  experiences: existing.experiences,
-  trainings: existing.trainings,
+  // Ne réappliquer que les collections réellement présentes : sous
+  // `exactOptionalPropertyTypes`, affecter `undefined` à ces propriétés
+  // optionnelles est une erreur de type.
+  ...(existing.skills !== undefined && { skills: existing.skills }),
+  ...(existing.experiences !== undefined && { experiences: existing.experiences }),
+  ...(existing.trainings !== undefined && { trainings: existing.trainings }),
 });
 
 export const useUserStore = defineStore('user', () => {
@@ -63,10 +66,16 @@ export const useUserStore = defineStore('user', () => {
         // reliably return experiences/trainings/address, so trusting it would
         // wipe those sections until a reload.
         if (currentUser.value && currentUser.value.id === userId) {
-          currentUser.value = { ...currentUser.value, skills: skillsDto.skills };
+          currentUser.value = {
+            ...currentUser.value,
+            ...(skillsDto.skills !== undefined && { skills: skillsDto.skills }),
+          };
         }
         if (authStore.user && authStore.user.id === userId) {
-          authStore.setUser({ ...authStore.user, skills: skillsDto.skills });
+          authStore.setUser({
+            ...authStore.user,
+            ...(skillsDto.skills !== undefined && { skills: skillsDto.skills }),
+          });
         }
         notification.showSuccessNotification('Compétences mises à jour avec succès');
         return true;
