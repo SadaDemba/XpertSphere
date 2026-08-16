@@ -458,7 +458,6 @@
                 <router-link to="/terms" target="_blank" rel="noopener noreferrer" @click.stop>
                   conditions d'utilisation
                 </router-link>
-                (nouvel onglet)
               </span>
             </q-checkbox>
             <q-checkbox v-model="formData.acceptPrivacyPolicy">
@@ -467,7 +466,6 @@
                 <router-link to="/privacy" target="_blank" rel="noopener noreferrer" @click.stop>
                   politique de confidentialité
                 </router-link>
-                (nouvel onglet)
               </span>
             </q-checkbox>
           </div>

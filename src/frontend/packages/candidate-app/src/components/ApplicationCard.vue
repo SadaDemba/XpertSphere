@@ -35,7 +35,7 @@
       </div>
 
       <div v-if="application.coverLetter" class="cover-letter-preview q-mb-md">
-        <p class="text-caption text-grey-7 q-mb-xs">Lettre de motivation :</p>
+        <p class="text-caption text-grey-7 q-mb-xs">Motivation :</p>
         <p class="text-body2 text-grey-8">{{ truncatedCoverLetter }}</p>
       </div>
 

@@ -74,8 +74,8 @@
           </li>
           <li>
             vous permettre de postuler aux offres d'emploi publiées sur la plateforme, et
-            transmettre votre candidature (profil, CV, lettre de motivation) aux recruteurs de
-            l'organisation qui a publié l'offre ;
+            transmettre votre candidature (profil, CV, Motivation) aux recruteurs de l'organisation
+            qui a publié l'offre ;
           </li>
           <li>
             vous envoyer l'email nécessaire à l'activation de votre compte à l'inscription

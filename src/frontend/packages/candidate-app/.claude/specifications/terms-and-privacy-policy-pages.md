@@ -357,7 +357,7 @@ tiers.
 ## 5. Candidatures
 
 En postulant à une offre, vous autorisez l'organisation ayant publié cette offre à consulter votre
-profil candidat, votre CV et les éléments de votre candidature (lettre de motivation, notes) afin
+profil candidat, votre CV et les éléments de votre candidature (motivation, notes) afin
 d'évaluer votre candidature. Vous pouvez consulter le statut de vos candidatures depuis votre
 espace « Mes candidatures » et, selon les fonctionnalités disponibles, retirer une candidature en
 cours.
@@ -445,7 +445,7 @@ Nous utilisons vos données pour :
 - analyser automatiquement le contenu de votre CV afin de préremplir votre profil et vous faire
   gagner du temps à l'inscription ;
 - vous permettre de postuler aux offres d'emploi publiées sur la plateforme, et transmettre votre
-  candidature (profil, CV, lettre de motivation) aux recruteurs de l'organisation qui a publié
+  candidature (profil, CV, motivation) aux recruteurs de l'organisation qui a publié
   l'offre ;
 - vous envoyer l'email nécessaire à l'activation de votre compte à l'inscription (confirmation de
   votre adresse email, sans laquelle vous ne pouvez pas vous connecter) ;

@@ -41,7 +41,7 @@
             </div>
 
             <div class="cover-letter-section q-mb-lg">
-              <h3 class="text-h6 q-mb-md">Lettre de motivation</h3>
+              <h3 class="text-h6 q-mb-md">Motivationotivation</h3>
               <q-card flat bordered class="cover-letter-card">
                 <q-card-section>
                   <p class="text-body1">{{ application.coverLetter }}</p>

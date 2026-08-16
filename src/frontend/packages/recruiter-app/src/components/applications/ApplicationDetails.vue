@@ -167,7 +167,7 @@
                 </div>
 
                 <div v-if="application.coverLetter" class="q-mb-md">
-                  <div class="text-weight-medium q-mb-sm">Lettre de motivation :</div>
+                  <div class="text-weight-medium q-mb-sm">Motivation :</div>
                   <div class="text-body2 q-pa-md bg-grey-2 rounded-borders">
                     {{ application.coverLetter }}
                   </div>

@@ -75,7 +75,7 @@
                 <q-card-section>
                   <h6 class="text-h6 q-mt-none q-mb-md">
                     <q-icon name="email" class="q-mr-sm" />
-                    Ma lettre de motivation
+                    Motivation
                   </h6>
                   <div class="cover-letter-content">
                     {{ currentApplication.coverLetter }}

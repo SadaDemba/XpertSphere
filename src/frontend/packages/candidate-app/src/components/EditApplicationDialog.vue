@@ -20,11 +20,11 @@
           <q-input
             v-model="updatedApplication.coverLetter"
             type="textarea"
-            label="Lettre de motivation"
+            label="Motivation"
             placeholder="Expliquez pourquoi vous êtes le candidat idéal pour ce poste..."
             rows="6"
             filled
-            :rules="[(val) => !!val || 'Une lettre de motivation est requise']"
+            :rules="[(val) => !!val || 'La motivation est requise']"
             counter
             maxlength="2000"
           />
