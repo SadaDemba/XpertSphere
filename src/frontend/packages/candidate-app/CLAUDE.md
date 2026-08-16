@@ -18,6 +18,7 @@ Stack technique : Vue 3 (Composition API) + Quasar Framework 2 + TypeScript + Pi
 - Le sélecteur de devise du salaire souhaité (inscription, profil) et la devise réellement affichée sur `ProfilePage.vue`/`JobDetailsPage.vue` sont pilotés par une spécification backend qui impacte directement ce package : voir `src/backend/XpertSphere.MonolithApi/.claude/specifications/configurable-salary-currency.md`, section « Coordination frontend — candidate-app ».
 - L'alignement des règles de mot de passe de `MultiStepRegisterForm.vue` (ajout d'une règle « caractère spécial », longueur minimale portée à 8) sur la politique réelle du backend est piloté par une spécification backend qui impacte directement ce package : voir `src/backend/XpertSphere.MonolithApi/.claude/specifications/localize-identity-error-messages.md`, section « Coordination frontend — alignement des règles de mot de passe ».
 - Le contenu réel des pages « Conditions d'utilisation »/« Politique de confidentialité » (`/terms`, `/privacy`), les liens cliquables correspondants sur `MultiStepRegisterForm.vue`, et un correctif ponctuel côté backend sans impact fonctionnel (`RegisterCandidateDto.cs`) : voir `.claude/specifications/terms-and-privacy-policy-pages.md`.
+- Le filtre « Entreprise » (dropdown) de `JobListingsPage.vue`, sa source de données dérivée côté frontend (sans nouvel endpoint ni modèle `Organization`) et le correctif de layout associé : voir `.claude/specifications/filter-jobs-by-company.md`.
 
 ## Commandes
 

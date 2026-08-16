@@ -11,6 +11,10 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
   const jobOffers = ref<JobOfferDto[]>([]);
   const currentJobOffer = ref<JobOfferDto | null>(null);
   const organizationJobOffers = ref<JobOfferDto[]>([]);
+  // Source des options du filtre "Entreprise" (dropdown de JobListingsPage.vue), isolée de
+  // l'état jobOffers/paginationInfo/currentFilter qui pilote la liste affichée et sa pagination
+  // (cf. filter-jobs-by-company.md).
+  const companyFilterSourceOffers = ref<JobOfferDto[]>([]);
   const paginationInfo = ref<Pagination>({
     currentPage: 1,
     pageSize: 10,
@@ -38,6 +42,21 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
       (job) => job.status === JobOfferStatus.Published && job.isActive && !job.isExpired,
     ),
   );
+  const companyFilterOptions = computed(() => {
+    const seen = new Set<string>();
+    const options: { label: string; value: string }[] = [];
+
+    companyFilterSourceOffers.value
+      .filter((job) => job.status === JobOfferStatus.Published && job.isActive && !job.isExpired)
+      .forEach((job) => {
+        if (!seen.has(job.organizationId)) {
+          seen.add(job.organizationId);
+          options.push({ label: job.organizationName, value: job.organizationId });
+        }
+      });
+
+    return options.sort((a, b) => a.label.localeCompare(b.label, 'fr'));
+  });
 
   // Actions
   const clearError = () => {
@@ -134,6 +153,30 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     }
   };
 
+  const fetchCompanyFilterOptions = async (): Promise<void> => {
+    // Source des options de la dropdown "Entreprise" (JobListingsPage.vue) : volontairement
+    // silencieux, sans notification de succès/erreur, et sans setLoading/clearError/setError
+    // (cf. prune-non-actionable-notifications.md et filter-jobs-by-company.md) — ce chargement
+    // ne doit affecter ni le spinner ni le bandeau d'erreur qui pilotent la liste d'offres affichée.
+    try {
+      const response = await jobOfferService.getAllPaginatedJobOffers({
+        pageNumber: 1,
+        pageSize: 100,
+        status: 'Published',
+        isActive: true,
+        isExpired: false,
+      });
+
+      if (response?.isSuccess) {
+        companyFilterSourceOffers.value = response.data ?? [];
+      } else {
+        companyFilterSourceOffers.value = [];
+      }
+    } catch {
+      companyFilterSourceOffers.value = [];
+    }
+  };
+
   const searchJobOffers = async (searchTerms: string): Promise<boolean> => {
     return fetchJobOffers({
       ...currentFilter.value,
@@ -175,6 +218,7 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     jobOffers: jobOffers,
     currentJobOffer: currentJobOffer,
     organizationJobOffers: organizationJobOffers,
+    companyFilterSourceOffers: companyFilterSourceOffers,
     paginationInfo: paginationInfo,
     isLoading: isLoading,
     error: error,
@@ -184,12 +228,14 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     hasError,
     hasJobOffers,
     publishedJobOffers,
+    companyFilterOptions,
 
     // Actions
     clearError,
     fetchJobOffers,
     fetchJobOfferById,
     fetchJobOffersByOrganization,
+    fetchCompanyFilterOptions,
     searchJobOffers,
     filterJobOffers,
     loadPage,
