@@ -47,7 +47,12 @@ export const useJobOfferStore = defineStore('jobOffer', () => {
     const options: { label: string; value: string }[] = [];
 
     companyFilterSourceOffers.value
-      .filter((job) => job.status === JobOfferStatus.Published && job.isActive && !job.isExpired)
+      // La source est déjà filtrée côté serveur (status=Published, isActive, non expirée
+      // dans fetchCompanyFilterOptions). Ne PAS re-comparer `job.status` à
+      // `JobOfferStatus.Published` ici : l'API sérialise l'enum en chaîne ("Published"),
+      // alors que `JobOfferStatus.Published` vaut `1` — la comparaison serait toujours
+      // fausse et viderait la dropdown (qui se désactive alors via `:disable`).
+      .filter((job) => job.isActive && !job.isExpired)
       .forEach((job) => {
         if (!seen.has(job.organizationId)) {
           seen.add(job.organizationId);
