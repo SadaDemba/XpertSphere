@@ -63,6 +63,14 @@ export function mapToString(status: ApplicationStatus): string {
 
 // Libellé français affiché au candidat (réutilise les libellés de `statusOptions`),
 // à privilégier plutôt que le `statusDisplayName` renvoyé en anglais par le backend.
-export function getApplicationStatusName(status: ApplicationStatus): string {
-  return statusOptions.find((option) => option.value === status)?.label ?? 'Statut inconnu';
+export function getApplicationStatusName(status: ApplicationStatus | string): string {
+  // L'API sérialise l'enum en NOM de chaîne ("Applied", "Reviewed", …) alors que
+  // `ApplicationStatus` est un enum numérique (Applied = 0). On normalise donc vers
+  // la valeur numérique avant de chercher le libellé, sinon la comparaison
+  // `option.value === status` (0 === "Applied") échoue toujours → "Statut inconnu".
+  const numericStatus =
+    typeof status === 'string'
+      ? ApplicationStatus[status as keyof typeof ApplicationStatus]
+      : status;
+  return statusOptions.find((option) => option.value === numericStatus)?.label ?? 'Statut inconnu';
 }
