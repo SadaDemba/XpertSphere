@@ -280,6 +280,11 @@ export class BaseClient {
    * Get a valid JWT token (refresh if necessary)
    */
   private async getValidJwtToken(): Promise<string | null> {
+    // Relire le token depuis le localStorage à chaque requête (comme candidate-app) :
+    // chaque service a sa propre instance de BaseClient, et le login n'appelle
+    // setJwtTokens que sur authService. Sans cette relecture, les autres services
+    // gardaient un token en mémoire nul jusqu'à un refresh de la page.
+    this.loadJwtTokensFromStorage();
     if (!this.jwtTokens?.accessToken) {
       return null;
     }
